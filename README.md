@@ -47,6 +47,7 @@ docs/            All planning and architecture documentation
 | [docs/DATA-MODEL.md](docs/DATA-MODEL.md) | Draft database schema |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Phased plan from MVP to paid plans |
 | [docs/PRIVACY.md](docs/PRIVACY.md) | GDPR strategy |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | CI/CD setup — all deploys run from GitHub Actions |
 | [docs/decisions/](docs/decisions/) | Architecture Decision Records (ADRs) |
 | [AGENTS.md](AGENTS.md) | Instructions for AI coding agents |
 

@@ -17,8 +17,9 @@ against a running local Supabase, and the first real deploy to stubs.tv.**
       code is in place (login page, server actions, middleware guard),
       needs local Supabase running to test
 - [ ] Deploy walking skeleton to Cloudflare Workers at stubs.tv — OpenNext
-      build + local `wrangler dev` smoke test pass; needs `wrangler login`,
-      a hosted Supabase project (EU), and enabling the route in wrangler.jsonc
+      build + local `wrangler dev` smoke test pass; GitHub Actions deploy
+      pipeline is in place, needs the one-time setup in docs/DEPLOYMENT.md
+      (hosted Supabase project, API tokens, repo secrets, DEPLOY_ENABLED)
 - [x] CI: typecheck + lint + build on GitHub Actions
 
 ## Phase 1 — Track (MVP: daily-driver for the owner)

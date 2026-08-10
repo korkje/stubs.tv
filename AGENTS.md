@@ -68,7 +68,9 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
 - `npm run dev` — Next.js dev server
 - `npm run typecheck` / `npm run lint` / `npm run build`
 - `npm run preview` — OpenNext build + local Workers preview
-- `npm run deploy` — OpenNext build + deploy to Cloudflare (needs wrangler login)
+- Production deploys run from GitHub Actions on push to main (see
+  docs/DEPLOYMENT.md) — do NOT deploy from a local machine;
+  `npm run deploy` is a break-glass escape hatch only
 - `npx supabase start` — local Supabase stack (needs Docker); copy the
   printed URL/anon key into `apps/web/.env.local` (see `apps/web/.env.example`)
 

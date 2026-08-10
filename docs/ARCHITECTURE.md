@@ -101,7 +101,10 @@ No Turborepo until there's more than one app — plain npm scripts suffice.
 ## Environments
 
 - **Local**: `supabase start` + `npm run dev` (+ `.env.local` with TVDB key).
-- **Production**: Cloudflare Workers + hosted Supabase (EU). Secrets in
-  Cloudflare (wrangler secrets), never in the repo.
+- **Production**: Cloudflare Workers + hosted Supabase (EU). Deployed
+  exclusively from GitHub Actions on pushes to main — checks, then
+  `supabase db push`, then the worker deploy. Runtime secrets live in
+  Cloudflare (wrangler secrets), never in the repo. See
+  [DEPLOYMENT.md](DEPLOYMENT.md).
 - **Preview**: Workers preview deployments; pointed at a separate Supabase
   project (or local) — never at production data.
