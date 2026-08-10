@@ -5,7 +5,11 @@ import { Button } from "@radix-ui/themes";
 import { EyeNoneIcon, EyeOpenIcon } from "@radix-ui/react-icons";
 import { markSeen, unmarkSeen } from "@/lib/tracking/actions";
 
-/** Seen/unseen for a single film, where a button reads better than a checkbox. */
+/**
+ * Seen/unseen for a single film, where a button reads better than an icon.
+ * Colour and icon describe the state, matching the episode toggles: amber
+ * with an open eye means seen.
+ */
 export function SeenToggleButton({
   entityId,
   seen,
@@ -20,8 +24,8 @@ export function SeenToggleButton({
 
   return (
     <Button
-      variant={optimisticSeen ? "soft" : "solid"}
-      color={optimisticSeen ? "gray" : undefined}
+      variant="soft"
+      color={optimisticSeen ? "amber" : "gray"}
       onClick={() => {
         const next = !optimisticSeen;
         startTransition(async () => {

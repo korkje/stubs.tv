@@ -35,10 +35,13 @@ export default async function LoginPage({
                 <Text as="div" size="2" mb="1" weight="medium">
                   Email
                 </Text>
+                {/* size 3 is 16px: anything smaller makes iOS Safari zoom
+                    in when the field is focused. */}
                 <TextField.Root
                   name="email"
                   type="email"
                   autoComplete="email"
+                  size="3"
                   required
                 />
               </label>
@@ -50,6 +53,7 @@ export default async function LoginPage({
                   name="password"
                   type="password"
                   autoComplete="current-password"
+                  size="3"
                   required
                 />
               </label>

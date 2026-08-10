@@ -7,7 +7,6 @@ import {
   Flex,
   Heading,
   Separator,
-  Table,
   Text,
 } from "@radix-ui/themes";
 import type { Episode } from "@stubs/db";
@@ -15,10 +14,10 @@ import { ensureSeriesIngested } from "@/lib/metadata/ingest";
 import { createClient } from "@/lib/supabase/server";
 import { Poster } from "@/components/Poster";
 import { BulkMarkButtons } from "@/components/tracking/BulkMarkButtons";
-import { EpisodeToggle } from "@/components/tracking/EpisodeToggle";
+import { EpisodeRow } from "@/components/tracking/EpisodeRow";
 import { FollowButton } from "@/components/tracking/FollowButton";
 import { RatingSelect } from "@/components/tracking/RatingSelect";
-import { formatDate, formatRuntime } from "@/lib/format";
+import { formatRuntime } from "@/lib/format";
 
 export default async function SeriesPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -135,7 +134,7 @@ export default async function SeriesPage({ params }: { params: Promise<{ id: str
                   revalidate={path}
                   allSeen={airedIds.every((airedId) => seenIds.has(airedId))}
                   size="2"
-                  label="whole show"
+                  label="show"
                 />
               )}
             </Flex>
@@ -183,49 +182,17 @@ export default async function SeriesPage({ params }: { params: Promise<{ id: str
                   )}
                 </Flex>
                 <Card>
-                  <Table.Root size="1" variant="ghost">
-                    <Table.Body>
-                      {seasonEpisodes.map((episode) => (
-                        <Table.Row key={episode.id}>
-                          <Table.Cell width="40px">
-                            <EpisodeToggle
-                              episodeId={episode.id}
-                              seen={seenIds.has(episode.id)}
-                              revalidate={path}
-                              label={`${seasonNumber}x${episode.number} ${episode.name ?? ""}`}
-                            />
-                          </Table.Cell>
-                          <Table.Cell width="56px">
-                            <Text color="gray">
-                              {seasonNumber}×{String(episode.number).padStart(2, "0")}
-                            </Text>
-                          </Table.Cell>
-                          <Table.Cell>
-                            <Text as="div">{episode.name ?? "Untitled"}</Text>
-                            {episode.overview && (
-                              <Text
-                                as="div"
-                                size="1"
-                                color="gray"
-                                mt="1"
-                                className="clamp-2-lines"
-                              >
-                                {episode.overview}
-                              </Text>
-                            )}
-                          </Table.Cell>
-                          <Table.Cell width="120px">
-                            <Text color="gray">{formatDate(episode.aired)}</Text>
-                          </Table.Cell>
-                          <Table.Cell width="80px">
-                            <Text color="gray">
-                              {episode.runtime_min ? `${episode.runtime_min}m` : "—"}
-                            </Text>
-                          </Table.Cell>
-                        </Table.Row>
-                      ))}
-                    </Table.Body>
-                  </Table.Root>
+                  <Box px="1">
+                    {seasonEpisodes.map((episode, index) => (
+                      <EpisodeRow
+                        key={episode.id}
+                        episode={episode}
+                        seen={seenIds.has(episode.id)}
+                        revalidate={path}
+                        last={index === seasonEpisodes.length - 1}
+                      />
+                    ))}
+                  </Box>
                 </Card>
               </Flex>
             );

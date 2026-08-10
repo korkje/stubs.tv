@@ -43,7 +43,7 @@ export function RatingSelect({
       <Select.Trigger
         variant="soft"
         color="gray"
-        placeholder="Rate…"
+        placeholder="Rate"
         aria-label="Your rating"
       />
       <Select.Content position="popper">

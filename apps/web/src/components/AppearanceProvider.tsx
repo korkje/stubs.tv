@@ -1,6 +1,7 @@
 "use client";
 
 import { ThemeProvider } from "next-themes";
+import { ThemeColorSync } from "./ThemeColorSync";
 
 /**
  * Persists the light/dark/system preference and puts a `dark` class on <html>,
@@ -11,6 +12,7 @@ import { ThemeProvider } from "next-themes";
 export function AppearanceProvider({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <ThemeColorSync />
       {children}
     </ThemeProvider>
   );

@@ -1,8 +1,37 @@
+/*
+ * Radix Themes paints its background on its own element, which leaves the
+ * document itself transparent — Safari then tints its collapsing toolbars
+ * from the page behind, showing black. Painting html/body ourselves fixes
+ * that, and color-scheme tells the browser to render native chrome
+ * (scrollbars, form controls, overscroll) to match.
+ */
+:root {
+  color-scheme: light;
+  --page-background: #ffffff;
+}
+
+:is(.dark, .dark-theme) {
+  color-scheme: dark;
+  --page-background: #111111;
+}
+
 html,
 body {
   margin: 0;
   padding: 0;
   min-height: 100dvh;
+  background-color: var(--page-background);
+}
+
+/* Hides a label below Radix's `sm` breakpoint, leaving an icon-only control. */
+.label-sm-up {
+  display: none;
+}
+
+@media (min-width: 520px) {
+  .label-sm-up {
+    display: inline;
+  }
 }
 
 /* Keeps long episode synopses to a couple of lines in dense listings. */
