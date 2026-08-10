@@ -33,6 +33,10 @@ pipeline, search and read-only title pages — is done; slice 2 is tracking
 
 **Slice 2 — tracking (next)**
 
+- [ ] Return-to-destination after sign-in: the auth guard currently redirects
+      to `/login` and drops the intended path (and leaks the original query
+      string, e.g. `/login?q=wire`) — pass a `next` param and honour it
+
 - [ ] Mark episode/season/show as seen; mark movie as seen
 - [ ] Follow/unfollow series
 - [ ] "My shows" dashboard: followed shows with unseen-episode counts
