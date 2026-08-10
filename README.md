@@ -52,7 +52,16 @@ docs/            All planning and architecture documentation
 
 ## Running locally
 
-Not yet — no code has been written. Once the app is scaffolded, this section will contain real setup steps (`npm install`, `supabase start`, `npm run dev`). Self-hosting will always be a first-class, documented path.
+Requires Node ≥24 (see `.nvmrc`) and Docker (for the local Supabase stack).
+
+```sh
+npm install
+npx supabase start        # prints the local API URL and anon key
+cp apps/web/.env.example apps/web/.env.local   # paste the anon key in
+npm run dev               # http://localhost:3000
+```
+
+Self-hosting is a first-class, documented path and will stay that way.
 
 ## License
 

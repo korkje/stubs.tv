@@ -63,7 +63,25 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
 - [docs/PRIVACY.md](docs/PRIVACY.md) — GDPR strategy
 - [docs/decisions/](docs/decisions/) — ADRs
 
+## Commands (run from the repo root)
+
+- `npm run dev` — Next.js dev server
+- `npm run typecheck` / `npm run lint` / `npm run build`
+- `npm run preview` — OpenNext build + local Workers preview
+- `npm run deploy` — OpenNext build + deploy to Cloudflare (needs wrangler login)
+- `npx supabase start` — local Supabase stack (needs Docker); copy the
+  printed URL/anon key into `apps/web/.env.local` (see `apps/web/.env.example`)
+
+## Known workarounds
+
+- `apps/web/src/middleware.ts` uses the deprecated edge middleware convention
+  instead of Next 16's `proxy.ts`, because @opennextjs/cloudflare doesn't
+  support Node-runtime middleware yet
+  (https://github.com/opennextjs/opennextjs-cloudflare/issues/962). Rename to
+  proxy.ts when that issue is fixed.
+
 ## Current status
 
-Planning complete, no application code yet. Next step is Phase 0 of
-[docs/ROADMAP.md](docs/ROADMAP.md): scaffolding the monorepo.
+Phase 0 scaffold done and verified (typecheck, lint, next build, OpenNext
+build, wrangler dev smoke test). See "Current status" in
+[docs/ROADMAP.md](docs/ROADMAP.md) for what remains before Phase 1.

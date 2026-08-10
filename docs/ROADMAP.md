@@ -4,16 +4,22 @@ Phases are sequential; each ends with something the owner actually uses.
 Update the status column as work proceeds — this file is the cross-environment
 source of truth for "where are we".
 
-**Current status: Phase 0 not started (planning complete, 2026-08-10).**
+**Current status: Phase 0 mostly done (2026-08-10) — remaining: verify auth
+against a running local Supabase, and the first real deploy to stubs.tv.**
 
 ## Phase 0 — Scaffold
 
-- [ ] npm workspace layout (`apps/web`, `packages/*`, `supabase/`)
-- [ ] Next.js app with TypeScript strict + Radix Themes wired up
-- [ ] Supabase local dev (`supabase start`) + first migration (profiles)
-- [ ] Supabase Auth working end-to-end (sign up, sign in, session in SSR)
-- [ ] Deploy walking skeleton to Cloudflare Workers at stubs.tv
-- [ ] CI: typecheck + lint + build on GitHub Actions
+- [x] npm workspace layout (`apps/web`, `packages/*`, `supabase/`)
+- [x] Next.js app with TypeScript strict + Radix Themes wired up
+- [x] Supabase local config + first migration (profiles) — end-to-end run
+      still needs Docker up + `npx supabase start`
+- [ ] Supabase Auth verified end-to-end (sign up, sign in, session in SSR) —
+      code is in place (login page, server actions, middleware guard),
+      needs local Supabase running to test
+- [ ] Deploy walking skeleton to Cloudflare Workers at stubs.tv — OpenNext
+      build + local `wrangler dev` smoke test pass; needs `wrangler login`,
+      a hosted Supabase project (EU), and enabling the route in wrangler.jsonc
+- [x] CI: typecheck + lint + build on GitHub Actions
 
 ## Phase 1 — Track (MVP: daily-driver for the owner)
 
