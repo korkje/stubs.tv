@@ -143,10 +143,16 @@ export async function ensureSeriesIngested(seriesId: number): Promise<void> {
 
   if (episodes.length === 0) return;
 
+  // Postgres rejects an upsert that touches the same row twice, so collapse
+  // any duplicate (season, episode) pairs the provider may return.
+  const uniqueEpisodes = [
+    ...new Map(episodes.map((e) => [`${e.seasonNumber}:${e.number}`, e])).values(),
+  ];
+
   const { data: upserted, error: episodeError } = await supabase
     .from("episodes")
     .upsert(
-      episodes.map((episode) => ({
+      uniqueEpisodes.map((episode) => ({
         series_id: seriesId,
         season_number: episode.seasonNumber,
         number: episode.number,
@@ -167,7 +173,10 @@ export async function ensureSeriesIngested(seriesId: number): Promise<void> {
   // Record provider IDs for the episodes so the future refresh job can match
   // them up. Returned rows are not in input order, so match on the natural key.
   const providerIdByPosition = new Map(
-    episodes.map((episode) => [`${episode.seasonNumber}:${episode.number}`, episode.providerId])
+    uniqueEpisodes.map((episode) => [
+      `${episode.seasonNumber}:${episode.number}`,
+      episode.providerId,
+    ])
   );
 
   const mappings = upserted

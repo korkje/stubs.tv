@@ -74,6 +74,10 @@ pipeline, search and read-only title pages — is done; slice 2 is tracking
 
 ## Icebox (explicitly deferred)
 
+- Batch `resolve_entities()` for search — a search currently spends one RPC
+  per result (~25 subrequests against the free plan's 50-per-request cap).
+  A single jsonb-array function would cut it to a handful and speed search up.
+
 - Migrate auth email from Mailjet to Cloudflare Email Service — when on
   Workers Paid and the service is GA (ADR-0009; SMTP credential swap)
 
