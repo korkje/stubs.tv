@@ -10,7 +10,9 @@ import {
   Heading,
   Text,
   TextField,
+  VisuallyHidden,
 } from "@radix-ui/themes";
+import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import { getMetadataProvider } from "@/lib/metadata/provider";
 import { resolveSearchResults, titlePath } from "@/lib/metadata/ingest";
 import { Poster } from "@/components/Poster";
@@ -26,7 +28,11 @@ export default async function SearchPage({
   return (
     <Container size="4" px="4">
       <Flex direction="column" gap="5">
-        <Heading size="6">Search</Heading>
+        {/* No visible heading: it would only repeat the nav item above it,
+            and the field makes the purpose obvious. */}
+        <VisuallyHidden>
+          <Heading as="h1">Search</Heading>
+        </VisuallyHidden>
 
         <form>
           <Flex gap="3" align="center">
@@ -34,10 +40,14 @@ export default async function SearchPage({
               <TextField.Root
                 name="q"
                 defaultValue={query}
-                placeholder="Search for a film or TV show…"
+                placeholder="Search for a movie or TV show…"
                 size="3"
                 autoFocus
-              />
+              >
+                <TextField.Slot>
+                  <MagnifyingGlassIcon height="18" width="18" />
+                </TextField.Slot>
+              </TextField.Root>
             </Box>
             <Button size="3" type="submit">
               Search
@@ -45,7 +55,15 @@ export default async function SearchPage({
           </Flex>
         </form>
 
-        {query && <Results query={query} />}
+        {query ? (
+          <Results query={query} />
+        ) : (
+          <Text size="2" color="gray">
+            Everything on TheTVDB is here — series, one-off specials and
+            movies. Find something to follow, or to add to what you have
+            already watched.
+          </Text>
+        )}
       </Flex>
     </Container>
   );

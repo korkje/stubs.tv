@@ -454,6 +454,15 @@ export type Database = {
         }
         Relationships: []
       }
+      watch_totals: {
+        Row: {
+          episodes_seen: number | null
+          minutes_watched: number | null
+          movies_seen: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       watched_episodes: {
         Row: {
           episode_id: number | null

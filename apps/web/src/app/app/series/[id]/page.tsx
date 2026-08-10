@@ -14,6 +14,7 @@ import { ChevronDownIcon, ChevronRightIcon } from "@radix-ui/react-icons";
 import { ensureSeriesIngested } from "@/lib/metadata/ingest";
 import { createClient } from "@/lib/supabase/server";
 import { Poster } from "@/components/Poster";
+import { Stat } from "@/components/Stat";
 import { BulkMarkButtons } from "@/components/tracking/BulkMarkButtons";
 import { EpisodeRow } from "@/components/tracking/EpisodeRow";
 import { FollowButton } from "@/components/tracking/FollowButton";
@@ -265,15 +266,3 @@ async function SeasonEpisodes({
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <Flex direction="column">
-      <Text size="1" color="gray">
-        {label}
-      </Text>
-      <Text size="4" weight="medium">
-        {value}
-      </Text>
-    </Flex>
-  );
-}
