@@ -66,7 +66,7 @@ async function Results({ query }: { query: string }) {
   }
 
   if (results.length === 0) {
-    return <Text color="gray">No films or TV shows match “{query}”.</Text>;
+    return <Text color="gray">No movies or TV shows match “{query}”.</Text>;
   }
 
   // Give every hit an internal ID so links never expose provider IDs.
@@ -94,7 +94,7 @@ async function Results({ query }: { query: string }) {
                       </Text>
                     )}
                     <Badge color={result.kind === "series" ? "amber" : "blue"} variant="soft">
-                      {result.kind === "series" ? "TV" : "Film"}
+                      {result.kind === "series" ? "TV" : "Movie"}
                     </Badge>
                   </Flex>
                   {result.overview && (

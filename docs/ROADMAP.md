@@ -43,8 +43,9 @@ pipeline, search and read-only title pages — is done; slice 2 is tracking
 - [x] Rate anything, 1–10, in its own `ratings` table (feeds the
       recommendation ideas in VISION.md)
 - [x] Follow/unfollow series
-- [x] Split the nav into **Shows** and **Films**
-- [x] Shows dashboard: followed shows with unseen-episode counts
+- [x] Home page with **Shows** and **Movies** tabs (link-based, so only the
+      open tab is queried and rendered)
+- [x] Shows tab: followed shows with unseen-episode counts
 - [ ] Watch history list (edit `watched_at`, unmark) — the place to fix
       timezone display: dates currently render from UTC, so a late-evening
       view can show the previous day

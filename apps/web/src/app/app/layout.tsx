@@ -28,10 +28,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <Flex asChild align="center" gap={{ initial: "3", sm: "4" }}>
                   <nav>
                     <RadixLink asChild size="2" color="gray" highContrast underline="hover">
-                      <Link href="/app/shows">Shows</Link>
-                    </RadixLink>
-                    <RadixLink asChild size="2" color="gray" highContrast underline="hover">
-                      <Link href="/app/films">Films</Link>
+                      <Link href="/app">Home</Link>
                     </RadixLink>
                     <RadixLink asChild size="2" color="gray" highContrast underline="hover">
                       <Link href="/app/search">Search</Link>
