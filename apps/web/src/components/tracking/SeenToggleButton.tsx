@@ -2,6 +2,7 @@
 
 import { useOptimistic, useTransition } from "react";
 import { Button } from "@radix-ui/themes";
+import { EyeNoneIcon, EyeOpenIcon } from "@radix-ui/react-icons";
 import { markSeen, unmarkSeen } from "@/lib/tracking/actions";
 
 /** Seen/unseen for a single film, where a button reads better than a checkbox. */
@@ -30,6 +31,7 @@ export function SeenToggleButton({
         });
       }}
     >
+      {optimisticSeen ? <EyeOpenIcon /> : <EyeNoneIcon />}
       {optimisticSeen ? "Seen" : "Mark as seen"}
     </Button>
   );

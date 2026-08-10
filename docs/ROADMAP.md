@@ -95,7 +95,15 @@ pipeline, search and read-only title pages — is done; slice 2 is tracking
 - Rewatch tracking (relax `watches` uniqueness)
 - Personal ratings surfaced in UI
 - TMDB as a second metadata provider (needs their commercial license)
-- Streaming availability ("where to watch")
+- Streaming availability ("where to watch") — **not obtainable from TheTVDB**:
+  it exposes the broadcast network (`originalNetwork`, e.g. HBO) but no
+  per-country streaming data, and has no availability endpoint. Real data
+  means JustWatch, either directly or through TMDB's watch-providers endpoint,
+  both of which carry attribution terms and commercial licensing questions
+  (the same reason ADR-0004 kept us on one provider). Showing the network is
+  free and could land any time; "where to stream" is a licensing decision
+- Watched-date precision: decade/year/month, not just exact-or-unknown
+  (see DATA-MODEL.md)
 - Social features, public profiles
 - Import from Trakt/IMDb/CSV — worth considering earlier if any export of the
   owner's old watch history turns up

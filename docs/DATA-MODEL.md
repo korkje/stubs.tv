@@ -118,6 +118,16 @@ Ratings feed the recommendation ideas in VISION.md, so the scale is numeric
 (1–10) rather than thumbs — more signal for later, and it can always be
 *displayed* as stars.
 
+**Date precision is a known gap.** `watched_at` is currently either an exact
+timestamp or null ("seen, date unknown"). Backfilling is the normal case, not
+the exception, and people often remember roughly when — "the 90s", "2011",
+"March 2019". Supporting that means storing a precision alongside the date
+(`unknown | decade | year | month | day`) and rendering to match, which also
+lets the activity analytics widen a backfilled entry across its range instead
+of pretending it happened at midnight on the 1st. Deliberately postponed: null
+covers the honest case today, and adding a `watched_precision` column later
+needs no rewrite of what exists.
+
 **Rewatch is deferred, not designed out.** The unique constraint makes
 "mark as seen" idempotent, which matters for a toggle that can be
 double-clicked. Supporting rewatches later means dropping that constraint and

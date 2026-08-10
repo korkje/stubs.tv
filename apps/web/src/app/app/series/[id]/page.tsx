@@ -165,13 +165,14 @@ export default async function SeriesPage({ params }: { params: Promise<{ id: str
             return (
               <Flex key={seasonNumber} direction="column" gap="2">
                 <Flex align="center" justify="between" gap="3" wrap="wrap">
-                  <Heading size="4">
-                    {seasonNumber === 0 ? "Specials" : `Season ${seasonNumber}`}
-                    <Text size="2" color="gray" weight="regular">
-                      {"  "}
+                  <Flex align="baseline" gap="3">
+                    <Heading size="4">
+                      {seasonNumber === 0 ? "Specials" : `Season ${seasonNumber}`}
+                    </Heading>
+                    <Text size="2" color="gray">
                       {seasonSeen} of {seasonEpisodes.length} seen
                     </Text>
-                  </Heading>
+                  </Flex>
                   {seasonAiredIds.length > 0 && (
                     <BulkMarkButtons
                       episodeIds={seasonAiredIds}
@@ -199,7 +200,20 @@ export default async function SeriesPage({ params }: { params: Promise<{ id: str
                               {seasonNumber}×{String(episode.number).padStart(2, "0")}
                             </Text>
                           </Table.Cell>
-                          <Table.Cell>{episode.name ?? "Untitled"}</Table.Cell>
+                          <Table.Cell>
+                            <Text as="div">{episode.name ?? "Untitled"}</Text>
+                            {episode.overview && (
+                              <Text
+                                as="div"
+                                size="1"
+                                color="gray"
+                                mt="1"
+                                className="clamp-2-lines"
+                              >
+                                {episode.overview}
+                              </Text>
+                            )}
+                          </Table.Cell>
                           <Table.Cell width="120px">
                             <Text color="gray">{formatDate(episode.aired)}</Text>
                           </Table.Cell>

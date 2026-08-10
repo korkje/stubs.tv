@@ -5,6 +5,15 @@ body {
   min-height: 100dvh;
 }
 
+/* Keeps long episode synopses to a couple of lines in dense listings. */
+.clamp-2-lines {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 /*
  * Theme toggle icons are swapped in CSS rather than JavaScript so the right
  * one is painted immediately — next-themes sets the class before first paint,
