@@ -4,3 +4,20 @@ body {
   padding: 0;
   min-height: 100dvh;
 }
+
+/*
+ * Theme toggle icons are swapped in CSS rather than JavaScript so the right
+ * one is painted immediately — next-themes sets the class before first paint,
+ * whereas a JS-chosen icon would flash the wrong glyph during hydration.
+ */
+.theme-icon-dark {
+  display: none;
+}
+
+:is(.dark, .dark-theme) .theme-icon-light {
+  display: none;
+}
+
+:is(.dark, .dark-theme) .theme-icon-dark {
+  display: inline;
+}

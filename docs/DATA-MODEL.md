@@ -96,14 +96,41 @@ watches                          -- one row per watched episode or movie
   entity_type   enum: episode | movie
   entity_id     bigint
   watched_at    timestamptz      -- when the user watched it (editable)
-  rating        smallint nullable  -- personal 1–10, optional, later
   created_at    timestamptz
-  UNIQUE (user_id, entity_type, entity_id)  -- relax later if rewatch tracking is added
+  UNIQUE (user_id, entity_type, entity_id)
+
+ratings                          -- deliberately separate from watches
+  user_id       uuid FK
+  entity_type   enum: series | season | episode | movie
+  entity_id     bigint
+  score         smallint         -- 1–10
+  created_at    timestamptz
+  updated_at    timestamptz
+  PK (user_id, entity_type, entity_id)
 ```
 
-Season/series "mark all as seen" is an app-level operation that inserts one
-`watches` row per episode — analytics stay uniform, partial seasons stay
-representable.
+**Why ratings are not a column on `watches`.** A rating belongs to the *thing*,
+not to a particular viewing of it: people want to rate a whole show without
+ticking off every episode, and a rewatch must not imply a second, separate
+score. Keeping them apart also means ratings survive the rewatch change below
+untouched, and any granularity (episode, season, show, film) works the same way.
+Ratings feed the recommendation ideas in VISION.md, so the scale is numeric
+(1–10) rather than thumbs — more signal for later, and it can always be
+*displayed* as stars.
+
+**Rewatch is deferred, not designed out.** The unique constraint makes
+"mark as seen" idempotent, which matters for a toggle that can be
+double-clicked. Supporting rewatches later means dropping that constraint and
+distinguishing rows (e.g. a `watch_number`); nothing above needs to change, and
+ratings are unaffected because they live in their own table.
+
+**Marking in bulk.** Season and series "mark all as seen" are app-level
+operations that insert one `watches` row per episode, so analytics stay uniform
+and partly-watched seasons remain representable. Specials (season 0) are
+included when marking a whole show or when marking the specials group itself —
+they are episodes like any other. Individual episodes must always be
+mark/unmark-able on their own; bulk actions are a convenience, never the only
+way in.
 
 ## Analytics (derived, not stored)
 
@@ -120,6 +147,6 @@ refreshed on write or on cron. Not needed for MVP.
 
 ## GDPR touchpoints
 
-- Export = dump of the user's `profiles`, `follows`, `watches` (JSON).
+- Export = dump of the user's `profiles`, `follows`, `watches`, `ratings` (JSON).
 - Delete = cascade delete from `auth.users` through all user tables.
 - Metadata tables contain no personal data.

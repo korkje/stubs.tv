@@ -3,6 +3,8 @@ import { Badge, Box, Container, Flex, Heading, Text } from "@radix-ui/themes";
 import { ensureMovieIngested } from "@/lib/metadata/ingest";
 import { createClient } from "@/lib/supabase/server";
 import { Poster } from "@/components/Poster";
+import { RatingSelect } from "@/components/tracking/RatingSelect";
+import { SeenToggleButton } from "@/components/tracking/SeenToggleButton";
 import { formatDate } from "@/lib/format";
 
 export default async function MoviePage({ params }: { params: Promise<{ id: string }> }) {
@@ -13,7 +15,23 @@ export default async function MoviePage({ params }: { params: Promise<{ id: stri
   await ensureMovieIngested(movieId);
 
   const supabase = await createClient();
-  const { data: movie } = await supabase.from("movies").select("*").eq("id", movieId).maybeSingle();
+  const path = `/app/movies/${movieId}`;
+
+  const [{ data: movie }, { data: watch }, { data: rating }] = await Promise.all([
+    supabase.from("movies").select("*").eq("id", movieId).maybeSingle(),
+    supabase
+      .from("watches")
+      .select("id")
+      .eq("entity_type", "movie")
+      .eq("entity_id", movieId)
+      .maybeSingle(),
+    supabase
+      .from("ratings")
+      .select("score")
+      .eq("entity_type", "movie")
+      .eq("entity_id", movieId)
+      .maybeSingle(),
+  ]);
 
   if (!movie) notFound();
 
@@ -46,6 +64,16 @@ export default async function MoviePage({ params }: { params: Promise<{ id: stri
               {movie.overview}
             </Text>
           )}
+
+          <Flex gap="3" align="center" wrap="wrap">
+            <SeenToggleButton entityId={movieId} seen={watch !== null} revalidate={path} />
+            <RatingSelect
+              entityType="movie"
+              entityId={movieId}
+              score={rating?.score ?? null}
+              revalidate={path}
+            />
+          </Flex>
         </Flex>
       </Flex>
     </Container>

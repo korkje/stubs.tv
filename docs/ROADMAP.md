@@ -37,10 +37,17 @@ pipeline, search and read-only title pages — is done; slice 2 is tracking
       to `/login` and drops the intended path (and leaks the original query
       string, e.g. `/login?q=wire`) — pass a `next` param and honour it
 
-- [ ] Mark episode/season/show as seen; mark movie as seen
-- [ ] Follow/unfollow series
-- [ ] "My shows" dashboard: followed shows with unseen-episode counts
-- [ ] Watch history list (edit `watched_at`, unmark)
+- [x] Mark episode/season/show as seen; mark movie as seen (specials
+      included in bulk marks; single episodes always individually togglable;
+      unaired episodes excluded from bulk marks so they still surface later)
+- [x] Rate anything, 1–10, in its own `ratings` table (feeds the
+      recommendation ideas in VISION.md)
+- [x] Follow/unfollow series
+- [x] Split the nav into **Shows** and **Films**
+- [x] Shows dashboard: followed shows with unseen-episode counts
+- [ ] Watch history list (edit `watched_at`, unmark) — the place to fix
+      timezone display: dates currently render from UTC, so a late-evening
+      view can show the previous day
 
 **Slice 3 — people**
 

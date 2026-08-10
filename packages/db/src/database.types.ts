@@ -84,6 +84,13 @@ export type Database = {
             referencedRelation: "series"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "credits_series_id_fkey"
+            columns: ["series_id"]
+            isOneToOne: false
+            referencedRelation: "series_progress"
+            referencedColumns: ["series_id"]
+          },
         ]
       }
       episodes: {
@@ -131,6 +138,13 @@ export type Database = {
             referencedRelation: "series"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "episodes_series_id_fkey"
+            columns: ["series_id"]
+            isOneToOne: false
+            referencedRelation: "series_progress"
+            referencedColumns: ["series_id"]
+          },
         ]
       }
       external_ids: {
@@ -151,6 +165,27 @@ export type Database = {
           entity_type?: Database["public"]["Enums"]["entity_type"]
           provider?: Database["public"]["Enums"]["metadata_provider"]
           provider_id?: string
+        }
+        Relationships: []
+      }
+      follows: {
+        Row: {
+          created_at: string
+          entity_id: number
+          entity_type: Database["public"]["Enums"]["entity_type"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id: number
+          entity_type: Database["public"]["Enums"]["entity_type"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: number
+          entity_type?: Database["public"]["Enums"]["entity_type"]
+          user_id?: string
         }
         Relationships: []
       }
@@ -244,6 +279,33 @@ export type Database = {
         }
         Relationships: []
       }
+      ratings: {
+        Row: {
+          created_at: string
+          entity_id: number
+          entity_type: Database["public"]["Enums"]["entity_type"]
+          score: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id: number
+          entity_type: Database["public"]["Enums"]["entity_type"]
+          score: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: number
+          entity_type?: Database["public"]["Enums"]["entity_type"]
+          score?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       seasons: {
         Row: {
           id: number
@@ -273,6 +335,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "series"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seasons_series_id_fkey"
+            columns: ["series_id"]
+            isOneToOne: false
+            referencedRelation: "series_progress"
+            referencedColumns: ["series_id"]
           },
         ]
       }
@@ -318,9 +387,46 @@ export type Database = {
         }
         Relationships: []
       }
+      watches: {
+        Row: {
+          created_at: string
+          entity_id: number
+          entity_type: Database["public"]["Enums"]["entity_type"]
+          id: number
+          user_id: string
+          watched_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          entity_id: number
+          entity_type: Database["public"]["Enums"]["entity_type"]
+          id?: never
+          user_id: string
+          watched_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          entity_id?: number
+          entity_type?: Database["public"]["Enums"]["entity_type"]
+          id?: never
+          user_id?: string
+          watched_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      series_progress: {
+        Row: {
+          aired_episodes: number | null
+          name: string | null
+          poster_url: string | null
+          series_id: number | null
+          user_id: string | null
+          watched_episodes: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       resolve_entity: {
