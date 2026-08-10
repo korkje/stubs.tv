@@ -86,7 +86,7 @@ followed shows' upcoming episodes. In-app "upcoming" view ships first.
 
 ## Monorepo
 
-pnpm workspaces:
+npm workspaces (plain Node LTS — see ADR-0007):
 
 ```
 apps/web/            Next.js app (marketing + app + admin)
@@ -96,11 +96,11 @@ supabase/            config.toml, migrations/
 docs/                This documentation
 ```
 
-No Turborepo until there's more than one app — plain pnpm scripts suffice.
+No Turborepo until there's more than one app — plain npm scripts suffice.
 
 ## Environments
 
-- **Local**: `supabase start` + `pnpm dev` (+ `.env.local` with TVDB key).
+- **Local**: `supabase start` + `npm run dev` (+ `.env.local` with TVDB key).
 - **Production**: Cloudflare Workers + hosted Supabase (EU). Secrets in
   Cloudflare (wrangler secrets), never in the repo.
 - **Preview**: Workers preview deployments; pointed at a separate Supabase

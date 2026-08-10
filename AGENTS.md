@@ -22,7 +22,7 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
 3. **Everything must scale without rearchitecting.** Prefer choices that work
    at 10 users and 100k users. No tech that requires a rewrite to grow.
 4. **Self-hosting is a feature.** The repo must stay runnable locally
-   (`pnpm install` + `supabase start` + `pnpm dev` once scaffolded). Don't
+   (`npm install` + `supabase start` + `npm run dev` once scaffolded). Don't
    introduce dependencies on services that can't be substituted or mocked
    locally without documenting the escape hatch.
 5. **Privacy by design.** EU-based users, GDPR applies. Store minimal PII,
@@ -42,12 +42,13 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
 - **Supabase** (EU region) for Postgres and Auth. Row Level Security on all
   user-data tables. Schema changes go through migrations in `supabase/`.
 - **TheTVDB v4** as the only metadata provider for now, behind an abstraction.
-- **pnpm workspaces** monorepo.
+- **Node (LTS) + npm workspaces** monorepo — no pnpm, no Deno- or
+  Bun-specific files.
 
 ## Conventions
 
 - TypeScript everywhere, `strict: true`, no `any` without a comment saying why.
-- Package manager is **pnpm**.
+- Package manager is **npm**; tasks are plain `package.json` scripts.
 - Database schema changes are Supabase migration files — never applied by hand.
 - Dates/times in UTC in the database; convert at the edge for display.
 - Keep the marketing site, app, and admin in `apps/web` until there's a

@@ -1,4 +1,4 @@
-# ADR-0006: pnpm monorepo with a single Next.js app
+# ADR-0006: Monorepo with a single Next.js app
 
 - Status: accepted
 - Date: 2026-08-10
@@ -11,7 +11,7 @@ for multi-environment development and for future self-hosters.
 
 ## Decision
 
-pnpm workspaces monorepo:
+npm workspaces monorepo (toolchain details in ADR-0007):
 
 ```
 apps/web/            One Next.js app: marketing (/), webapp (/app), admin (/admin)
@@ -24,12 +24,12 @@ docs/                Documentation (this)
 Marketing, webapp, and admin stay in the single Next.js app — separated by
 route groups and middleware (auth for /app, admin role for /admin) — until a
 concrete reason to split arises (that split would be a new ADR). No Turborepo
-until there is more than one app; plain pnpm scripts are enough.
+until there is more than one app; plain npm scripts are enough.
 
 ## Consequences
 
-- `git clone` → `pnpm install` → `supabase start` → `pnpm dev` is the whole
-  local story.
+- `git clone` → `npm install` → `supabase start` → `npm run dev` is the
+  whole local story.
 - One deploy target, one bundle (mind ADR-0002's 10 MiB limit — an admin
   surface heavy enough to threaten it would be the trigger to split).
 - Backend "services" are Next.js API routes + Cloudflare cron triggers; no

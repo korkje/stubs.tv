@@ -23,4 +23,5 @@ Template:
 | [0003](0003-supabase-postgres-auth.md) | Supabase for Postgres + Auth |
 | [0004](0004-tvdb-behind-provider-abstraction.md) | TVDB only, behind a provider abstraction |
 | [0005](0005-fsl-license.md) | FSL-1.1-Apache-2.0 license |
-| [0006](0006-single-app-monorepo.md) | pnpm monorepo, single Next.js app |
+| [0006](0006-single-app-monorepo.md) | Monorepo with a single Next.js app |
+| [0007](0007-node-npm-toolchain.md) | Plain Node + npm toolchain |

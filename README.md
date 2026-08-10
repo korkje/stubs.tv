@@ -52,7 +52,7 @@ docs/            All planning and architecture documentation
 
 ## Running locally
 
-Not yet — no code has been written. Once the app is scaffolded, this section will contain real setup steps (`pnpm install`, `supabase start`, `pnpm dev`). Self-hosting will always be a first-class, documented path.
+Not yet — no code has been written. Once the app is scaffolded, this section will contain real setup steps (`npm install`, `supabase start`, `npm run dev`). Self-hosting will always be a first-class, documented path.
 
 ## License
 

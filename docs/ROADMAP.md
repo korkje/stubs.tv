@@ -8,7 +8,7 @@ source of truth for "where are we".
 
 ## Phase 0 — Scaffold
 
-- [ ] pnpm workspace layout (`apps/web`, `packages/*`, `supabase/`)
+- [ ] npm workspace layout (`apps/web`, `packages/*`, `supabase/`)
 - [ ] Next.js app with TypeScript strict + Radix Themes wired up
 - [ ] Supabase local dev (`supabase start`) + first migration (profiles)
 - [ ] Supabase Auth working end-to-end (sign up, sign in, session in SSR)
