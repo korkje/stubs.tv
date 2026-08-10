@@ -15,6 +15,27 @@ Create a project at supabase.com — **region: EU (e.g. Frankfurt)** (GDPR,
 see docs/PRIVACY.md). Note the project ref (in the project URL), the
 database password, and from *Settings → API* the project URL and anon key.
 
+### 1b. Supabase auth configuration (dashboard)
+
+Hosted projects require email verification on signup (unlike local dev,
+where `supabase/config.toml` disables it). Configure once under
+*Authentication*:
+
+- **URL Configuration** → Site URL: `https://stubs.tv`. Add
+  `http://localhost:3000/**` to additional redirect URLs.
+- **Email Templates → Confirm signup**: point the link at our confirm
+  route, which verifies the token and signs the user in:
+
+  ```html
+  <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email">
+    Confirm your email
+  </a>
+  ```
+
+Without the template change, the default link still verifies the account,
+but drops the user on the homepage unauthenticated — they'd have to sign in
+manually afterwards.
+
 ### 2. Cloudflare API token
 
 dash.cloudflare.com → My Profile → API Tokens → Create Token → use the

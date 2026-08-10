@@ -4,22 +4,19 @@ Phases are sequential; each ends with something the owner actually uses.
 Update the status column as work proceeds — this file is the cross-environment
 source of truth for "where are we".
 
-**Current status: Phase 0 mostly done (2026-08-10) — remaining: verify auth
-against a running local Supabase, and the first real deploy to stubs.tv.**
+**Current status: Phase 0 complete (2026-08-10). Next: Phase 1 (metadata
+provider + tracking).**
 
 ## Phase 0 — Scaffold
 
 - [x] npm workspace layout (`apps/web`, `packages/*`, `supabase/`)
 - [x] Next.js app with TypeScript strict + Radix Themes wired up
-- [x] Supabase local config + first migration (profiles) — end-to-end run
-      still needs Docker up + `npx supabase start`
-- [ ] Supabase Auth verified end-to-end (sign up, sign in, session in SSR) —
-      code is in place (login page, server actions, middleware guard),
-      needs local Supabase running to test
-- [ ] Deploy walking skeleton to Cloudflare Workers at stubs.tv — OpenNext
-      build + local `wrangler dev` smoke test pass; GitHub Actions deploy
-      pipeline is in place, needs the one-time setup in docs/DEPLOYMENT.md
-      (hosted Supabase project, API tokens, repo secrets, DEPLOY_ENABLED)
+- [x] Supabase local dev (`supabase start`) + first migration (profiles)
+- [x] Supabase Auth verified end-to-end, locally and in prod (email
+      verification flow: /check-email page + /auth/confirm route; email
+      template config in docs/DEPLOYMENT.md)
+- [x] Deployed to Cloudflare Workers at stubs.tv — via GitHub Actions only
+      (see docs/DEPLOYMENT.md)
 - [x] CI: typecheck + lint + build on GitHub Actions
 
 ## Phase 1 — Track (MVP: daily-driver for the owner)

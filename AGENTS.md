@@ -84,6 +84,6 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
 
 ## Current status
 
-Phase 0 scaffold done and verified (typecheck, lint, next build, OpenNext
-build, wrangler dev smoke test). See "Current status" in
-[docs/ROADMAP.md](docs/ROADMAP.md) for what remains before Phase 1.
+Phase 0 complete: live at stubs.tv, auth working end-to-end (email
+verification included), deploys from GitHub Actions. Next up: Phase 1 in
+[docs/ROADMAP.md](docs/ROADMAP.md) — metadata provider + tracking.
