@@ -42,8 +42,15 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
   keep its default `appearance="inherit"`. Setting `appearance` explicitly
   pins the app to one mode and silently breaks the switcher.
 - **Cloudflare Workers** hosting via `@opennextjs/cloudflare`, on the **free**
-  plan — the worker bundle must stay under **3 MiB** (paid would raise it to
-  10 MiB). Check bundle impact before adding dependencies.
+  plan, which imposes two hard limits:
+  - **10ms of CPU per request** (paid: 30s). This is the tight one. Rendering
+    is CPU: a page that renders hundreds of rows will return HTTP 1102
+    "Worker exceeded CPU time limit" in production while working fine
+    locally. Keep per-request rendering small — paginate, collapse, or move
+    aggregation into SQL. Remember that every server action calling
+    `revalidatePath` re-renders the whole route.
+  - **3 MiB gzipped bundle** (paid: 10 MiB). Check impact before adding
+    dependencies; measure with `npx wrangler deploy --dry-run`.
 - **Supabase** (EU region) for Postgres and Auth. Row Level Security on all
   user-data tables. Schema changes go through migrations in `supabase/`.
 - **TheTVDB v4** as the only metadata provider for now, behind an abstraction.

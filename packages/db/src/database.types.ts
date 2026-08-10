@@ -416,6 +416,33 @@ export type Database = {
       }
     }
     Views: {
+      season_progress: {
+        Row: {
+          aired_count: number | null
+          episode_count: number | null
+          runtime_min: number | null
+          season_number: number | null
+          seen_count: number | null
+          seen_runtime_min: number | null
+          series_id: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "episodes_series_id_fkey"
+            columns: ["series_id"]
+            isOneToOne: false
+            referencedRelation: "series"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "episodes_series_id_fkey"
+            columns: ["series_id"]
+            isOneToOne: false
+            referencedRelation: "series_progress"
+            referencedColumns: ["series_id"]
+          },
+        ]
+      }
       series_progress: {
         Row: {
           aired_episodes: number | null
@@ -427,8 +454,37 @@ export type Database = {
         }
         Relationships: []
       }
+      watched_episodes: {
+        Row: {
+          episode_id: number | null
+          season_number: number | null
+          series_id: number | null
+          user_id: string | null
+          watched_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "episodes_series_id_fkey"
+            columns: ["series_id"]
+            isOneToOne: false
+            referencedRelation: "series"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "episodes_series_id_fkey"
+            columns: ["series_id"]
+            isOneToOne: false
+            referencedRelation: "series_progress"
+            referencedColumns: ["series_id"]
+          },
+        ]
+      }
     }
     Functions: {
+      mark_episodes_seen: {
+        Args: { p_season_number?: number; p_series_id: number }
+        Returns: undefined
+      }
       resolve_entity: {
         Args: {
           p_entity_type: Database["public"]["Enums"]["entity_type"]
@@ -437,6 +493,10 @@ export type Database = {
           p_provider_id: string
         }
         Returns: number
+      }
+      unmark_episodes_seen: {
+        Args: { p_season_number?: number; p_series_id: number }
+        Returns: undefined
       }
     }
     Enums: {

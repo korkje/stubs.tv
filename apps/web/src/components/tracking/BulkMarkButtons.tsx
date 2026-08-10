@@ -1,14 +1,14 @@
 "use client";
 
 import { useTransition } from "react";
-import { Button, Flex } from "@radix-ui/themes";
+import { Button } from "@radix-ui/themes";
 import { EyeNoneIcon, EyeOpenIcon } from "@radix-ui/react-icons";
-import { markManySeen, unmarkManySeen } from "@/lib/tracking/actions";
+import { markEpisodesSeen, unmarkEpisodesSeen } from "@/lib/tracking/actions";
 
 /**
- * Marks or unmarks a group of episodes — a season, or a whole show (specials
- * included). Bulk marks record no date, since they are usually backfilled
- * history rather than something watched just now.
+ * Marks or unmarks a season, or the whole show when seasonNumber is null
+ * (specials included). Only the two identifiers cross the wire — the database
+ * decides which episodes that means, and skips unaired ones.
  *
  * The eye icon carries the "seen" sense, so labels stay short ("Mark show"
  * rather than "Mark whole show seen").
@@ -19,13 +19,15 @@ import { markManySeen, unmarkManySeen } from "@/lib/tracking/actions";
  * "not seen" here.
  */
 export function BulkMarkButtons({
-  episodeIds,
+  seriesId,
+  seasonNumber = null,
   revalidate,
   allSeen,
   size = "1",
   label = "all",
 }: {
-  episodeIds: number[];
+  seriesId: number;
+  seasonNumber?: number | null;
   revalidate: string;
   allSeen: boolean;
   size?: "1" | "2";
@@ -33,35 +35,30 @@ export function BulkMarkButtons({
 }) {
   const [pending, startTransition] = useTransition();
 
-  return (
-    <Flex gap="2">
-      {allSeen ? (
-        <Button
-          size={size}
-          variant="soft"
-          color="amber"
-          loading={pending}
-          onClick={() =>
-            startTransition(() => unmarkManySeen(episodeIds, revalidate))
-          }
-        >
-          <EyeOpenIcon />
-          Unmark {label}
-        </Button>
-      ) : (
-        <Button
-          size={size}
-          variant="soft"
-          color="gray"
-          loading={pending}
-          onClick={() =>
-            startTransition(() => markManySeen(episodeIds, revalidate))
-          }
-        >
-          <EyeNoneIcon />
-          Mark {label}
-        </Button>
-      )}
-    </Flex>
+  const run = (action: typeof markEpisodesSeen) => () =>
+    startTransition(() => action(seriesId, seasonNumber, revalidate));
+
+  return allSeen ? (
+    <Button
+      size={size}
+      variant="soft"
+      color="amber"
+      loading={pending}
+      onClick={run(unmarkEpisodesSeen)}
+    >
+      <EyeOpenIcon />
+      Unmark {label}
+    </Button>
+  ) : (
+    <Button
+      size={size}
+      variant="soft"
+      color="gray"
+      loading={pending}
+      onClick={run(markEpisodesSeen)}
+    >
+      <EyeNoneIcon />
+      Mark {label}
+    </Button>
   );
 }

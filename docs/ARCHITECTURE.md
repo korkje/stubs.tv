@@ -37,9 +37,15 @@ They stay in one app until a concrete need splits them (would require an ADR).
   adding dependencies — this is the binding constraint today. Measure with
   `npx wrangler deploy --dry-run` from `apps/web`; it was 1.38 MiB gzipped
   as of Phase 1 slice 1.
-- Upgrading to Workers Paid ($5/mo) is the trigger for two things at once:
-  the larger bundle/CPU limits, and moving auth email to Cloudflare Email
-  Service (ADR-0009).
+- **10ms of CPU per request** on free (paid: 30s) is the tightest constraint
+  in the whole stack, and it bites in production only — local development has
+  no such limit. Rendering counts as CPU, so pages must not render unbounded
+  lists: the series page collapses seasons and renders one at a time, and
+  per-season counts come from the `season_progress` SQL view rather than from
+  reducing over every episode in the worker. Exceeding it returns HTTP 1102.
+- Upgrading to Workers Paid ($5/mo) is the trigger for three things at once:
+  the larger bundle limit, a 3000× larger CPU budget, and moving auth email to
+  Cloudflare Email Service (ADR-0009).
 - Cloudflare Cron Triggers drive scheduled jobs (metadata refresh) by hitting
   internal routes.
 - `next/image` needs a custom loader (Cloudflare Images) or `unoptimized` —

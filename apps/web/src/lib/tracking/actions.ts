@@ -66,43 +66,44 @@ export async function unmarkSeen(
 }
 
 /**
- * Marks many episodes at once (a season, or a whole show including specials).
+ * Marks a whole season, or a whole show when seasonNumber is null (specials
+ * included — they are episodes like any other).
  *
- * watched_at is left null: these are "seen, date unknown". Stamping now() would
- * make a backfill of years-old viewing indistinguishable from a real binge in
- * the activity analytics. ignoreDuplicates keeps already-watched episodes'
- * real dates intact.
+ * The database picks the episodes, so the page never has to serialise
+ * hundreds of ids into the client payload, and unaired episodes are skipped
+ * there rather than here. Existing rows keep their dates; newly marked ones
+ * record no date, since a bulk mark is almost always backfilled history and a
+ * fabricated timestamp would corrupt the activity analytics.
  */
-export async function markManySeen(episodeIds: number[], revalidate: string) {
-  if (episodeIds.length === 0) return;
+export async function markEpisodesSeen(
+  seriesId: number,
+  seasonNumber: number | null,
+  revalidate: string
+) {
+  const { supabase } = await requireUser();
 
-  const { supabase, userId } = await requireUser();
-
-  const { error } = await supabase.from("watches").upsert(
-    episodeIds.map((entityId) => ({
-      user_id: userId,
-      entity_type: "episode" as const,
-      entity_id: entityId,
-      watched_at: null,
-    })),
-    { onConflict: "user_id,entity_type,entity_id", ignoreDuplicates: true }
-  );
+  // The parameter defaults to null in SQL (meaning "the whole show"), which
+  // the generated types express as optional rather than nullable.
+  const { error } = await supabase.rpc("mark_episodes_seen", {
+    p_series_id: seriesId,
+    p_season_number: seasonNumber ?? undefined,
+  });
 
   fail("mark episodes as seen", error);
   revalidatePath(revalidate);
 }
 
-export async function unmarkManySeen(episodeIds: number[], revalidate: string) {
-  if (episodeIds.length === 0) return;
+export async function unmarkEpisodesSeen(
+  seriesId: number,
+  seasonNumber: number | null,
+  revalidate: string
+) {
+  const { supabase } = await requireUser();
 
-  const { supabase, userId } = await requireUser();
-
-  const { error } = await supabase
-    .from("watches")
-    .delete()
-    .eq("user_id", userId)
-    .eq("entity_type", "episode")
-    .in("entity_id", episodeIds);
+  const { error } = await supabase.rpc("unmark_episodes_seen", {
+    p_series_id: seriesId,
+    p_season_number: seasonNumber ?? undefined,
+  });
 
   fail("unmark episodes", error);
   revalidatePath(revalidate);
