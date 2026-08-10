@@ -25,3 +25,4 @@ Template:
 | [0005](0005-fsl-license.md) | FSL-1.1-Apache-2.0 license |
 | [0006](0006-single-app-monorepo.md) | Monorepo with a single Next.js app |
 | [0007](0007-node-npm-toolchain.md) | Plain Node + npm toolchain |
+| [0008](0008-brevo-transactional-email.md) | Brevo for transactional email |

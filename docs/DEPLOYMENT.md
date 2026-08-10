@@ -15,7 +15,24 @@ Create a project at supabase.com — **region: EU (e.g. Frankfurt)** (GDPR,
 see docs/PRIVACY.md). Note the project ref (in the project URL), the
 database password, and from *Settings → API* the project URL and anon key.
 
-### 1b. Supabase auth configuration (dashboard)
+### 1b. Auth emails: custom SMTP via Brevo (ADR-0008)
+
+Supabase's built-in email service is testing-only: templates can't be
+edited and it's rate-limited to a handful of emails per hour. Custom SMTP
+unlocks both. We use Brevo (EU-based; free tier 300 emails/day).
+
+1. Create a Brevo account (brevo.com) → *Senders, Domains & Dedicated IPs*
+   → add and authenticate the `stubs.tv` domain (add the DKIM/DMARC records
+   it gives you to the zone in Cloudflare DNS).
+2. Brevo → *SMTP & API* → note the SMTP server (`smtp-relay.brevo.com`),
+   port (`587`), login, and generate an SMTP key.
+3. Supabase dashboard → *Authentication → Emails → SMTP settings* → enable
+   custom SMTP: sender `no-reply@stubs.tv` (name "stubs"), plus the Brevo
+   host/port/login/key.
+4. *Authentication → Rate Limits* → raise the email rate limit (default
+   with custom SMTP is 30/hr — fine to start).
+
+### 1c. Supabase auth configuration (dashboard)
 
 Hosted projects require email verification on signup (unlike local dev,
 where `supabase/config.toml` disables it). Configure once under
@@ -23,8 +40,9 @@ where `supabase/config.toml` disables it). Configure once under
 
 - **URL Configuration** → Site URL: `https://stubs.tv`. Add
   `http://localhost:3000/**` to additional redirect URLs.
-- **Email Templates → Confirm signup**: point the link at our confirm
-  route, which verifies the token and signs the user in:
+- **Email Templates → Confirm signup** (requires custom SMTP, see 1b):
+  point the link at our confirm route, which verifies the token and signs
+  the user in:
 
   ```html
   <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email">
@@ -35,6 +53,10 @@ where `supabase/config.toml` disables it). Configure once under
 Without the template change, the default link still verifies the account,
 but drops the user on the homepage unauthenticated — they'd have to sign in
 manually afterwards.
+
+Stuck during testing (rate-limited, unverified account)? The hourly limit
+resets on its own, and a user can be confirmed manually from
+*Authentication → Users*.
 
 ### 2. Cloudflare API token
 
