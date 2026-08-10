@@ -1,6 +1,6 @@
 # ADR-0008: Brevo for transactional email (custom SMTP)
 
-- Status: accepted
+- Status: superseded by ADR-0009
 - Date: 2026-08-10
 
 ## Context

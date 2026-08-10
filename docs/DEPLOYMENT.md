@@ -15,22 +15,35 @@ Create a project at supabase.com — **region: EU (e.g. Frankfurt)** (GDPR,
 see docs/PRIVACY.md). Note the project ref (in the project URL), the
 database password, and from *Settings → API* the project URL and anon key.
 
-### 1b. Auth emails: custom SMTP via Brevo (ADR-0008)
+### 1b. Auth emails: custom SMTP via Mailjet (ADR-0009)
 
 Supabase's built-in email service is testing-only: templates can't be
 edited and it's rate-limited to a handful of emails per hour. Custom SMTP
-unlocks both. We use Brevo (EU-based; free tier 300 emails/day).
+unlocks both. We use Mailjet (EU-based; generous free tier).
 
-1. Create a Brevo account (brevo.com) → *Senders, Domains & Dedicated IPs*
-   → add and authenticate the `stubs.tv` domain (add the DKIM/DMARC records
-   it gives you to the zone in Cloudflare DNS).
-2. Brevo → *SMTP & API* → note the SMTP server (`smtp-relay.brevo.com`),
-   port (`587`), login, and generate an SMTP key.
-3. Supabase dashboard → *Authentication → Emails → SMTP settings* → enable
-   custom SMTP: sender `no-reply@stubs.tv` (name "stubs"), plus the Brevo
-   host/port/login/key.
-4. *Authentication → Rate Limits* → raise the email rate limit (default
+> Do not use a provider that force-wraps links in tracking redirects
+> (Brevo does, with no off switch — ADR-0008/0009): the redirect-domain
+> mismatch sends verification emails to spam.
+
+1. Mailjet account → authenticate the `stubs.tv` sender domain (add the
+   SPF/DKIM records it gives you to the zone in Cloudflare DNS) and add
+   the sender address `no-reply@stubs.tv`.
+2. **Disable click & open tracking** in Mailjet's tracking settings, so
+   auth links are delivered exactly as written.
+3. Mailjet API credentials: the API key is the SMTP username, the secret
+   key the password; server `in-v3.mailjet.com`, port `587`.
+4. Supabase dashboard → *Authentication → Emails → SMTP settings* → enable
+   custom SMTP with sender `no-reply@stubs.tv` (name "stubs") and the
+   Mailjet credentials.
+5. *Authentication → Rate Limits* → raise the email rate limit (default
    with custom SMTP is 30/hr — fine to start).
+6. Verify: sign up with a fresh address; the mail must land in the inbox
+   and the confirm link must point directly at `stubs.tv/auth/confirm`.
+
+**Planned migration (ADR-0009):** once we're on the Workers Paid plan and
+Cloudflare Email Service is GA, switch Supabase SMTP to it
+(`smtp.mx.cloudflare.net:465`; 3k emails/month included with Workers
+Paid). Credentials + DNS swap only — one fewer vendor.
 
 ### 1c. Supabase auth configuration (dashboard)
 

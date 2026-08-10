@@ -28,7 +28,7 @@ product's philosophy makes this easy: watch history is *the user's* data.
 |---|---|---|
 | Supabase (EU) | Database, auth | email, user data |
 | Cloudflare | Hosting, CDN, DNS | request metadata (IPs in transit) |
-| Brevo (EU) | Transactional email (verification, password reset) | email address |
+| Mailjet (EU) | Transactional email (verification, password reset) | email address |
 | Stripe (Phase 5) | Payments | billing details (never stored by us) |
 
 TheTVDB receives no user data — metadata requests are server-side and carry

@@ -59,6 +59,9 @@ provider + tracking).**
 
 ## Icebox (explicitly deferred)
 
+- Migrate auth email from Mailjet to Cloudflare Email Service — when on
+  Workers Paid and the service is GA (ADR-0009; SMTP credential swap)
+
 - Rewatch tracking (relax `watches` uniqueness)
 - Personal ratings surfaced in UI
 - TMDB as a second metadata provider (needs their commercial license)
