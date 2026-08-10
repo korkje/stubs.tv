@@ -37,6 +37,10 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
   serves marketing pages, the webapp, and admin routes.
 - **Radix UI Themes** for all UI. Use its components and tokens before
   reaching for custom CSS; do not add another component library.
+  Light/dark/system is handled by `next-themes`, which puts a `dark` class on
+  `<html>` for Radix's dark palette to key off — so the root `<Theme>` must
+  keep its default `appearance="inherit"`. Setting `appearance` explicitly
+  pins the app to one mode and silently breaks the switcher.
 - **Cloudflare Workers** hosting via `@opennextjs/cloudflare`, on the **free**
   plan — the worker bundle must stay under **3 MiB** (paid would raise it to
   10 MiB). Check bundle impact before adding dependencies.

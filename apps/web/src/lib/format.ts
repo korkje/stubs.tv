@@ -9,22 +9,34 @@ export function formatRuntime(minutes: number): string {
   const parts: string[] = [];
   if (days) parts.push(`${days}d`);
   if (hours) parts.push(`${hours}h`);
-  if (mins && !days) parts.push(`${mins}m`);
+  if (mins) parts.push(`${mins}m`);
 
   return parts.join(" ");
 }
 
-/** ISO date to a short, locale-stable label. Dates are display-only here. */
+// Spelled out rather than derived from a locale: `en-GB` abbreviates September
+// to "Sept", which makes a column of dates wobble.
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+/** ISO date to a fixed-width label: "2002-09-01" → "1 Sep 2002". */
 export function formatDate(value: string | null): string {
   if (!value) return "—";
 
   const date = new Date(`${value}T00:00:00Z`);
   if (Number.isNaN(date.getTime())) return "—";
 
-  return date.toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    timeZone: "UTC",
-  });
+  return `${date.getUTCDate()} ${MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
 }

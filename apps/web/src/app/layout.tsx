@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Theme } from "@radix-ui/themes";
+import { AppearanceProvider } from "@/components/AppearanceProvider";
 import "@radix-ui/themes/styles.css";
 import "./globals.css";
 
@@ -16,9 +17,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        <Theme accentColor="amber" grayColor="sand" radius="large">
-          {children}
-        </Theme>
+        <AppearanceProvider>
+          <Theme accentColor="amber" grayColor="sand" radius="large">
+            {children}
+          </Theme>
+        </AppearanceProvider>
       </body>
     </html>
   );
