@@ -1,10 +1,14 @@
 import Link from "next/link";
 import { Box, Button, Container, Flex, Heading, Text } from "@radix-ui/themes";
+import { StubsMark } from "@/components/StubsMark";
 
 export default function Home() {
   return (
     <Container size="2" px="4">
       <Flex direction="column" align="center" gap="4" py="9">
+        <Box style={{ transform: "rotate(6deg)" }} mb="2">
+          <StubsMark width={120} />
+        </Box>
         <Heading size="9">stubs</Heading>
         <Text size="4" color="gray" align="center">
           Keep your ticket stubs. Track the movies and TV shows you watch, and
