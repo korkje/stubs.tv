@@ -76,14 +76,46 @@ may know that (see ADR-0004):
   getPerson, changedSince) is implemented by `TvdbProvider` in
   `packages/metadata`.
 - **Lazy ingestion**: when a user searches or opens a title we don't have (or
-  have stale), fetch from TVDB and upsert into Postgres. The DB is a
-  write-through cache that becomes the permanent record.
-- **Refresh job**: a cron route uses TVDB's "updates since" endpoint to
-  refresh entities we already store, prioritizing titles that users follow.
+  have stale), fetch from TVDB and upsert into Postgres.
 - TVDB rate limits and auth-token refresh are handled inside the provider.
 
 Adding TMDB later = implementing the same interface + adding rows to
 `external_ids`. No schema migration of user data.
+
+### Cache lifecycle (planned — not built yet)
+
+As it stands the copy only grows: search leaves a stub row for every result
+it returns, opening a title stores it permanently, and nothing is ever
+evicted. A 12-hour window governs whether we *refetch* an opened title, not
+how long rows live. That is fine at one user and wrong at a hundred, so three
+pieces are planned.
+
+**Eviction.** Drop what nobody is using: never-opened search stubs first
+(`fetched_at is null` and old), then titles no user references at all.
+
+> Hazard for whoever builds this: `follows`, `watches` and `ratings` are
+> polymorphic — `entity_id` carries no foreign key — so the database will
+> *not* stop you deleting a series someone has watched, and will not cascade.
+> Eviction must check those three tables explicitly. Getting this wrong
+> silently destroys watch history, which is the one thing this app exists to
+> protect.
+
+**Freshness.** A cron route driven by TVDB's `/updates?since=` endpoint,
+comparing against the `provider_updated_at` we already store so only genuinely
+changed records are refetched. Prioritise followed and watched titles. This is
+also what makes upcoming-episode data trustworthy enough for the calendar
+feature, which cannot wait for someone to open a page.
+
+**Local-first search.** Query our own tables first and render immediately,
+then merge TVDB's results in — falling back to a visible notice, rather than
+an error, when TVDB is unreachable.
+
+> The merge must never reorder rows that are already on screen. Results
+> arriving mid-interaction and shuffling under a finger that is already moving
+> is worse than being slow. The rule: a row keeps the position it was first
+> rendered at for the lifetime of that query, and late arrivals only append.
+> Deduplicate against `external_ids` so a title we already hold does not
+> appear twice when TVDB returns it too.
 
 ## Payments (later, Phase 5)
 

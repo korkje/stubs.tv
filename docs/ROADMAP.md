@@ -70,7 +70,10 @@ pipeline, search and read-only title pages — is done; slice 2 is tracking
 - [ ] Account deletion self-serve (GDPR)
 - [ ] Privacy policy + terms pages
 - [ ] Marketing landing page with real content
-- [ ] Metadata refresh cron hardened (follows-first prioritization)
+- [ ] Metadata cache lifecycle — see ARCHITECTURE.md "Cache lifecycle":
+      evict unused titles (minding the polymorphic-reference hazard), refresh
+      what is used via `/updates?since=`, and make search local-first with a
+      merge that never reorders rows already on screen
 
 ## Phase 4 — Anticipate (calendar)
 
