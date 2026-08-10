@@ -2,8 +2,17 @@
 
 import { useOptimistic, useTransition } from "react";
 import { Button } from "@radix-ui/themes";
+import { StarFilledIcon, StarIcon } from "@radix-ui/react-icons";
 import { setFollowing } from "@/lib/tracking/actions";
 
+/**
+ * Follow toggle for a show.
+ *
+ * Follows the same rule as the seen controls: colour and icon describe the
+ * current state (amber, filled = followed), the label describes what clicking
+ * does. That keeps one meaning for amber across the app rather than having it
+ * mean "seen" on one control and "not yet actioned" on another.
+ */
 export function FollowButton({
   seriesId,
   following,
@@ -18,8 +27,8 @@ export function FollowButton({
 
   return (
     <Button
-      variant={optimisticFollowing ? "soft" : "solid"}
-      color={optimisticFollowing ? "gray" : undefined}
+      variant="soft"
+      color={optimisticFollowing ? "amber" : "gray"}
       onClick={() => {
         const next = !optimisticFollowing;
         startTransition(async () => {
@@ -28,7 +37,8 @@ export function FollowButton({
         });
       }}
     >
-      {optimisticFollowing ? "Following" : "Follow"}
+      {optimisticFollowing ? <StarFilledIcon /> : <StarIcon />}
+      {optimisticFollowing ? "Unfollow" : "Follow"}
     </Button>
   );
 }
