@@ -110,14 +110,20 @@ Push to `main` (or run the CI workflow manually). The first successful
 deploy creates the `stubs` worker and attaches the `stubs.tv` custom domain
 (configured in `apps/web/wrangler.jsonc`).
 
-## Runtime secrets (later phases)
+## Runtime secrets
 
-Server-only secrets (e.g. `TVDB_API_KEY` in Phase 1) are **Cloudflare worker
-secrets**, not GitHub build-time env:
+Server-only secrets are **Cloudflare worker secrets**, not GitHub build-time
+env. Set from `apps/web/`, one-time, from a trusted machine:
 
 ```sh
-npx wrangler secret put TVDB_API_KEY   # one-time, from a trusted machine
+npx wrangler secret put TVDB_API_KEY         # TheTVDB v4 API key
+npx wrangler secret put SUPABASE_SECRET_KEY  # Supabase secret (service_role) key
 ```
+
+Both are required from Phase 1: metadata search and title pages return a
+server error without them. `SUPABASE_SECRET_KEY` grants full database access
+(it bypasses row level security), so it must never become a GitHub variable
+or reach the browser.
 
 Build-time env in the workflow is only for `NEXT_PUBLIC_*` values that
 Next.js inlines into the bundle.

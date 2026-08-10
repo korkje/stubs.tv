@@ -17,15 +17,19 @@ with generous included usage.
 
 ## Decision
 
-Deploy the Next.js app to Cloudflare Workers using `@opennextjs/cloudflare`,
-on the Workers **paid** plan. DNS, CDN, hosting, and cron triggers all live
-at Cloudflare.
+Deploy the Next.js app to Cloudflare Workers using `@opennextjs/cloudflare`.
+DNS, CDN, hosting, and cron triggers all live at Cloudflare.
+
+Started on the Workers **free** plan (2026-08-10). Upgrading to Workers Paid
+($5/mo) is deferred until a concrete need appears — the 3 MiB bundle ceiling,
+CPU limits, or Cloudflare Email Service (ADR-0009), whichever comes first.
 
 ## Consequences
 
 - One infra provider (plus Supabase); very low cost floor and gentle scaling.
 - Constraints to respect:
-  - 10 MiB worker bundle limit — evaluate bundle impact of new dependencies.
+  - **3 MiB** worker bundle limit on the free plan (10 MiB when paid) —
+    evaluate bundle impact of new dependencies.
   - `next/image` needs a custom loader (Cloudflare Images) or `unoptimized`.
   - The adapter, while GA, can trail brand-new Next.js features — prefer
     boring Next.js features; check adapter support before adopting new ones.

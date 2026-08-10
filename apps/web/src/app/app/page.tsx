@@ -1,7 +1,7 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Button, Container, Flex, Heading, Text } from "@radix-ui/themes";
+import { Button, Card, Container, Flex, Heading, Text } from "@radix-ui/themes";
 import { createClient } from "@/lib/supabase/server";
-import { signout } from "@/app/login/actions";
 
 export default async function AppHome() {
   const supabase = await createClient();
@@ -10,24 +10,23 @@ export default async function AppHome() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    redirect("/login");
-  }
+  if (!user) redirect("/login");
 
   return (
-    <Container size="3" px="4">
-      <Flex direction="column" gap="4" py="6">
-        <Flex justify="between" align="center">
-          <Heading size="6">Your stubs</Heading>
-          <form action={signout}>
-            <Button variant="soft" color="gray">
-              Sign out
+    <Container size="4" px="4">
+      <Flex direction="column" gap="4">
+        <Heading size="6">My shows</Heading>
+        <Card>
+          <Flex direction="column" align="start" gap="3" p="2">
+            <Text color="gray">
+              Nothing tracked yet. Find a film or TV show to get started —
+              following and marking things as seen arrives next.
+            </Text>
+            <Button asChild>
+              <Link href="/app/search">Search titles</Link>
             </Button>
-          </form>
-        </Flex>
-        <Text color="gray">
-          Signed in as {user.email}. Tracking starts in Phase 1.
-        </Text>
+          </Flex>
+        </Card>
       </Flex>
     </Container>
   );

@@ -32,8 +32,14 @@ They stay in one app until a concrete need splits them (would require an ADR).
 ## Hosting: Cloudflare Workers
 
 - Deployed with `@opennextjs/cloudflare` (OpenNext adapter, 1.0 GA).
-- Workers **paid** plan ($5/mo) from the start: 10 MiB bundle limit instead
-  of 3 MiB, plus higher CPU limits. Watch bundle size when adding deps.
+- Currently on the Workers **free** plan, which caps the worker bundle at
+  **3 MiB gzipped** (paid raises it to 10 MiB). Check bundle impact before
+  adding dependencies — this is the binding constraint today. Measure with
+  `npx wrangler deploy --dry-run` from `apps/web`; it was 1.38 MiB gzipped
+  as of Phase 1 slice 1.
+- Upgrading to Workers Paid ($5/mo) is the trigger for two things at once:
+  the larger bundle/CPU limits, and moving auth email to Cloudflare Email
+  Service (ADR-0009).
 - Cloudflare Cron Triggers drive scheduled jobs (metadata refresh) by hitting
   internal routes.
 - `next/image` needs a custom loader (Cloudflare Images) or `unoptimized` —

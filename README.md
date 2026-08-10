@@ -32,10 +32,11 @@ The tracking service the owner relied on for years went offline one day and took
 ## Repository layout (planned)
 
 ```
-apps/web/        Next.js app — marketing pages, the webapp, admin routes
-packages/        Shared code as it emerges (tvdb client, db types, …)
-supabase/        Database migrations and local config
-docs/            All planning and architecture documentation
+apps/web/            Next.js app — marketing pages, the webapp, admin routes
+packages/metadata/   Provider abstraction + TheTVDB client (no Supabase)
+packages/db/         Generated database types
+supabase/            Database migrations and local config
+docs/                All planning and architecture documentation
 ```
 
 ## Documentation map

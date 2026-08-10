@@ -4,8 +4,9 @@ Phases are sequential; each ends with something the owner actually uses.
 Update the status column as work proceeds — this file is the cross-environment
 source of truth for "where are we".
 
-**Current status: Phase 0 complete (2026-08-10). Next: Phase 1 (metadata
-provider + tracking).**
+**Current status: Phase 1 in progress (2026-08-10). Slice 1 — metadata
+pipeline, search and read-only title pages — is done; slice 2 is tracking
+(follows and watches).**
 
 ## Phase 0 — Scaffold
 
@@ -21,13 +22,27 @@ provider + tracking).**
 
 ## Phase 1 — Track (MVP: daily-driver for the owner)
 
-- [ ] Metadata schema migrations + `MetadataProvider` interface + `TvdbProvider`
-- [ ] Search (lazy ingestion into Postgres)
-- [ ] Series page: seasons/episodes, mark episode/season/show as seen
-- [ ] Movie page: mark as seen
-- [ ] Follow/unfollow series and people
+**Slice 1 — metadata pipeline (done)**
+
+- [x] Metadata schema migrations + `MetadataProvider` interface + `TvdbProvider`
+- [x] Generated database types (`@stubs/db`)
+- [x] Search with lazy ingestion: results become stub rows so links carry
+      internal IDs, and a title is fully fetched when first opened
+- [x] Series page: seasons and episodes, runtime totals
+- [x] Movie page
+
+**Slice 2 — tracking (next)**
+
+- [ ] Mark episode/season/show as seen; mark movie as seen
+- [ ] Follow/unfollow series
 - [ ] "My shows" dashboard: followed shows with unseen-episode counts
 - [ ] Watch history list (edit `watched_at`, unmark)
+
+**Slice 3 — people**
+
+- [ ] Ingest cast into `people`/`credits`; person pages
+- [ ] Follow/unfollow actors and directors (series credits expose actors
+      only — check movie credits for directors)
 
 ## Phase 2 — See (analytics)
 

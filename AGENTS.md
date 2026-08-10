@@ -37,13 +37,18 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
   serves marketing pages, the webapp, and admin routes.
 - **Radix UI Themes** for all UI. Use its components and tokens before
   reaching for custom CSS; do not add another component library.
-- **Cloudflare Workers** hosting via `@opennextjs/cloudflare`. Mind the
-  10 MiB worker bundle limit — check bundle impact before adding dependencies.
+- **Cloudflare Workers** hosting via `@opennextjs/cloudflare`, on the **free**
+  plan — the worker bundle must stay under **3 MiB** (paid would raise it to
+  10 MiB). Check bundle impact before adding dependencies.
 - **Supabase** (EU region) for Postgres and Auth. Row Level Security on all
   user-data tables. Schema changes go through migrations in `supabase/`.
 - **TheTVDB v4** as the only metadata provider for now, behind an abstraction.
 - **Node (LTS) + npm workspaces** monorepo — no pnpm, no Deno- or
   Bun-specific files.
+- **`packages/metadata`** holds the provider abstraction and TheTVDB client
+  and must never import Supabase; **`packages/db`** holds generated schema
+  types. Ingestion (the only code using the service-role key) lives in
+  `apps/web/src/lib/metadata/`.
 
 ## Conventions
 
@@ -73,6 +78,24 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
   `npm run deploy` is a break-glass escape hatch only
 - `npx supabase start` — local Supabase stack (needs Docker); copy the
   printed URL/anon key into `apps/web/.env.local` (see `apps/web/.env.example`)
+- `npx supabase db reset` — reapply all migrations from scratch
+- `npm run db:types` — regenerate `@stubs/db` types after a migration
+  (requires local Supabase running); commit the result
+
+## Database gotchas (learned the hard way)
+
+- **Always grant explicitly in migrations.** This project's Postgres grants
+  anon/authenticated/service_role *no* table privileges by default — only
+  REFERENCES/TRIGGER/TRUNCATE. An RLS `select` policy with no matching
+  `grant select` silently returns nothing, and `service_role` cannot write at
+  all without `grant … to service_role`, despite bypassing RLS. Every new
+  table needs both its policies and its grants.
+- **`revoke execute … from public`, not from anon/authenticated.** PUBLIC
+  holds EXECUTE on new functions and those roles inherit it, so revoking from
+  them alone is a no-op. Remember to re-grant to `service_role` afterwards.
+- **Check Postgrest errors.** supabase-js returns `{ data, error }` instead of
+  throwing; ignoring `error` makes a permission failure look like a no-op.
+  Ingestion code routes every call through a `check()` helper that throws.
 
 ## Known workarounds
 
@@ -84,6 +107,6 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
 
 ## Current status
 
-Phase 0 complete: live at stubs.tv, auth working end-to-end (email
-verification included), deploys from GitHub Actions. Next up: Phase 1 in
-[docs/ROADMAP.md](docs/ROADMAP.md) — metadata provider + tracking.
+Phase 1 slice 1 done: TheTVDB provider, metadata schema, lazy ingestion,
+search, and read-only series/movie pages. Next is slice 2 (marking things as
+seen, follows) — see [docs/ROADMAP.md](docs/ROADMAP.md).

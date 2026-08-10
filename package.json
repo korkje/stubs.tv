@@ -12,7 +12,8 @@
     "dev": "npm run dev -w web",
     "build": "npm run build -w web",
     "lint": "npm run lint -w web",
-    "typecheck": "npm run typecheck -w web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "db:types": "npm run generate -w @stubs/db",
     "preview": "npm run preview -w web",
     "deploy": "npm run deploy -w web"
   },
