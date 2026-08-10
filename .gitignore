@@ -1,0 +1,23 @@
+# dependencies
+node_modules/
+
+# next.js / opennext
+.next/
+.open-next/
+out/
+
+# cloudflare
+.wrangler/
+
+# supabase local
+supabase/.branches/
+supabase/.temp/
+
+# env & secrets
+.env
+.env.*
+!.env.example
+
+# misc
+.DS_Store
+*.log
