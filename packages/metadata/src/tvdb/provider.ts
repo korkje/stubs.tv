@@ -8,12 +8,20 @@ import type {
 } from "../types";
 import { TvdbClient } from "./client";
 import type {
+  TvdbArtworks,
   TvdbEpisodesPage,
   TvdbMovieExtended,
   TvdbSearchResult,
   TvdbSeriesExtended,
 } from "./dto";
-import { mapEpisode, mapMovie, mapSearchResult, mapSeries } from "./map";
+import {
+  SERIES_BACKGROUND,
+  mapEpisode,
+  mapMovie,
+  mapSearchResult,
+  mapSeries,
+  pickBackdrop,
+} from "./map";
 
 /** Guard against a malformed `links.next` chain looping forever. */
 const MAX_EPISODE_PAGES = 20;
@@ -45,10 +53,16 @@ export function createTvdbProvider(apiKey: string): MetadataProvider {
       // short=true omits per-episode and cast payloads we do not need here.
       // meta=translations is what carries the English title and synopsis for
       // shows recorded in another language.
-      const body = await client.get<TvdbSeriesExtended>(
-        `/series/${id}/extended?meta=translations&short=true`
-      );
-      return body?.data ? mapSeries(body.data) : null;
+      //
+      // It also omits artwork, so backgrounds need their own request. That is
+      // still far cheaper than the full record: 11KB against 93KB.
+      const [body, artworks] = await Promise.all([
+        client.get<TvdbSeriesExtended>(`/series/${id}/extended?meta=translations&short=true`),
+        client.get<TvdbArtworks>(`/series/${id}/artworks?type=${SERIES_BACKGROUND}`),
+      ]);
+
+      if (!body?.data) return null;
+      return mapSeries(body.data, pickBackdrop(artworks?.data?.artworks, SERIES_BACKGROUND));
     },
 
     async getEpisodes(id: ProviderId): Promise<EpisodeDetail[]> {

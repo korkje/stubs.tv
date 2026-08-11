@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { Badge, Box, Container, Flex, Heading, Text } from "@radix-ui/themes";
 import { ensureMovieIngested } from "@/lib/metadata/ingest";
 import { createClient } from "@/lib/supabase/server";
+import { Backdrop } from "@/components/Backdrop";
 import { Poster } from "@/components/Poster";
 import { RatingSelect } from "@/components/tracking/RatingSelect";
 import { SeenToggleButton } from "@/components/tracking/SeenToggleButton";
@@ -36,9 +37,13 @@ export default async function MoviePage({ params }: { params: Promise<{ id: stri
   if (!movie) notFound();
 
   return (
-    <Container size="4" px="4">
-      <Flex gap="5" align="start" wrap="wrap">
-        <Poster url={movie.poster_url} alt={movie.name} width={160} />
+    <>
+      {movie.backdrop_url && <Backdrop url={movie.backdrop_url} alt={movie.name} />}
+      <Container size="4" px="4">
+        <Flex gap="5" align="start" wrap="wrap">
+          <Box display={movie.backdrop_url ? { initial: "none", sm: "block" } : undefined}>
+            <Poster url={movie.poster_url} alt={movie.name} width={160} />
+          </Box>
         <Flex direction="column" gap="3" style={{ flex: "1 1 320px" }}>
           <Box>
             <Heading size="7">{movie.name}</Heading>
@@ -75,7 +80,8 @@ export default async function MoviePage({ params }: { params: Promise<{ id: stri
             />
           </Flex>
         </Flex>
-      </Flex>
-    </Container>
+        </Flex>
+      </Container>
+    </>
   );
 }

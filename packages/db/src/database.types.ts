@@ -191,6 +191,7 @@ export type Database = {
       }
       movies: {
         Row: {
+          backdrop_url: string | null
           created_at: string
           fetched_at: string | null
           genres: string[]
@@ -203,6 +204,7 @@ export type Database = {
           runtime_min: number | null
         }
         Insert: {
+          backdrop_url?: string | null
           created_at?: string
           fetched_at?: string | null
           genres?: string[]
@@ -215,6 +217,7 @@ export type Database = {
           runtime_min?: number | null
         }
         Update: {
+          backdrop_url?: string | null
           created_at?: string
           fetched_at?: string | null
           genres?: string[]
@@ -347,6 +350,7 @@ export type Database = {
       }
       series: {
         Row: {
+          backdrop_url: string | null
           created_at: string
           fetched_at: string | null
           first_aired: string | null
@@ -360,6 +364,7 @@ export type Database = {
           status: string | null
         }
         Insert: {
+          backdrop_url?: string | null
           created_at?: string
           fetched_at?: string | null
           first_aired?: string | null
@@ -373,6 +378,7 @@ export type Database = {
           status?: string | null
         }
         Update: {
+          backdrop_url?: string | null
           created_at?: string
           fetched_at?: string | null
           first_aired?: string | null

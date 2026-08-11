@@ -120,6 +120,7 @@ export async function ensureSeriesIngested(seriesId: number): Promise<void> {
       genres: detail.genres,
       runtime_min: detail.runtimeMin,
       poster_url: detail.posterUrl,
+      backdrop_url: detail.backdropUrl,
       provider_updated_at: detail.providerUpdatedAt,
       fetched_at: new Date().toISOString(),
     })
@@ -230,6 +231,7 @@ export async function ensureMovieIngested(movieId: number): Promise<void> {
       genres: detail.genres,
       runtime_min: detail.runtimeMin,
       poster_url: detail.posterUrl,
+      backdrop_url: detail.backdropUrl,
       provider_updated_at: detail.providerUpdatedAt,
       fetched_at: new Date().toISOString(),
     })

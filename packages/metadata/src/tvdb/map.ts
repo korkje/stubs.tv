@@ -6,12 +6,17 @@ import type {
   TitleKind,
 } from "../types";
 import type {
+  TvdbArtwork,
   TvdbEpisode,
   TvdbMovieExtended,
   TvdbSearchResult,
   TvdbSeriesExtended,
   TvdbTranslation,
 } from "./dto";
+
+/** Artwork type ids from /artwork/types. */
+const MOVIE_BACKGROUND = 15;
+export const SERIES_BACKGROUND = 3;
 
 const ARTWORK_HOST = "https://artworks.thetvdb.com";
 
@@ -75,6 +80,26 @@ function genres(values: { name?: string }[] | undefined): string[] {
   return (values ?? []).map((g) => text(g.name)).filter((g): g is string => g !== null);
 }
 
+/**
+ * Best landscape background of a given artwork type.
+ *
+ * Prefers art without lettering: these sit behind or above a title, and a
+ * baked-in logo competing with our own heading looks like a mistake.
+ */
+export function pickBackdrop(
+  artworks: TvdbArtwork[] | undefined,
+  type: number
+): string | null {
+  const candidates = (artworks ?? []).filter((art) => art.type === type && art.image);
+
+  const best = candidates.sort((a, b) => {
+    const text = Number(a.includesText ?? false) - Number(b.includesText ?? false);
+    return text !== 0 ? text : (b.score ?? 0) - (a.score ?? 0);
+  })[0];
+
+  return image(best?.image);
+}
+
 export function mapSearchResult(raw: TvdbSearchResult): SearchResult | null {
   const providerId = text(raw.tvdb_id);
   const name = text(raw.name);
@@ -94,7 +119,10 @@ export function mapSearchResult(raw: TvdbSearchResult): SearchResult | null {
   };
 }
 
-export function mapSeries(raw: TvdbSeriesExtended): SeriesDetail {
+export function mapSeries(
+  raw: TvdbSeriesExtended,
+  backdropUrl: string | null = null
+): SeriesDetail {
   return {
     providerId: String(raw.id),
     name:
@@ -109,6 +137,7 @@ export function mapSeries(raw: TvdbSeriesExtended): SeriesDetail {
     genres: genres(raw.genres),
     runtimeMin: runtime(raw.averageRuntime),
     posterUrl: image(raw.image),
+    backdropUrl,
     providerUpdatedAt: timestamp(raw.lastUpdated),
     // The seasons array mixes ordering schemes (aired/DVD/absolute), which
     // would collide on (series, number) — keep only the canonical one.
@@ -166,6 +195,7 @@ export function mapMovie(raw: TvdbMovieExtended): MovieDetail {
     genres: genres(raw.genres),
     runtimeMin: runtime(raw.runtime),
     posterUrl: image(raw.image),
+    backdropUrl: pickBackdrop(raw.artworks, MOVIE_BACKGROUND),
     providerUpdatedAt: timestamp(raw.lastUpdated),
   };
 }

@@ -13,6 +13,7 @@ import {
 import { ChevronDownIcon, ChevronRightIcon } from "@radix-ui/react-icons";
 import { ensureSeriesIngested } from "@/lib/metadata/ingest";
 import { createClient } from "@/lib/supabase/server";
+import { Backdrop } from "@/components/Backdrop";
 import { Poster } from "@/components/Poster";
 import { Stat } from "@/components/Stat";
 import { BulkMarkButtons } from "@/components/tracking/BulkMarkButtons";
@@ -100,10 +101,15 @@ export default async function SeriesPage({
         : null;
 
   return (
-    <Container size="4" px="4">
-      <Flex direction="column" gap="6">
+    <>
+      {/* Outside the Container so it can run edge to edge on a phone. */}
+      {series.backdrop_url && <Backdrop url={series.backdrop_url} alt={series.name} />}
+      <Container size="4" px="4">
+        <Flex direction="column" gap="6">
         <Flex gap="5" align="start" wrap="wrap">
-          <Poster url={series.poster_url} alt={series.name} width={160} />
+          <Box display={series.backdrop_url ? { initial: "none", sm: "block" } : undefined}>
+            <Poster url={series.poster_url} alt={series.name} width={160} />
+          </Box>
           <Flex direction="column" gap="3" style={{ flex: "1 1 320px" }}>
             <Box>
               <Heading size="7">{series.name}</Heading>
@@ -216,8 +222,9 @@ export default async function SeriesPage({
             })}
           </Flex>
         )}
-      </Flex>
-    </Container>
+        </Flex>
+      </Container>
+    </>
   );
 }
 

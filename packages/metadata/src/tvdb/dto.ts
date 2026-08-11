@@ -52,6 +52,8 @@ export interface TvdbSeriesExtended {
   lastUpdated?: string;
   seasons?: TvdbSeasonSummary[];
   translations?: TvdbTranslations;
+  /** Empty when the response is requested with short=true. */
+  artworks?: TvdbArtwork[];
 }
 
 export interface TvdbEpisode {
@@ -68,6 +70,19 @@ export interface TvdbEpisode {
 
 export interface TvdbEpisodesPage {
   episodes?: TvdbEpisode[];
+}
+
+export interface TvdbArtwork {
+  image?: string;
+  /** 3 = series background, 15 = movie background. See /artwork/types. */
+  type?: number;
+  score?: number;
+  includesText?: boolean;
+}
+
+/** Response shape of /series/{id}/artworks. */
+export interface TvdbArtworks {
+  artworks?: TvdbArtwork[];
 }
 
 export interface TvdbTranslation {
@@ -95,4 +110,6 @@ export interface TvdbMovieExtended {
   first_release?: { date?: string };
   releases?: { country?: string; date?: string }[];
   translations?: TvdbTranslations;
+  /** Present even with short=true, unlike the series endpoint. */
+  artworks?: TvdbArtwork[];
 }

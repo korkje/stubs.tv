@@ -33,6 +33,8 @@ export interface SeriesDetail {
   /** Typical episode runtime in minutes. */
   runtimeMin: number | null;
   posterUrl: string | null;
+  /** Landscape artwork, for wide layouts and phones. */
+  backdropUrl: string | null;
   /** The provider's own last-modified stamp, ISO 8601. */
   providerUpdatedAt: string | null;
   seasons: SeasonSummary[];
@@ -58,6 +60,7 @@ export interface MovieDetail {
   genres: string[];
   runtimeMin: number | null;
   posterUrl: string | null;
+  backdropUrl: string | null;
   providerUpdatedAt: string | null;
 }
 
