@@ -37,10 +37,10 @@ export default async function MoviePage({ params }: { params: Promise<{ id: stri
   if (!movie) notFound();
 
   return (
-    <Container size="4" px="4">
-      <Flex direction="column" gap="5">
-        {movie.backdrop_url && <Backdrop url={movie.backdrop_url} alt={movie.name} />}
-        <Flex gap="5" align="start" wrap="wrap">
+    <>
+      {movie.backdrop_url && <Backdrop url={movie.backdrop_url} alt={movie.name} />}
+      <Container size="4" px="4">
+        <Flex gap="5" align="start" wrap="wrap" position="relative">
           <Box display={movie.backdrop_url ? { initial: "none", sm: "block" } : undefined}>
             <Poster url={movie.poster_url} alt={movie.name} width={160} />
           </Box>
@@ -81,7 +81,7 @@ export default async function MoviePage({ params }: { params: Promise<{ id: stri
           </Flex>
           </Flex>
         </Flex>
-      </Flex>
-    </Container>
+      </Container>
+    </>
   );
 }

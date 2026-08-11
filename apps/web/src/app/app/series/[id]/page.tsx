@@ -101,10 +101,12 @@ export default async function SeriesPage({
         : null;
 
   return (
-    <Container size="4" px="4">
-      <Flex direction="column" gap="6">
-        {series.backdrop_url && <Backdrop url={series.backdrop_url} alt={series.name} />}
-        <Flex gap="5" align="start" wrap="wrap">
+    <>
+      {/* Outside the Container so it can run the full width of the screen. */}
+      {series.backdrop_url && <Backdrop url={series.backdrop_url} alt={series.name} />}
+      <Container size="4" px="4">
+        <Flex direction="column" gap="6">
+          <Flex gap="5" align="start" wrap="wrap" position="relative">
           <Box display={series.backdrop_url ? { initial: "none", sm: "block" } : undefined}>
             <Poster url={series.poster_url} alt={series.name} width={160} />
           </Box>
@@ -219,9 +221,10 @@ export default async function SeriesPage({
               );
             })}
           </Flex>
-        )}
-      </Flex>
-    </Container>
+          )}
+        </Flex>
+      </Container>
+    </>
   );
 }
 
