@@ -39,9 +39,10 @@ body {
 }
 
 /*
- * Synopsis in a list row: two lines on a phone, three where there is room.
- * Radix's `truncate` is single-line only (it sets white-space: nowrap), so
- * multi-line ellipsis has to be line-clamp.
+ * Synopsis in a list row. Radix's `truncate` is single-line only (it sets
+ * white-space: nowrap), so multi-line ellipsis has to be line-clamp. Always
+ * exactly two lines, so list rows keep a predictable height and the loading
+ * skeletons can be replaced in place without the list jumping.
  */
 .clamp-summary {
   display: -webkit-box;
@@ -49,13 +50,6 @@ body {
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}
-
-@media (min-width: 768px) {
-  .clamp-summary {
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
-  }
 }
 
 /* Keeps long episode synopses to a couple of lines in dense listings. */

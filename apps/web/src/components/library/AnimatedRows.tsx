@@ -9,8 +9,9 @@ import { AnimatePresence, MotionConfig, motion } from "motion/react";
  * it can collapse away smoothly) and an inner div that owns the content.
  * Removing a row fades the content out first, then closes the gap — the
  * sequencing is what keeps it from looking like the list snapping shut. On
- * the list's first mount the rows fade up with a small stagger instead;
- * rows added to an already-mounted list expand into place.
+ * the list's first mount the rows quickly fade in place — they are usually
+ * replacing skeletons of the same shape — and rows added to an
+ * already-mounted list expand into place.
  *
  * It is a client component receiving server-rendered rows: AnimatePresence
  * keeps a departed child around just long enough to play the exit. Keys come
@@ -19,15 +20,15 @@ import { AnimatePresence, MotionConfig, motion } from "motion/react";
  */
 export function AnimatedRows({ children }: { children: React.ReactNode }) {
   const rows = Children.toArray(children).filter(isValidElement);
-  // The keys present when the list mounted, captured once: those rows get
-  // the staggered entrance, rows arriving later expand into place instead.
+  // The keys present when the list mounted, captured once: those rows fade
+  // in place of the skeletons, rows arriving later expand into place.
   // Motion reads `initial` at each row's mount, so nothing restyles.
   const [initialKeys] = useState(() => new Set(rows.map((row) => row.key)));
 
   return (
     <MotionConfig reducedMotion="user">
       <AnimatePresence>
-        {rows.map((row, index) => {
+        {rows.map((row) => {
           const atMount = initialKeys.has(row.key);
 
           return (
@@ -44,19 +45,18 @@ export function AnimatedRows({ children }: { children: React.ReactNode }) {
               <motion.div
                 layout
                 style={{ paddingBottom: "var(--space-3)" }}
-                initial={
-                  atMount ? { opacity: 0, y: 10 } : { opacity: 0, scale: 0.97 }
-                }
+                // At-mount rows usually replace skeletons of the same shape,
+                // so they resolve in place with a plain quick fade — a
+                // staggered entrance on top of a skeleton reads as loading
+                // twice. Rows added later expand into their slot instead.
+                initial={atMount ? { opacity: 0 } : { opacity: 0, scale: 0.97 }}
                 animate={{
                   opacity: 1,
-                  y: 0,
                   scale: 1,
                   transition: {
-                    duration: 0.2,
+                    duration: atMount ? 0.15 : 0.2,
                     ease: "easeOut",
-                    // Stagger the initial list; a row expanding into an
-                    // existing list waits for its slot to open instead.
-                    delay: atMount ? Math.min(index * 0.05, 0.4) : 0.15,
+                    delay: atMount ? 0 : 0.15,
                   },
                 }}
                 exit={{
