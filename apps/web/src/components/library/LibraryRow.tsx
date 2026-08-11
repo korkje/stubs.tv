@@ -24,7 +24,7 @@ export function LibraryRow({
   href: string;
   name: string;
   posterUrl: string | null;
-  /** ISO date; only the year is shown. */
+  /** ISO date or a bare year; only the year is shown. */
   date: string | null;
   runtimeMin: number | null;
   rating: number | null;
@@ -39,7 +39,9 @@ export function LibraryRow({
       <Link href={href}>
         <Flex gap="4" align="start">
           <Poster url={posterUrl} alt={name} width={56} />
-          <Flex direction="column" gap="1" style={{ minWidth: 0 }}>
+          {/* flexGrow makes the column span the card even when the text is
+              short, so the follow star always sits at the right edge. */}
+          <Flex direction="column" gap="1" flexGrow="1" style={{ minWidth: 0 }}>
             <Flex justify="between" align="start" gap="2">
               <Text weight="bold" size="3">
                 {name}

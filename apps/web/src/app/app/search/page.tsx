@@ -1,10 +1,8 @@
-import Link from "next/link";
 import {
   Badge,
   Box,
   Button,
   Callout,
-  Card,
   Container,
   Flex,
   Heading,
@@ -15,7 +13,7 @@ import { SearchField } from "@/components/SearchField";
 import { createClient } from "@/lib/supabase/server";
 import { getMetadataProvider } from "@/lib/metadata/provider";
 import { resolveSearchResults, searchScores, titlePath } from "@/lib/metadata/ingest";
-import { Poster } from "@/components/Poster";
+import { LibraryRow } from "@/components/library/LibraryRow";
 import { FollowStar } from "@/components/tracking/FollowStar";
 import { SeenEye } from "@/components/tracking/SeenEye";
 
@@ -127,6 +125,8 @@ async function Results({ query }: { query: string }) {
     .sort((a, b) => b.score - a.score || a.index - b.index)
     .map((entry) => entry.result);
 
+  // The same row component as the Shows and Movies lists, so search results
+  // cannot drift apart from them in shape, spacing or type sizes.
   return (
     <Flex direction="column" gap="3">
       {ranked.map((result) => {
@@ -134,56 +134,36 @@ async function Results({ query }: { query: string }) {
         if (!internalId) return null;
 
         return (
-          <Card key={`${result.kind}-${result.providerId}`} asChild>
-            <Link href={titlePath(result.kind, internalId)}>
-              <Flex gap="4" align="start">
-                <Poster url={result.posterUrl} alt={result.name} width={64} />
-                <Flex direction="column" gap="1" pt="1" flexGrow="1" style={{ minWidth: 0 }}>
-                  <Flex justify="between" align="start" gap="2">
-                    <Flex align="center" gap="2" wrap="wrap">
-                      <Text weight="bold" size="3">
-                        {result.name}
-                      </Text>
-                      {result.year && (
-                        <Text size="2" color="gray">
-                          {result.year}
-                        </Text>
-                      )}
-                      <Badge color={result.kind === "series" ? "amber" : "blue"} variant="soft">
-                        {result.kind === "series" ? "TV" : "Movie"}
-                      </Badge>
-                    </Flex>
-                    {/* Match the title's line height so the toggle centers on
-                        the first line even when the title wraps. */}
-                    <Flex
-                      align="center"
-                      flexShrink="0"
-                      style={{ height: "var(--line-height-3)" }}
-                    >
-                      {result.kind === "series" ? (
-                        <FollowStar
-                          seriesId={internalId}
-                          following={followedSeries.has(internalId)}
-                          revalidate="/app/search"
-                        />
-                      ) : (
-                        <SeenEye
-                          movieId={internalId}
-                          seen={seenMovies.has(internalId)}
-                          revalidate="/app/search"
-                        />
-                      )}
-                    </Flex>
-                  </Flex>
-                  {result.overview && (
-                    <Text as="div" size="2" color="gray" className="clamp-summary">
-                      {result.overview}
-                    </Text>
-                  )}
-                </Flex>
-              </Flex>
-            </Link>
-          </Card>
+          <LibraryRow
+            key={`${result.kind}-${result.providerId}`}
+            href={titlePath(result.kind, internalId)}
+            name={result.name}
+            posterUrl={result.posterUrl}
+            date={result.year != null ? String(result.year) : null}
+            runtimeMin={null}
+            rating={null}
+            overview={result.overview}
+            badge={
+              <Badge size="1" color={result.kind === "series" ? "amber" : "blue"} variant="soft">
+                {result.kind === "series" ? "TV" : "Movie"}
+              </Badge>
+            }
+            titleIcon={
+              result.kind === "series" ? (
+                <FollowStar
+                  seriesId={internalId}
+                  following={followedSeries.has(internalId)}
+                  revalidate="/app/search"
+                />
+              ) : (
+                <SeenEye
+                  movieId={internalId}
+                  seen={seenMovies.has(internalId)}
+                  revalidate="/app/search"
+                />
+              )
+            }
+          />
         );
       })}
     </Flex>
