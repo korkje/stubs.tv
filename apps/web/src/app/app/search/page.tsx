@@ -36,11 +36,14 @@ export default async function SearchPage({
 
         <form>
           <Flex gap="3" align="center">
-            <Box flexGrow="1">
+            <Box flexGrow="1" style={{ minWidth: 0 }}>
               <TextField.Root
                 name="q"
                 defaultValue={query}
-                placeholder="Search for a movie or TV show…"
+                // Short enough to survive a phone-width field: the icon and
+                // the button already say "search", so the placeholder only
+                // has to say what is searchable.
+                placeholder="Movies and TV shows"
                 size="3"
                 autoFocus
               >

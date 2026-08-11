@@ -43,7 +43,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                       worded button overflows the width. */}
                   <Button variant="soft" color="gray" size="2" aria-label="Sign out">
                     <ExitIcon />
-                    <span className="label-sm-up">Sign out</span>
+                    <span className="label-when-room">Sign out</span>
                   </Button>
                 </form>
               </Flex>
