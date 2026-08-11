@@ -1,5 +1,6 @@
 import { Box, Flex, Text } from "@radix-ui/themes";
 import type { Episode } from "@stubs/db";
+import { EpisodeSummary } from "./EpisodeSummary";
 import { EpisodeToggle } from "./EpisodeToggle";
 import { formatDate } from "@/lib/format";
 
@@ -57,11 +58,7 @@ export function EpisodeRow({
               {episode.name ?? "Untitled"}
             </Text>
           </Flex>
-          {episode.overview && (
-            <Text as="div" size="1" color="gray" mt="1" className="clamp-2-lines">
-              {episode.overview}
-            </Text>
-          )}
+          {episode.overview && <EpisodeSummary overview={episode.overview} />}
         </Box>
 
         <Flex gap="3" flexShrink="0">
