@@ -3,6 +3,7 @@ import { Badge, Box, Container, Flex, Heading, Text } from "@radix-ui/themes";
 import { ensureMovieIngested } from "@/lib/metadata/ingest";
 import { createClient } from "@/lib/supabase/server";
 import { Backdrop } from "@/components/Backdrop";
+import { FadeIn } from "@/components/FadeIn";
 import { Poster } from "@/components/Poster";
 import { RatingSelect } from "@/components/tracking/RatingSelect";
 import { SeenToggleButton } from "@/components/tracking/SeenToggleButton";
@@ -37,7 +38,7 @@ export default async function MoviePage({ params }: { params: Promise<{ id: stri
   if (!movie) notFound();
 
   return (
-    <>
+    <FadeIn>
       {movie.backdrop_url && <Backdrop url={movie.backdrop_url} alt={movie.name} />}
       <Container size="3" px="4">
         <Flex gap="5" align="start" wrap="wrap" position="relative">
@@ -82,6 +83,6 @@ export default async function MoviePage({ params }: { params: Promise<{ id: stri
           </Flex>
         </Flex>
       </Container>
-    </>
+    </FadeIn>
   );
 }

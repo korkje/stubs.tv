@@ -38,7 +38,7 @@ export async function ShowsList() {
   }
 
   return (
-    <Flex direction="column" gap="3">
+    <Flex direction="column">
       <AnimatedRows>
       {shows.map((show) => {
         const aired = show.aired_episodes ?? 0;

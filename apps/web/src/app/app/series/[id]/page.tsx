@@ -14,6 +14,7 @@ import { ChevronDownIcon, ChevronRightIcon } from "@radix-ui/react-icons";
 import { ensureSeriesIngested } from "@/lib/metadata/ingest";
 import { createClient } from "@/lib/supabase/server";
 import { Backdrop } from "@/components/Backdrop";
+import { FadeIn } from "@/components/FadeIn";
 import { Poster } from "@/components/Poster";
 import { Stat } from "@/components/Stat";
 import { BulkMarkButtons } from "@/components/tracking/BulkMarkButtons";
@@ -101,7 +102,7 @@ export default async function SeriesPage({
         : null;
 
   return (
-    <>
+    <FadeIn>
       {/* Outside the Container so it can run the full width of the screen. */}
       {series.backdrop_url && <Backdrop url={series.backdrop_url} alt={series.name} />}
       <Container size="3" px="4">
@@ -224,7 +225,7 @@ export default async function SeriesPage({
           )}
         </Flex>
       </Container>
-    </>
+    </FadeIn>
   );
 }
 

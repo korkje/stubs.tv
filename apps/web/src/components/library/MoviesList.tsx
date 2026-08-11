@@ -45,7 +45,7 @@ export async function MoviesList() {
   const scoreById = new Map((ratings ?? []).map((r) => [r.entity_id, r.score]));
 
   return (
-    <Flex direction="column" gap="3">
+    <Flex direction="column">
       <AnimatedRows>
       {(movies ?? []).map((movie) => (
         <LibraryRow

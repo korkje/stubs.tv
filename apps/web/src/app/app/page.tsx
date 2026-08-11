@@ -10,6 +10,7 @@ import {
   VisuallyHidden,
 } from "@radix-ui/themes";
 import { createClient } from "@/lib/supabase/server";
+import { FadeIn } from "@/components/FadeIn";
 import { Stat } from "@/components/Stat";
 import { ShowsList } from "@/components/library/ShowsList";
 import { MoviesList } from "@/components/library/MoviesList";
@@ -53,6 +54,7 @@ export default async function HomePage({
 
   return (
     <Container size="3" px="4">
+      <FadeIn>
       <Flex direction="column" gap="5">
         <VisuallyHidden>
           <Heading as="h1">Home</Heading>
@@ -92,6 +94,7 @@ export default async function HomePage({
 
         <InvitesCard />
       </Flex>
+      </FadeIn>
     </Container>
   );
 }

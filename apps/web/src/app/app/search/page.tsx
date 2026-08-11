@@ -8,10 +8,12 @@ import {
   VisuallyHidden,
 } from "@radix-ui/themes";
 import { Suspense } from "react";
+import { FadeIn } from "@/components/FadeIn";
 import { SearchForm } from "@/components/SearchForm";
 import { createClient } from "@/lib/supabase/server";
 import { getMetadataProvider } from "@/lib/metadata/provider";
 import { resolveSearchResults, searchScores, titlePath } from "@/lib/metadata/ingest";
+import { AnimatedRows } from "@/components/library/AnimatedRows";
 import { LibraryRow } from "@/components/library/LibraryRow";
 import { ListSkeleton } from "@/components/library/Skeletons";
 import { FollowStar } from "@/components/tracking/FollowStar";
@@ -27,6 +29,7 @@ export default async function SearchPage({
 
   return (
     <Container size="3" px="4">
+      <FadeIn>
       <Flex direction="column" gap="5">
         {/* No visible heading: it would only repeat the nav item above it,
             and the field makes the purpose obvious. */}
@@ -48,6 +51,7 @@ export default async function SearchPage({
           </Text>
         )}
       </Flex>
+      </FadeIn>
     </Container>
   );
 }
@@ -121,7 +125,8 @@ async function Results({ query }: { query: string }) {
   // The same row component as the Shows and Movies lists, so search results
   // cannot drift apart from them in shape, spacing or type sizes.
   return (
-    <Flex direction="column" gap="3">
+    <Flex direction="column">
+      <AnimatedRows>
       {ranked.map((result) => {
         const internalId = ids.get(`${result.kind}:${result.providerId}`);
         if (!internalId) return null;
@@ -159,6 +164,7 @@ async function Results({ query }: { query: string }) {
           />
         );
       })}
+      </AnimatedRows>
     </Flex>
   );
 }
