@@ -19,6 +19,7 @@ export function LibraryRow({
   rating,
   overview,
   badge,
+  titleIcon,
 }: {
   href: string;
   name: string;
@@ -30,6 +31,8 @@ export function LibraryRow({
   overview: string | null;
   /** Optional trailing badge, e.g. how many episodes are left to watch. */
   badge?: React.ReactNode;
+  /** Optional icon after the title, e.g. the followed star. */
+  titleIcon?: React.ReactNode;
 }) {
   return (
     <Card asChild>
@@ -37,9 +40,12 @@ export function LibraryRow({
         <Flex gap="4" align="start">
           <Poster url={posterUrl} alt={name} width={56} />
           <Flex direction="column" gap="1" style={{ minWidth: 0 }}>
-            <Text weight="bold" size="3">
-              {name}
-            </Text>
+            <Flex align="center" gap="1">
+              <Text weight="bold" size="3">
+                {name}
+              </Text>
+              {titleIcon}
+            </Flex>
 
             <Flex align="center" gap="2" wrap="wrap">
               {date && (

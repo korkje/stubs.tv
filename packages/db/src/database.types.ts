@@ -453,6 +453,7 @@ export type Database = {
         Row: {
           aired_episodes: number | null
           first_aired: string | null
+          followed: boolean | null
           name: string | null
           overview: string | null
           poster_url: string | null

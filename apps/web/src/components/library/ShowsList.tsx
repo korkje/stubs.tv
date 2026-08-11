@@ -1,14 +1,19 @@
 import Link from "next/link";
 import { Badge, Button, Card, Flex, Text } from "@radix-ui/themes";
+import { StarFilledIcon } from "@radix-ui/react-icons";
 import { createClient } from "@/lib/supabase/server";
 import { LibraryRow } from "./LibraryRow";
 
-/** Followed shows with how much is left to watch. */
+/**
+ * Every show the user follows or has watched episodes of, with how much is
+ * left to watch. Followed ones carry the amber star — the same mark
+ * FollowButton uses for the followed state.
+ */
 export async function ShowsList() {
   const supabase = await createClient();
 
   // series_progress is a security_invoker view, so this returns only the
-  // signed-in user's followed shows.
+  // signed-in user's shows.
   const { data: shows } = await supabase
     .from("series_progress")
     .select("*")
@@ -19,8 +24,8 @@ export async function ShowsList() {
       <Card>
         <Flex direction="column" align="start" gap="3" p="2">
           <Text color="gray">
-            You are not following any shows yet. Find one and hit Follow to see
-            your progress here.
+            Nothing here yet. Find a show and follow it or mark episodes as
+            seen, and it will show up here.
           </Text>
           <Button asChild>
             <Link href="/app/search">Search shows</Link>
@@ -49,6 +54,16 @@ export async function ShowsList() {
             runtimeMin={show.runtime_min}
             rating={show.rating}
             overview={show.overview}
+            titleIcon={
+              show.followed ? (
+                <StarFilledIcon
+                  role="img"
+                  aria-label="Followed"
+                  color="var(--amber-9)"
+                  style={{ flexShrink: 0 }}
+                />
+              ) : null
+            }
             badge={
               unseen > 0 ? (
                 <Badge size="1" color="amber" variant="soft">
