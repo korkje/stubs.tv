@@ -48,22 +48,20 @@ export async function ShowsList() {
                   <Text weight="bold" size="3">
                     {show.name}
                   </Text>
-                  <Flex align="center" gap="2" wrap="wrap">
-                    <Text size="2" color="gray">
-                      {watched} of {aired} aired episodes seen
-                    </Text>
-                    {unseen > 0 ? (
-                      <Badge color="amber" variant="soft">
-                        {unseen} to watch
+                  <Text size="2" color="gray">
+                    {watched} of {aired} aired episodes seen
+                  </Text>
+                  {unseen > 0 ? (
+                    <Badge color="amber" variant="soft">
+                      {unseen} to watch
+                    </Badge>
+                  ) : (
+                    aired > 0 && (
+                      <Badge color="gray" variant="soft">
+                        Up to date
                       </Badge>
-                    ) : (
-                      aired > 0 && (
-                        <Badge color="gray" variant="soft">
-                          Up to date
-                        </Badge>
-                      )
-                    )}
-                  </Flex>
+                    )
+                  )}
                 </Flex>
               </Flex>
             </Link>

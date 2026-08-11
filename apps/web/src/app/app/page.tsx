@@ -1,5 +1,13 @@
 import Link from "next/link";
-import { Container, Flex, Heading, Separator, TabNav, VisuallyHidden } from "@radix-ui/themes";
+import {
+  Container,
+  Flex,
+  Grid,
+  Heading,
+  Separator,
+  TabNav,
+  VisuallyHidden,
+} from "@radix-ui/themes";
 import { createClient } from "@/lib/supabase/server";
 import { Stat } from "@/components/Stat";
 import { ShowsList } from "@/components/library/ShowsList";
@@ -49,15 +57,16 @@ export default async function HomePage({
 
         {hasHistory && (
           <>
-            <Flex gap="6" wrap="wrap">
+            {/* Six stats rather than four: three per row on a phone reads far
+                better than a row of three and an orphan. */}
+            <Grid columns={{ initial: "3", sm: "6" }} gapX="4" gapY="4">
               <Stat label="Shows followed" value={String(showsFollowed ?? 0)} />
               <Stat label="Episodes seen" value={String(totals?.episodes_seen ?? 0)} />
               <Stat label="Movies seen" value={String(totals?.movies_seen ?? 0)} />
-              <Stat
-                label="Time watched"
-                value={formatRuntime(totals?.minutes_watched ?? 0)}
-              />
-            </Flex>
+              <Stat label="Show time" value={formatRuntime(totals?.episode_minutes ?? 0)} />
+              <Stat label="Movie time" value={formatRuntime(totals?.movie_minutes ?? 0)} />
+              <Stat label="Total time" value={formatRuntime(totals?.minutes_watched ?? 0)} />
+            </Grid>
             <Separator size="4" />
           </>
         )}

@@ -43,7 +43,11 @@ export function createTvdbProvider(apiKey: string): MetadataProvider {
 
     async getSeries(id: ProviderId): Promise<SeriesDetail | null> {
       // short=true omits per-episode and cast payloads we do not need here.
-      const body = await client.get<TvdbSeriesExtended>(`/series/${id}/extended?short=true`);
+      // meta=translations is what carries the English title and synopsis for
+      // shows recorded in another language.
+      const body = await client.get<TvdbSeriesExtended>(
+        `/series/${id}/extended?meta=translations&short=true`
+      );
       return body?.data ? mapSeries(body.data) : null;
     },
 
@@ -51,8 +55,11 @@ export function createTvdbProvider(apiKey: string): MetadataProvider {
       const episodes: EpisodeDetail[] = [];
 
       for (let page = 0; page < MAX_EPISODE_PAGES; page++) {
+        // The /eng variant returns English episode titles and synopses. It is
+        // never worse than the untranslated list: identical for English shows,
+        // and populated where the plain list leaves names empty.
         const body = await client.get<TvdbEpisodesPage>(
-          `/series/${id}/episodes/default?page=${page}`
+          `/series/${id}/episodes/default/eng?page=${page}`
         );
         if (!body) break;
 

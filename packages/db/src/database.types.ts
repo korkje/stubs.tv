@@ -456,8 +456,10 @@ export type Database = {
       }
       watch_totals: {
         Row: {
+          episode_minutes: number | null
           episodes_seen: number | null
           minutes_watched: number | null
+          movie_minutes: number | null
           movies_seen: number | null
           user_id: string | null
         }

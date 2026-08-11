@@ -10,9 +10,29 @@ import type {
   TvdbMovieExtended,
   TvdbSearchResult,
   TvdbSeriesExtended,
+  TvdbTranslation,
 } from "./dto";
 
 const ARTWORK_HOST = "https://artworks.thetvdb.com";
+
+/**
+ * TheTVDB returns records in their original language: Spirited Away comes
+ * back as 千と千尋の神隠し, with the English title alongside in a translations
+ * map. This app is English, so prefer that everywhere.
+ *
+ * (If stubs is ever localised, this is the single place that decides.)
+ */
+const LANGUAGE = "eng";
+
+/** Picks the English entry out of the translations array on entity endpoints. */
+function translated(
+  entries: TvdbTranslation[] | undefined,
+  field: "name" | "overview"
+): string | null {
+  const list = entries ?? [];
+  const preferred = list.find((entry) => entry.language === LANGUAGE);
+  return text(preferred?.[field]);
+}
 
 /** TheTVDB uses "" and whitespace where it means "no value". */
 function text(value: string | undefined | null): string | null {
@@ -62,12 +82,14 @@ export function mapSearchResult(raw: TvdbSearchResult): SearchResult | null {
 
   if (!providerId || !name || (kind !== "series" && kind !== "movie")) return null;
 
+  // Search results carry translations as plain language → value maps, unlike
+  // the arrays the entity endpoints use.
   return {
     kind,
     providerId,
-    name,
+    name: text(raw.translations?.[LANGUAGE]) ?? name,
     year: year(raw.year) ?? year(raw.first_air_time?.slice(0, 4)),
-    overview: text(raw.overview),
+    overview: text(raw.overviews?.[LANGUAGE]) ?? text(raw.overview),
     posterUrl: image(raw.image_url),
   };
 }
@@ -75,8 +97,13 @@ export function mapSearchResult(raw: TvdbSearchResult): SearchResult | null {
 export function mapSeries(raw: TvdbSeriesExtended): SeriesDetail {
   return {
     providerId: String(raw.id),
-    name: text(raw.name) ?? "Untitled",
-    overview: text(raw.overview),
+    name:
+      translated(raw.translations?.nameTranslations, "name") ??
+      text(raw.name) ??
+      "Untitled",
+    overview:
+      translated(raw.translations?.overviewTranslations, "overview") ??
+      text(raw.overview),
     firstAired: date(raw.firstAired),
     status: text(raw.status?.name),
     genres: genres(raw.genres),
@@ -120,17 +147,20 @@ export function mapMovie(raw: TvdbMovieExtended): MovieDetail {
     raw.releases?.find((r) => r.country === "global")?.date ??
     raw.releases?.[0]?.date;
 
-  // Unlike series, the movie endpoint carries no top-level overview; it is
-  // only available per language under translations.
-  const translations = raw.translations?.overviewTranslations ?? [];
+  // Unlike series, the movie endpoint carries no top-level overview at all;
+  // it exists only per language under translations.
+  const overviews = raw.translations?.overviewTranslations ?? [];
   const overview =
+    translated(overviews, "overview") ??
     text(raw.overview) ??
-    text(translations.find((t) => t.language === "eng")?.overview) ??
-    text(translations.find((t) => t.isPrimary)?.overview);
+    text(overviews.find((t) => t.isPrimary)?.overview);
 
   return {
     providerId: String(raw.id),
-    name: text(raw.name) ?? "Untitled",
+    name:
+      translated(raw.translations?.nameTranslations, "name") ??
+      text(raw.name) ??
+      "Untitled",
     overview,
     released: date(globalRelease),
     genres: genres(raw.genres),

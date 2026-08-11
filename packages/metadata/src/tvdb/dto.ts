@@ -13,6 +13,7 @@ export interface TvdbEnvelope<T> {
 
 export interface TvdbSearchResult {
   tvdb_id?: string;
+  /** In the record's *original* language — 千と千尋の神隠し, not Spirited Away. */
   name?: string;
   /** "series" | "movie" | "person" | … */
   type?: string;
@@ -20,6 +21,10 @@ export interface TvdbSearchResult {
   overview?: string;
   image_url?: string;
   first_air_time?: string;
+  /** Language code → title. Where the English name actually lives. */
+  translations?: Record<string, string>;
+  /** Language code → synopsis. */
+  overviews?: Record<string, string>;
 }
 
 interface TvdbNamed {
@@ -36,6 +41,7 @@ export interface TvdbSeasonSummary {
 
 export interface TvdbSeriesExtended {
   id: number;
+  /** Original language; prefer the English entry in translations. */
   name?: string;
   overview?: string;
   firstAired?: string;
@@ -45,6 +51,7 @@ export interface TvdbSeriesExtended {
   image?: string;
   lastUpdated?: string;
   seasons?: TvdbSeasonSummary[];
+  translations?: TvdbTranslations;
 }
 
 export interface TvdbEpisode {
@@ -64,9 +71,15 @@ export interface TvdbEpisodesPage {
 }
 
 export interface TvdbTranslation {
+  name?: string;
   overview?: string;
   language?: string;
   isPrimary?: boolean;
+}
+
+export interface TvdbTranslations {
+  nameTranslations?: TvdbTranslation[];
+  overviewTranslations?: TvdbTranslation[];
 }
 
 export interface TvdbMovieExtended {
@@ -81,5 +94,5 @@ export interface TvdbMovieExtended {
   lastUpdated?: string;
   first_release?: { date?: string };
   releases?: { country?: string; date?: string }[];
-  translations?: { overviewTranslations?: TvdbTranslation[] };
+  translations?: TvdbTranslations;
 }
