@@ -6,11 +6,17 @@ export default function Home() {
   return (
     <Container size="2" px="4">
       <Flex direction="column" align="center" gap="8" py="9">
-        <Flex direction="row" align="center" gap="4">
-          <Box style={{ transform: "rotate(-6deg)" }}>
-            <StubsMark width={120} />
+        {/* The lockup at full size overflows a phone (120px mark + size-9
+            heading is wider than 375px), so both step down together. */}
+        <Flex direction="row" align="center" gap={{ initial: "3", sm: "4" }}>
+          <Box
+            style={{ transform: "rotate(-6deg)" }}
+            width={{ initial: "84px", sm: "120px" }}
+            flexShrink="0"
+          >
+            <StubsMark width="100%" />
           </Box>
-          <Heading size="9">stubs.tv</Heading>
+          <Heading size={{ initial: "8", sm: "9" }}>stubs.tv</Heading>
         </Flex>
 
         <Text size="4" color="gray" align="center">

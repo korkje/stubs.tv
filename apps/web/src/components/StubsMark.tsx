@@ -2,7 +2,7 @@
 // Inlined as a component so the fills can use theme tokens: the ticket body
 // follows the accent (amber-9) and the ink follows the accent's contrast
 // color, so the mark tracks any future theme change.
-export function StubsMark({ width = 120 }: { width?: number }) {
+export function StubsMark({ width = 120 }: { width?: number | string }) {
   const body = "var(--accent-9)";
   const ink = "var(--accent-contrast)";
 
@@ -11,7 +11,9 @@ export function StubsMark({ width = 120 }: { width?: number }) {
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 120 72"
       width={width}
-      height={(width * 72) / 120}
+      // A CSS width like "100%" scales with the container; the viewBox keeps
+      // the aspect ratio when no explicit height is set.
+      height={typeof width === "number" ? (width * 72) / 120 : undefined}
       aria-hidden="true"
     >
       <defs>
