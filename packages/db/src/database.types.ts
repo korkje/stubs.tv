@@ -448,8 +448,10 @@ export type Database = {
           aired_episodes: number | null
           first_aired: string | null
           name: string | null
+          overview: string | null
           poster_url: string | null
           rating: number | null
+          runtime_min: number | null
           series_id: number | null
           user_id: string | null
           watched_episodes: number | null

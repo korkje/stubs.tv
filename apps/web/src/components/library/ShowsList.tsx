@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Badge, Button, Card, Flex, Text } from "@radix-ui/themes";
 import { createClient } from "@/lib/supabase/server";
-import { Poster } from "@/components/Poster";
+import { LibraryRow } from "./LibraryRow";
 
 /** Followed shows with how much is left to watch. */
 export async function ShowsList() {
@@ -40,54 +40,27 @@ export async function ShowsList() {
         const unseen = Math.max(aired - watched, 0);
 
         return (
-          <Card key={show.series_id} asChild>
-            <Link href={`/app/series/${show.series_id}`}>
-              <Flex gap="4" align="center">
-                <Poster url={show.poster_url} alt={show.name ?? ""} width={56} />
-                <Flex direction="column" gap="1">
-                  {/* Same shape as a movie row: title, year, your rating. */}
-                  <Flex align="center" gap="2" wrap="wrap">
-                    <Text weight="bold" size="3">
-                      {show.name}
-                    </Text>
-                    {show.first_aired && (
-                      <Text size="2" color="gray">
-                        {show.first_aired.slice(0, 4)}
-                      </Text>
-                    )}
-                    {show.rating && (
-                      <Badge color="amber" variant="soft">
-                        {show.rating} / 10
-                      </Badge>
-                    )}
-                  </Flex>
-                  {/* Stacks on a phone, sits inline from sm up. align="start"
-                      is what stops the badge stretching to the full width: a
-                      column flex stretches its children by default. */}
-                  <Flex
-                    direction={{ initial: "column", sm: "row" }}
-                    align={{ initial: "start", sm: "center" }}
-                    gap={{ initial: "1", sm: "2" }}
-                  >
-                    <Text size="2" color="gray">
-                      {watched} of {aired} aired episodes seen
-                    </Text>
-                    {unseen > 0 ? (
-                      <Badge color="amber" variant="soft">
-                        {unseen} to watch
-                      </Badge>
-                    ) : (
-                      aired > 0 && (
-                        <Badge color="gray" variant="soft">
-                          Up to date
-                        </Badge>
-                      )
-                    )}
-                  </Flex>
-                </Flex>
-              </Flex>
-            </Link>
-          </Card>
+          <LibraryRow
+            key={show.series_id}
+            href={`/app/series/${show.series_id}`}
+            name={show.name ?? "Untitled"}
+            posterUrl={show.poster_url}
+            date={show.first_aired}
+            runtimeMin={show.runtime_min}
+            rating={show.rating}
+            overview={show.overview}
+            badge={
+              unseen > 0 ? (
+                <Badge size="1" color="amber" variant="soft">
+                  {unseen} to watch
+                </Badge>
+              ) : aired > 0 ? (
+                <Badge size="1" color="gray" variant="soft">
+                  Up to date
+                </Badge>
+              ) : null
+            }
+          />
         );
       })}
     </Flex>

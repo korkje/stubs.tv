@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { Badge, Button, Card, Flex, Text } from "@radix-ui/themes";
+import { Button, Card, Flex, Text } from "@radix-ui/themes";
 import { createClient } from "@/lib/supabase/server";
-import { Poster } from "@/components/Poster";
-import { formatDate } from "@/lib/format";
+import { LibraryRow } from "./LibraryRow";
 
 /** Everything marked as seen, most recent first. */
 export async function MoviesList() {
@@ -45,45 +44,23 @@ export async function MoviesList() {
   const byId = new Map((movies ?? []).map((movie) => [movie.id, movie]));
   const scoreById = new Map((ratings ?? []).map((r) => [r.entity_id, r.score]));
 
-  // No totals line here: the stats above the tabs already carry "Movies seen"
-  // and "Movie time", and the Shows tab has no equivalent.
   return (
     <Flex direction="column" gap="3">
       {(watches ?? []).map((watch) => {
         const movie = byId.get(watch.entity_id);
         if (!movie) return null;
-        const score = scoreById.get(movie.id);
 
         return (
-          <Card key={movie.id} asChild>
-            <Link href={`/app/movies/${movie.id}`}>
-              <Flex gap="4" align="center">
-                <Poster url={movie.poster_url} alt={movie.name} width={56} />
-                <Flex direction="column" gap="1">
-                  <Flex align="center" gap="2" wrap="wrap">
-                    <Text weight="bold" size="3">
-                      {movie.name}
-                    </Text>
-                    {movie.released && (
-                      <Text size="2" color="gray">
-                        {movie.released.slice(0, 4)}
-                      </Text>
-                    )}
-                    {score && (
-                      <Badge color="amber" variant="soft">
-                        {score} / 10
-                      </Badge>
-                    )}
-                  </Flex>
-                  <Text size="2" color="gray">
-                    {watch.watched_at
-                      ? `Seen ${formatDate(watch.watched_at.slice(0, 10))}`
-                      : "Seen — date unknown"}
-                  </Text>
-                </Flex>
-              </Flex>
-            </Link>
-          </Card>
+          <LibraryRow
+            key={movie.id}
+            href={`/app/movies/${movie.id}`}
+            name={movie.name}
+            posterUrl={movie.poster_url}
+            date={movie.released}
+            runtimeMin={movie.runtime_min}
+            rating={scoreById.get(movie.id) ?? null}
+            overview={movie.overview}
+          />
         );
       })}
     </Flex>
