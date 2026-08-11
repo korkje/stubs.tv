@@ -45,9 +45,22 @@ export async function ShowsList() {
               <Flex gap="4" align="center">
                 <Poster url={show.poster_url} alt={show.name ?? ""} width={56} />
                 <Flex direction="column" gap="1">
-                  <Text weight="bold" size="3">
-                    {show.name}
-                  </Text>
+                  {/* Same shape as a movie row: title, year, your rating. */}
+                  <Flex align="center" gap="2" wrap="wrap">
+                    <Text weight="bold" size="3">
+                      {show.name}
+                    </Text>
+                    {show.first_aired && (
+                      <Text size="2" color="gray">
+                        {show.first_aired.slice(0, 4)}
+                      </Text>
+                    )}
+                    {show.rating && (
+                      <Badge color="amber" variant="soft">
+                        {show.rating} / 10
+                      </Badge>
+                    )}
+                  </Flex>
                   {/* Stacks on a phone, sits inline from sm up. align="start"
                       is what stops the badge stretching to the full width: a
                       column flex stretches its children by default. */}

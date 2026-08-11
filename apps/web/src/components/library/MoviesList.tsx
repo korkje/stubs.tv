@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Badge, Button, Card, Flex, Text } from "@radix-ui/themes";
 import { createClient } from "@/lib/supabase/server";
 import { Poster } from "@/components/Poster";
-import { formatDate, formatRuntime } from "@/lib/format";
+import { formatDate } from "@/lib/format";
 
 /** Everything marked as seen, most recent first. */
 export async function MoviesList() {
@@ -44,14 +44,11 @@ export async function MoviesList() {
 
   const byId = new Map((movies ?? []).map((movie) => [movie.id, movie]));
   const scoreById = new Map((ratings ?? []).map((r) => [r.entity_id, r.score]));
-  const totalRuntime = (movies ?? []).reduce((sum, m) => sum + (m.runtime_min ?? 0), 0);
 
+  // No totals line here: the stats above the tabs already carry "Movies seen"
+  // and "Movie time", and the Shows tab has no equivalent.
   return (
     <Flex direction="column" gap="3">
-      <Text size="2" color="gray">
-        {movieIds.length} seen · {formatRuntime(totalRuntime)} watched
-      </Text>
-
       {(watches ?? []).map((watch) => {
         const movie = byId.get(watch.entity_id);
         if (!movie) return null;
