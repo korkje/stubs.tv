@@ -19,10 +19,10 @@ from pathlib import Path
 
 # Subjects must match [auth.email.template.*] in supabase/config.toml.
 templates = {
-    "confirmation": "Confirm your stubs.tv account",
-    "magic_link": "Your stubs.tv sign-in link",
-    "recovery": "Reset your stubs.tv password",
-    "email_change": "Confirm your new email for stubs.tv",
+    "confirmation": "Confirm your email address",
+    "magic_link": "Your sign-in link",
+    "recovery": "Reset your password",
+    "email_change": "Confirm your new email address",
 }
 
 config = {}
