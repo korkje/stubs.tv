@@ -115,6 +115,11 @@ path, and the CPU budget is 10ms.
 
 ## Icebox (explicitly deferred)
 
+- **Home as an "up next" queue, lists under a Library page.** Home becomes
+  the unwatched episodes of followed shows in release order; the current
+  Shows/Movies tabs move to a dedicated Library page. Owner idea, 2026-08-12.
+
+
 - Batch `resolve_entities()` for search — a search currently spends one RPC
   per result (~25 subrequests against the free plan's 50-per-request cap).
   A single jsonb-array function would cut it to a handful and speed search up.

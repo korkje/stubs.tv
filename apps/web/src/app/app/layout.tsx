@@ -1,13 +1,7 @@
 import Link from "next/link";
-import {
-  Box,
-  Button,
-  Container,
-  Flex,
-  Link as RadixLink,
-  Separator,
-} from "@radix-ui/themes";
+import { Box, Button, Container, Flex, Separator } from "@radix-ui/themes";
 import { ExitIcon } from "@radix-ui/react-icons";
+import { NavLinks } from "@/components/NavLinks";
 import { StubsMark } from "@/components/StubsMark";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { signout } from "@/app/login/actions";
@@ -27,12 +21,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </Link>
                 <Flex asChild align="center" gap={{ initial: "3", sm: "4" }}>
                   <nav>
-                    <RadixLink asChild size="2" color="gray" highContrast underline="hover">
-                      <Link href="/app">Home</Link>
-                    </RadixLink>
-                    <RadixLink asChild size="2" color="gray" highContrast underline="hover">
-                      <Link href="/app/search">Search</Link>
-                    </RadixLink>
+                    <NavLinks />
                   </nav>
                 </Flex>
               </Flex>

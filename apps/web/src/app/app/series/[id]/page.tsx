@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   Badge,
@@ -10,11 +9,12 @@ import {
   Separator,
   Text,
 } from "@radix-ui/themes";
-import { ChevronDownIcon, ChevronRightIcon } from "@radix-ui/react-icons";
 import { ensureSeriesIngested } from "@/lib/metadata/ingest";
 import { createClient } from "@/lib/supabase/server";
 import { Backdrop } from "@/components/Backdrop";
+import { Collapse } from "@/components/Collapse";
 import { FadeIn } from "@/components/FadeIn";
+import { SeasonHeader } from "@/components/tracking/SeasonHeader";
 import { Poster } from "@/components/Poster";
 import { Stat } from "@/components/Stat";
 import { BulkMarkButtons } from "@/components/tracking/BulkMarkButtons";
@@ -92,14 +92,29 @@ export default async function SeriesPage({
     seenRuntime: sum((s) => s.seen_runtime_min),
   };
 
-  // A single-season show has nothing to choose between, so open it by default.
-  const requested = season === undefined ? null : Number(season);
-  const openSeason =
-    requested !== null && Number.isInteger(requested)
-      ? requested
-      : orderedSeasons.length === 1
-        ? (orderedSeasons[0].season_number ?? null)
-        : null;
+  // Any number of seasons can be open at once; the set lives in the URL as
+  // a comma list. A single-season show has nothing to choose between, so it
+  // opens by default.
+  const openSeasons = new Set(
+    (season ?? "")
+      .split(",")
+      .filter((part) => part !== "")
+      .map(Number)
+      .filter(Number.isInteger)
+  );
+  if (season === undefined && orderedSeasons.length === 1) {
+    openSeasons.add(orderedSeasons[0].season_number ?? 0);
+  }
+
+  // Toggling a season adds or removes it from the list; an empty list
+  // returns to the bare path so the URL stays clean when nothing is open.
+  const seasonHref = (number: number) => {
+    const next = new Set(openSeasons);
+    if (next.has(number)) next.delete(number);
+    else next.add(number);
+    const list = [...next].sort((a, b) => a - b).join(",");
+    return list ? `${path}?season=${list}` : path;
+  };
 
   return (
     <FadeIn>
@@ -178,46 +193,37 @@ export default async function SeriesPage({
           <Flex direction="column" gap="3">
             {orderedSeasons.map((seasonRow) => {
               const number = seasonRow.season_number ?? 0;
-              const open = openSeason === number;
+              const open = openSeasons.has(number);
 
               return (
                 <Flex key={number} direction="column" gap="2">
                   <Flex align="center" justify="between" gap="3" wrap="wrap">
-                    <Flex asChild align="center" gap="2">
-                      {/* Collapsing returns to the bare path so the URL stays
-                          clean when nothing is open. */}
-                      <Link
-                        href={open ? path : `${path}?season=${number}`}
-                        scroll={false}
-                        style={{ color: "inherit", textDecoration: "none" }}
-                      >
-                        {open ? <ChevronDownIcon /> : <ChevronRightIcon />}
-                        <Heading size="4">
-                          {number === 0 ? "Specials" : `Season ${number}`}
-                        </Heading>
-                        <Text size="2" color="gray">
-                          {seasonRow.seen_count ?? 0} of {seasonRow.episode_count ?? 0} seen
-                        </Text>
-                      </Link>
-                    </Flex>
+                    <SeasonHeader
+                      href={seasonHref(number)}
+                      open={open}
+                      title={number === 0 ? "Specials" : `Season ${number}`}
+                      subtitle={`${seasonRow.seen_count ?? 0} of ${seasonRow.episode_count ?? 0} seen`}
+                    />
                     {(seasonRow.aired_count ?? 0) > 0 && (
                       <BulkMarkButtons
                         seriesId={seriesId}
                         seasonNumber={number}
-                        revalidate={open ? `${path}?season=${number}` : path}
+                        revalidate={path}
                         allSeen={(seasonRow.seen_count ?? 0) >= (seasonRow.aired_count ?? 0)}
                         label={number === 0 ? "specials" : "season"}
                       />
                     )}
                   </Flex>
 
-                  {open && (
-                    <SeasonEpisodes
-                      seriesId={seriesId}
-                      seasonNumber={number}
-                      revalidate={`${path}?season=${number}`}
-                    />
-                  )}
+                  <Collapse>
+                    {open && (
+                      <SeasonEpisodes
+                        seriesId={seriesId}
+                        seasonNumber={number}
+                        revalidate={path}
+                      />
+                    )}
+                  </Collapse>
                 </Flex>
               );
             })}
