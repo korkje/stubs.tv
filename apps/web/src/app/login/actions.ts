@@ -20,28 +20,6 @@ export async function login(formData: FormData) {
   redirect("/app");
 }
 
-export async function signup(formData: FormData) {
-  const supabase = await createClient();
-
-  const { data, error } = await supabase.auth.signUp({
-    email: formData.get("email") as string,
-    password: formData.get("password") as string,
-  });
-
-  if (error) {
-    redirect(`/login?error=${encodeURIComponent(error.message)}`);
-  }
-
-  // With email confirmation enabled (hosted default) there is no session
-  // yet — the user must click the link we just sent them.
-  if (!data.session) {
-    redirect("/check-email");
-  }
-
-  revalidatePath("/", "layout");
-  redirect("/app");
-}
-
 export async function signout() {
   const supabase = await createClient();
   await supabase.auth.signOut();

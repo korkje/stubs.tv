@@ -53,19 +53,14 @@ where `supabase/config.toml` disables it). Configure once under
 
 - **URL Configuration** → Site URL: `https://stubs.tv`. Add
   `http://localhost:3000/**` to additional redirect URLs.
-- **Email Templates → Confirm signup** (requires custom SMTP, see 1b):
-  point the link at our confirm route, which verifies the token and signs
-  the user in:
-
-  ```html
-  <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email">
-    Confirm your email
-  </a>
-  ```
-
-Without the template change, the default link still verifies the account,
-but drops the user on the homepage unauthenticated — they'd have to sign in
-manually afterwards.
+- **Email templates are managed in the repo — do not edit them in the
+  dashboard** (edits would be overwritten on the next deploy). The HTML
+  lives in `supabase/templates/`, wired up for local dev in
+  `supabase/config.toml`, and CI pushes it to the hosted project via the
+  Management API (`scripts/push-email-templates.sh`). Every link goes
+  through `/auth/confirm?token_hash={{ .TokenHash }}&type=…`, which
+  verifies the token and signs the user in — a plain link would verify the
+  account but drop the user on the homepage unauthenticated.
 
 Stuck during testing (rate-limited, unverified account)? The hourly limit
 resets on its own, and a user can be confirmed manually from

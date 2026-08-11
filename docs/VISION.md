@@ -11,7 +11,9 @@ The product name is **stubs.tv**, always lowercase and always with the TLD —
 the Last.fm model, where the domain is the brand. Never bare "stubs" in
 user-facing surfaces (UI copy, titles, emails, store listings): the word
 alone is generic, unsearchable, and collides with AMC's loyalty program. The
-name refers to movie ticket stubs.
+name refers to movie ticket stubs. Infrastructure identifiers (the GitHub
+repo, Supabase project, Cloudflare Worker) stay plain "stubs" — some of
+those namespaces do not allow dots.
 
 Write copy plainly. The ticket-stub name is a good one and does not need
 explaining or embellishing in the product's own voice.

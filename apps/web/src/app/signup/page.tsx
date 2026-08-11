@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import {
   Button,
   Callout,
@@ -9,24 +8,40 @@ import {
   Heading,
   Text,
   Link as RadixLink,
+  TextField,
 } from "@radix-ui/themes";
-import { TextField } from "@radix-ui/themes";
-import { login } from "./actions";
+import { createClient } from "@/lib/supabase/server";
+import { signup } from "./actions";
 
-export default async function LoginPage({
+export default async function SignupPage({
   searchParams,
 }: {
   searchParams: Promise<{ error?: string; invite?: string }>;
 }) {
   const { error, invite } = await searchParams;
 
-  // Old invite links pointed here; the signup page is where they belong.
-  if (invite) redirect(`/signup?invite=${encodeURIComponent(invite)}`);
+  // While signups are invite-only the form carries an invite code field —
+  // prefilled when the visitor arrived through an invite link.
+  const supabase = await createClient();
+  const { data: settings } = await supabase
+    .from("app_settings")
+    .select("open_signups")
+    .maybeSingle();
+  const inviteOnly = !settings?.open_signups;
 
   return (
     <Container size="1" px="4">
       <Flex direction="column" gap="4" py="9">
-        <Heading size="6">Sign in to stubs.tv</Heading>
+        <Heading size="6">Create your stubs.tv account</Heading>
+
+        {inviteOnly && !invite && !error && (
+          <Callout.Root color="amber">
+            <Callout.Text>
+              Signups are invite-only right now — you need an invite code from
+              a member to join.
+            </Callout.Text>
+          </Callout.Root>
+        )}
 
         {error && (
           <Callout.Root color="red">
@@ -58,22 +73,36 @@ export default async function LoginPage({
                 <TextField.Root
                   name="password"
                   type="password"
-                  autoComplete="current-password"
+                  autoComplete="new-password"
                   size="3"
                   required
                 />
               </label>
+              {inviteOnly && (
+                <label>
+                  <Text as="div" size="2" mb="1" weight="medium">
+                    Invite code
+                  </Text>
+                  <TextField.Root
+                    name="invite"
+                    defaultValue={invite ?? ""}
+                    autoComplete="off"
+                    size="3"
+                    required
+                  />
+                </label>
+              )}
               <Flex mt="2">
-                <Button formAction={login}>Sign in</Button>
+                <Button formAction={signup}>Create account</Button>
               </Flex>
             </Flex>
           </form>
         </Card>
 
         <Text size="2" color="gray">
-          New here?{" "}
+          Already have an account?{" "}
           <RadixLink asChild>
-            <Link href="/signup">Create an account</Link>
+            <Link href="/login">Sign in</Link>
           </RadixLink>
         </Text>
       </Flex>

@@ -1,8 +1,18 @@
 import Link from "next/link";
 import { Box, Button, Container, Flex, Heading, Link as RadixLink, Text } from "@radix-ui/themes";
+import { createClient } from "@/lib/supabase/server";
 import { StubsMark } from "@/components/StubsMark";
 
-export default function Home() {
+export default async function Home() {
+  // While signups are invite-only the call to action is aimed at existing
+  // members; flipping app_settings.open_signups restores the open pitch.
+  const supabase = await createClient();
+  const { data: settings } = await supabase
+    .from("app_settings")
+    .select("open_signups")
+    .maybeSingle();
+  const inviteOnly = !settings?.open_signups;
+
   return (
     <Container size="2" px="4">
       <Flex direction="column" align="center" gap="8" py="9">
@@ -24,11 +34,17 @@ export default function Home() {
           See what you have seen, what is left, and how much time it added up to.
         </Text>
 
-        <Box pt="4">
+        <Flex direction="column" align="center" gap="4" pt="4">
           <Button size="3" asChild>
-            <Link href="/app">Open the app</Link>
+            <Link href="/app">{inviteOnly ? "Sign in" : "Open the app"}</Link>
           </Button>
-        </Box>
+          {inviteOnly && (
+            <Text size="2" color="gray" align="center">
+              stubs.tv is invite-only right now — an invite link from a member
+              is the way in.
+            </Text>
+          )}
+        </Flex>
 
         <Text size="2" color="gray" align="center">
           A work in progress by{" "}

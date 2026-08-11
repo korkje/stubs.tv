@@ -12,6 +12,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Stat } from "@/components/Stat";
 import { ShowsList } from "@/components/library/ShowsList";
 import { MoviesList } from "@/components/library/MoviesList";
+import { InvitesCard } from "@/components/invites/InvitesCard";
 import { formatRuntime } from "@/lib/format";
 
 /**
@@ -81,6 +82,8 @@ export default async function HomePage({
         </TabNav.Root>
 
         {movies ? <MoviesList /> : <ShowsList />}
+
+        <InvitesCard />
       </Flex>
     </Container>
   );
