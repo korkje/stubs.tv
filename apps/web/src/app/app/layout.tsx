@@ -17,7 +17,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <Box>
       <Box asChild py="3">
         <header>
-          <Container size="4" px="4">
+          <Container size="3" px="4">
             <Flex align="center" justify="between" gap="3">
               <Flex align="center" gap={{ initial: "3", sm: "5" }}>
                 <Link href="/app" aria-label="stubs.tv home">

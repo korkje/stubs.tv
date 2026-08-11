@@ -50,7 +50,7 @@ export default async function HomePage({
     (showsFollowed ?? 0) > 0;
 
   return (
-    <Container size="4" px="4">
+    <Container size="3" px="4">
       <Flex direction="column" gap="5">
         <VisuallyHidden>
           <Heading as="h1">Home</Heading>

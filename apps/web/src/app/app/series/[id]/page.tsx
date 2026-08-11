@@ -104,7 +104,7 @@ export default async function SeriesPage({
     <>
       {/* Outside the Container so it can run the full width of the screen. */}
       {series.backdrop_url && <Backdrop url={series.backdrop_url} alt={series.name} />}
-      <Container size="4" px="4">
+      <Container size="3" px="4">
         <Flex direction="column" gap="6">
           <Flex gap="5" align="start" wrap="wrap" position="relative">
           <Box display={series.backdrop_url ? { initial: "none", sm: "block" } : undefined}>

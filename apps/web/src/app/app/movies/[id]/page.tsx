@@ -39,7 +39,7 @@ export default async function MoviePage({ params }: { params: Promise<{ id: stri
   return (
     <>
       {movie.backdrop_url && <Backdrop url={movie.backdrop_url} alt={movie.name} />}
-      <Container size="4" px="4">
+      <Container size="3" px="4">
         <Flex gap="5" align="start" wrap="wrap" position="relative">
           <Box display={movie.backdrop_url ? { initial: "none", sm: "block" } : undefined}>
             <Poster url={movie.poster_url} alt={movie.name} width={160} />

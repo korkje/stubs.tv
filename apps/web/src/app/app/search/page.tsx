@@ -26,7 +26,7 @@ export default async function SearchPage({
   const query = q?.trim() ?? "";
 
   return (
-    <Container size="4" px="4">
+    <Container size="3" px="4">
       <Flex direction="column" gap="5">
         {/* No visible heading: it would only repeat the nav item above it,
             and the field makes the purpose obvious. */}
