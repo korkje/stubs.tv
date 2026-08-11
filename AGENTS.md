@@ -127,8 +127,20 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
   (https://github.com/opennextjs/opennextjs-cloudflare/issues/962). Rename to
   proxy.ts when that issue is fixed.
 
+## Next up
+
+A list of unwatched episodes of followed shows in air-date order — see
+"Slice 3" in [docs/ROADMAP.md](docs/ROADMAP.md). It is the owner's main reason
+for the app, and it depends on the metadata refresh cron that does not exist
+yet; read the note there before starting.
+
 ## Current status
 
-Phase 1 slice 1 done: TheTVDB provider, metadata schema, lazy ingestion,
-search, and read-only series/movie pages. Next is slice 2 (marking things as
-seen, follows) — see [docs/ROADMAP.md](docs/ROADMAP.md).
+Live at stubs.tv. Search, follows, ratings, and marking episodes, seasons,
+shows and movies as seen all work, on phone and desktop. Metadata comes from
+TheTVDB behind the provider abstraction, cached in Postgres.
+
+Known gaps, all recorded in [docs/ROADMAP.md](docs/ROADMAP.md): nothing
+refreshes cached metadata, ingestion runs inside the request path (large shows
+risk the 10ms CPU ceiling in production), and a watched date is stored but
+surfaced nowhere.

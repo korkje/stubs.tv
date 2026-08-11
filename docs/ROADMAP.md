@@ -50,7 +50,33 @@ pipeline, search and read-only title pages — is done; slice 2 is tracking
       timezone display: dates currently render from UTC, so a late-evening
       view can show the previous day
 
-**Slice 3 — people**
+**Slice 3 — what to watch next (do this one first)**
+
+The owner's own reason for the app: knowing what is out and not yet seen.
+Everything up to here records the past; this is the part that is useful daily,
+and it is the list tvchecker was actually used for. Starts as a list, becomes
+the calendar in Phase 4.
+
+- [ ] Unwatched episodes of followed shows in air-date order. Two groups from
+      one query: **already aired and unseen** (catch up) and **still to come**
+      (what is next). Exclude specials by default, as progress counts do.
+- [ ] Each row marks as seen in place, so the list is the daily driver rather
+      than a signpost to the series page.
+
+> **This feature is only as good as the freshness of the data, and freshness
+> is not built yet.** Right now a show's episodes are only refetched when
+> someone opens its page and the 12-hour window has lapsed — so a new episode
+> of a followed show may never appear at all. The `/updates?since=` cron in
+> ARCHITECTURE.md "Cache lifecycle" is a prerequisite, not a nicety: without
+> it the list quietly lies about what is coming. Prioritising followed shows
+> in that job is what makes it cheap.
+
+Shape it in SQL, like `series_progress` and `season_progress`: a
+security_invoker view over follows → episodes → watches, filtered to
+unwatched and ordered by air date. Bound the row count — this is a request
+path, and the CPU budget is 10ms.
+
+**Slice 4 — people**
 
 - [ ] Ingest cast into `people`/`credits`; person pages
 - [ ] Follow/unfollow actors and directors (series credits expose actors
