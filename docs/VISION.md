@@ -2,9 +2,11 @@
 
 ## One-liner
 
-stubs (stubs.tv) is a box of ticket stubs for the streaming age: a fast,
-pretty, private place to record everything you watch — movies *and* TV — and
-to see your watching life laid out in front of you.
+stubs (stubs.tv) keeps track of the movies and TV shows you watch, episode by
+episode: what you have seen, what is left, and how much time it added up to.
+
+Write copy plainly. The ticket-stub name is a good one and does not need
+explaining or embellishing in the product's own voice.
 
 ## Origin
 

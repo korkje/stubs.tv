@@ -1,6 +1,6 @@
 # stubs
 
-**Keep your ticket stubs.** Track the movies and TV shows you watch — search, follow shows and people, mark things as seen, and get a beautiful overview of your watch history.
+Keep track of the movies and TV shows you watch, episode by episode: search, follow shows and people, mark things as seen, and see what you have watched.
 
 > The name refers to movie ticket stubs: this is like keeping a box of them, but for everything — TV included.
 

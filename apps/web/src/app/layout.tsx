@@ -6,7 +6,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "stubs",
-  description: "Keep your ticket stubs — track the movies and TV shows you watch.",
+  description:
+    "Keep track of the movies and TV shows you watch, episode by episode.",
 };
 
 /**
