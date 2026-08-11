@@ -105,8 +105,8 @@ async function Results({ query }: { query: string }) {
                     </Badge>
                   </Flex>
                   {result.overview && (
-                    <Text size="2" color="gray" style={{ lineHeight: 1.5 }}>
-                      {truncate(result.overview, 220)}
+                    <Text as="div" size="2" color="gray" className="clamp-summary">
+                      {result.overview}
                     </Text>
                   )}
                 </Flex>
@@ -117,8 +117,4 @@ async function Results({ query }: { query: string }) {
       })}
     </Flex>
   );
-}
-
-function truncate(value: string, max: number): string {
-  return value.length <= max ? value : `${value.slice(0, max).trimEnd()}…`;
 }
