@@ -9,10 +9,9 @@ import {
   Flex,
   Heading,
   Text,
-  TextField,
   VisuallyHidden,
 } from "@radix-ui/themes";
-import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
+import { SearchField } from "@/components/SearchField";
 import { getMetadataProvider } from "@/lib/metadata/provider";
 import { resolveSearchResults, titlePath } from "@/lib/metadata/ingest";
 import { Poster } from "@/components/Poster";
@@ -37,20 +36,7 @@ export default async function SearchPage({
         <form>
           <Flex gap="3" align="center">
             <Box flexGrow="1" style={{ minWidth: 0 }}>
-              <TextField.Root
-                name="q"
-                defaultValue={query}
-                // Short enough to survive a phone-width field: the icon and
-                // the button already say "search", so the placeholder only
-                // has to say what is searchable.
-                placeholder="Movies and TV shows"
-                size="3"
-                autoFocus
-              >
-                <TextField.Slot>
-                  <MagnifyingGlassIcon height="18" width="18" />
-                </TextField.Slot>
-              </TextField.Root>
+              <SearchField defaultValue={query} />
             </Box>
             <Button size="3" type="submit">
               Search
