@@ -14,7 +14,7 @@ import {
 import { SearchField } from "@/components/SearchField";
 import { createClient } from "@/lib/supabase/server";
 import { getMetadataProvider } from "@/lib/metadata/provider";
-import { resolveSearchResults, titlePath } from "@/lib/metadata/ingest";
+import { resolveSearchResults, searchScores, titlePath } from "@/lib/metadata/ingest";
 import { Poster } from "@/components/Poster";
 import { FollowStar } from "@/components/tracking/FollowStar";
 import { SeenEye } from "@/components/tracking/SeenEye";
@@ -95,7 +95,8 @@ async function Results({ query }: { query: string }) {
     .filter((id): id is number => id != null);
 
   const supabase = await createClient();
-  const [{ data: follows }, { data: movieWatches }] = await Promise.all([
+  const [scores, { data: follows }, { data: movieWatches }] = await Promise.all([
+    searchScores(results, ids),
     seriesIds.length
       ? supabase
           .from("follows")
@@ -114,9 +115,21 @@ async function Results({ query }: { query: string }) {
   const followedSeries = new Set((follows ?? []).map((f) => f.entity_id));
   const seenMovies = new Set((movieWatches ?? []).map((w) => w.entity_id));
 
+  // TVDB's own order is close to random ("Harry Potter" lists fan films
+  // before the real ones), so rank by popularity instead. Unscored hits sink
+  // to the bottom in provider order.
+  const ranked = results
+    .map((result, index) => ({
+      result,
+      index,
+      score: scores.get(`${result.kind}:${result.providerId}`) ?? -1,
+    }))
+    .sort((a, b) => b.score - a.score || a.index - b.index)
+    .map((entry) => entry.result);
+
   return (
     <Flex direction="column" gap="3">
-      {results.map((result) => {
+      {ranked.map((result) => {
         const internalId = ids.get(`${result.kind}:${result.providerId}`);
         if (!internalId) return null;
 

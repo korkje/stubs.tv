@@ -19,6 +19,7 @@ series
   genres        text[]
   runtime_min   int             -- typical episode runtime
   poster_url    text
+  score         bigint          -- provider popularity; ranks search results
   fetched_at    timestamptz     -- staleness marker for refresh job
 
 seasons
@@ -43,6 +44,7 @@ movies
   genres        text[]
   runtime_min   int
   poster_url    text
+  score         bigint          -- provider popularity; ranks search results
   fetched_at    timestamptz
 
 people

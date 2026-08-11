@@ -68,6 +68,11 @@ function runtime(value: number | undefined | null): number | null {
   return typeof value === "number" && value > 0 ? value : null;
 }
 
+/** A score of 0 is meaningful — it is how the provider marks "unpopular". */
+function score(value: number | undefined | null): number | null {
+  return typeof value === "number" ? value : null;
+}
+
 /** "2021-04-20 01:36:20" (UTC, no zone marker) → ISO 8601. */
 function timestamp(value: string | undefined | null): string | null {
   const trimmed = text(value);
@@ -139,6 +144,7 @@ export function mapSeries(
     posterUrl: image(raw.image),
     backdropUrl,
     providerUpdatedAt: timestamp(raw.lastUpdated),
+    score: score(raw.score),
     // The seasons array mixes ordering schemes (aired/DVD/absolute), which
     // would collide on (series, number) — keep only the canonical one.
     seasons: (raw.seasons ?? [])
@@ -196,6 +202,7 @@ export function mapMovie(raw: TvdbMovieExtended): MovieDetail {
     runtimeMin: runtime(raw.runtime),
     posterUrl: image(raw.image),
     backdropUrl: pickBackdrop(raw.artworks, MOVIE_BACKGROUND),
+    score: score(raw.score),
     providerUpdatedAt: timestamp(raw.lastUpdated),
   };
 }

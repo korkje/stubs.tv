@@ -17,29 +17,6 @@ function isStale(fetchedAt: string | null): boolean {
 }
 
 /**
- * Maps a provider ID to our internal ID, creating a stub row if this is the
- * first time we have seen the title. The database function does this in one
- * transaction so concurrent ingests cannot produce duplicates.
- */
-async function resolveEntity(
-  entityType: EntityType,
-  providerId: string,
-  name: string
-): Promise<number> {
-  const supabase = createServiceClient();
-
-  const { data, error } = await supabase.rpc("resolve_entity", {
-    p_entity_type: entityType,
-    p_provider: PROVIDER,
-    p_provider_id: providerId,
-    p_name: name,
-  });
-
-  check(`resolve ${entityType} ${providerId}`, error);
-  return data as number;
-}
-
-/**
  * Postgrest reports failures in the result rather than throwing, so every
  * write has to be checked explicitly — otherwise a permission or constraint
  * problem looks exactly like "nothing needed doing".
@@ -67,20 +44,106 @@ async function providerIdFor(entityType: EntityType, entityId: number): Promise<
 /**
  * Gives every search result an internal ID so links can use our own IDs
  * rather than leaking the provider's (ADR-0004). Rows start as stubs and are
- * filled in when the title is actually opened.
+ * filled in when the title is actually opened. One RPC for the whole page:
+ * per-hit calls would spend most of the Workers subrequest budget on their
+ * own.
  */
 export async function resolveSearchResults(
   results: SearchResult[]
 ): Promise<Map<string, number>> {
-  const entries = await Promise.all(
-    results.map(async (result) => {
-      const entityType: EntityType = result.kind === "series" ? "series" : "movie";
-      const id = await resolveEntity(entityType, result.providerId, result.name);
-      return [`${result.kind}:${result.providerId}`, id] as const;
-    })
+  if (results.length === 0) return new Map();
+
+  const supabase = createServiceClient();
+
+  const { data, error } = await supabase.rpc("resolve_entities", {
+    p_provider: PROVIDER,
+    p_entities: results.map((result) => ({
+      entity_type: result.kind,
+      provider_id: result.providerId,
+      name: result.name,
+    })),
+  });
+
+  check("resolve search results", error);
+  return new Map(Object.entries((data ?? {}) as Record<string, number>));
+}
+
+/**
+ * Popularity scores for a page of search hits, keyed like `ids`
+ * ("kind:providerId"). Cached scores are read from our rows; missing ones
+ * are fetched from the provider (its search API returns no relevance signal
+ * whatsoever, so this is what puts the famous titles first) and written back,
+ * so each title pays the extra request once ever. Backfill failures degrade
+ * to provider order for the affected hits rather than failing the page.
+ */
+export async function searchScores(
+  results: SearchResult[],
+  ids: Map<string, number>
+): Promise<Map<string, number>> {
+  const supabase = createServiceClient();
+
+  const byKind = (kind: TitleKind) =>
+    results
+      .filter((r) => r.kind === kind)
+      .map((r) => ids.get(`${kind}:${r.providerId}`))
+      .filter((id): id is number => id != null);
+  const seriesIds = byKind("series");
+  const movieIds = byKind("movie");
+
+  const [seriesRows, movieRows] = await Promise.all([
+    seriesIds.length
+      ? supabase.from("series").select("id, score").in("id", seriesIds)
+      : { data: [], error: null },
+    movieIds.length
+      ? supabase.from("movies").select("id, score").in("id", movieIds)
+      : { data: [], error: null },
+  ]);
+
+  check("read series scores", seriesRows.error);
+  check("read movie scores", movieRows.error);
+
+  const stored = new Map<string, number | null>();
+  for (const row of seriesRows.data ?? []) stored.set(`series:${row.id}`, row.score);
+  for (const row of movieRows.data ?? []) stored.set(`movie:${row.id}`, row.score);
+
+  const scores = new Map<string, number>();
+  const missing: { key: string; kind: TitleKind; providerId: string; id: number }[] = [];
+
+  for (const result of results) {
+    const key = `${result.kind}:${result.providerId}`;
+    const id = ids.get(key);
+    if (id == null) continue;
+
+    const cached = stored.get(`${result.kind}:${id}`);
+    if (cached != null) scores.set(key, cached);
+    else missing.push({ key, kind: result.kind, providerId: result.providerId, id });
+  }
+
+  if (missing.length === 0) return scores;
+
+  const provider = getMetadataProvider();
+  const fetched = await Promise.allSettled(
+    missing.map(async (m) => ({ ...m, score: await provider.getScore(m.kind, m.providerId) }))
   );
 
-  return new Map(entries);
+  const writes: { entity_type: TitleKind; id: number; score: number }[] = [];
+  for (const outcome of fetched) {
+    if (outcome.status !== "fulfilled") continue;
+    // Null score on a successful fetch means the provider has none: store 0
+    // so the title still counts as scored and is never fetched again.
+    const value = outcome.value.score ?? 0;
+    scores.set(outcome.value.key, value);
+    writes.push({ entity_type: outcome.value.kind, id: outcome.value.id, score: value });
+  }
+
+  if (writes.length > 0) {
+    // Ranking already has the values in hand; a failed write only means the
+    // next search fetches them again.
+    const { error } = await supabase.rpc("set_title_scores", { p_scores: writes });
+    if (error) console.error(`Could not cache title scores: ${error.message}`);
+  }
+
+  return scores;
 }
 
 /**
@@ -122,6 +185,7 @@ export async function ensureSeriesIngested(seriesId: number): Promise<void> {
       poster_url: detail.posterUrl,
       backdrop_url: detail.backdropUrl,
       provider_updated_at: detail.providerUpdatedAt,
+      score: detail.score ?? 0,
       fetched_at: new Date().toISOString(),
     })
     .eq("id", seriesId);
@@ -233,6 +297,7 @@ export async function ensureMovieIngested(movieId: number): Promise<void> {
       poster_url: detail.posterUrl,
       backdrop_url: detail.backdropUrl,
       provider_updated_at: detail.providerUpdatedAt,
+      score: detail.score ?? 0,
       fetched_at: new Date().toISOString(),
     })
     .eq("id", movieId);

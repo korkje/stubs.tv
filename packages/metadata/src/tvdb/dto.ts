@@ -54,6 +54,15 @@ export interface TvdbSeriesExtended {
   translations?: TvdbTranslations;
   /** Empty when the response is requested with short=true. */
   artworks?: TvdbArtwork[];
+  score?: number;
+}
+
+/**
+ * The base /series/{id} and /movies/{id} records, read only for the score —
+ * a fraction of the extended payload.
+ */
+export interface TvdbBaseTitle {
+  score?: number;
 }
 
 export interface TvdbEpisode {
@@ -112,4 +121,5 @@ export interface TvdbMovieExtended {
   translations?: TvdbTranslations;
   /** Present even with short=true, unlike the series endpoint. */
   artworks?: TvdbArtwork[];
+  score?: number;
 }

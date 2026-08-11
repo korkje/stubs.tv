@@ -37,6 +37,8 @@ export interface SeriesDetail {
   backdropUrl: string | null;
   /** The provider's own last-modified stamp, ISO 8601. */
   providerUpdatedAt: string | null;
+  /** The provider's popularity figure; ranks search results. Null = unknown. */
+  score: number | null;
   seasons: SeasonSummary[];
 }
 
@@ -62,6 +64,8 @@ export interface MovieDetail {
   posterUrl: string | null;
   backdropUrl: string | null;
   providerUpdatedAt: string | null;
+  /** The provider's popularity figure; ranks search results. Null = unknown. */
+  score: number | null;
 }
 
 export interface MetadataProvider {
@@ -71,4 +75,9 @@ export interface MetadataProvider {
   getSeries(id: ProviderId): Promise<SeriesDetail | null>;
   getEpisodes(id: ProviderId): Promise<EpisodeDetail[]>;
   getMovie(id: ProviderId): Promise<MovieDetail | null>;
+  /**
+   * Just the popularity score for one title — a far lighter request than the
+   * full detail, for backfilling scores on search hits.
+   */
+  getScore(kind: TitleKind, id: ProviderId): Promise<number | null>;
 }

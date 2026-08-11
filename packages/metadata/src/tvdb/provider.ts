@@ -9,6 +9,7 @@ import type {
 import { TvdbClient } from "./client";
 import type {
   TvdbArtworks,
+  TvdbBaseTitle,
   TvdbEpisodesPage,
   TvdbMovieExtended,
   TvdbSearchResult,
@@ -94,6 +95,15 @@ export function createTvdbProvider(apiKey: string): MetadataProvider {
         `/movies/${id}/extended?meta=translations&short=true`
       );
       return body?.data ? mapMovie(body.data) : null;
+    },
+
+    async getScore(kind, id) {
+      // The base record is a fraction of the extended payload; this exists so
+      // search can backfill a whole results page of scores cheaply.
+      const body = await client.get<TvdbBaseTitle>(
+        `/${kind === "series" ? "series" : "movies"}/${id}`
+      );
+      return typeof body?.data?.score === "number" ? body.data.score : null;
     },
   };
 }

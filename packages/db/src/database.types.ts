@@ -202,6 +202,7 @@ export type Database = {
           provider_updated_at: string | null
           released: string | null
           runtime_min: number | null
+          score: number | null
         }
         Insert: {
           backdrop_url?: string | null
@@ -215,6 +216,7 @@ export type Database = {
           provider_updated_at?: string | null
           released?: string | null
           runtime_min?: number | null
+          score?: number | null
         }
         Update: {
           backdrop_url?: string | null
@@ -228,6 +230,7 @@ export type Database = {
           provider_updated_at?: string | null
           released?: string | null
           runtime_min?: number | null
+          score?: number | null
         }
         Relationships: []
       }
@@ -361,6 +364,7 @@ export type Database = {
           poster_url: string | null
           provider_updated_at: string | null
           runtime_min: number | null
+          score: number | null
           status: string | null
         }
         Insert: {
@@ -375,6 +379,7 @@ export type Database = {
           poster_url?: string | null
           provider_updated_at?: string | null
           runtime_min?: number | null
+          score?: number | null
           status?: string | null
         }
         Update: {
@@ -389,6 +394,7 @@ export type Database = {
           poster_url?: string | null
           provider_updated_at?: string | null
           runtime_min?: number | null
+          score?: number | null
           status?: string | null
         }
         Relationships: []
@@ -507,6 +513,13 @@ export type Database = {
         Args: { p_season_number?: number; p_series_id: number }
         Returns: undefined
       }
+      resolve_entities: {
+        Args: {
+          p_entities: Json
+          p_provider: Database["public"]["Enums"]["metadata_provider"]
+        }
+        Returns: Json
+      }
       resolve_entity: {
         Args: {
           p_entity_type: Database["public"]["Enums"]["entity_type"]
@@ -516,6 +529,7 @@ export type Database = {
         }
         Returns: number
       }
+      set_title_scores: { Args: { p_scores: Json }; Returns: undefined }
       unmark_episodes_seen: {
         Args: { p_season_number?: number; p_series_id: number }
         Returns: undefined
