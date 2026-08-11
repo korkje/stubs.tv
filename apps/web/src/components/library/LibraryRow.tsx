@@ -40,11 +40,21 @@ export function LibraryRow({
         <Flex gap="4" align="start">
           <Poster url={posterUrl} alt={name} width={56} />
           <Flex direction="column" gap="1" style={{ minWidth: 0 }}>
-            <Flex align="center" gap="1">
+            <Flex justify="between" align="start" gap="2">
               <Text weight="bold" size="3">
                 {name}
               </Text>
-              {titleIcon}
+              {titleIcon && (
+                // Match the title's line height so the icon centers on the
+                // first line even when the title wraps.
+                <Flex
+                  align="center"
+                  flexShrink="0"
+                  style={{ height: "var(--line-height-3)" }}
+                >
+                  {titleIcon}
+                </Flex>
+              )}
             </Flex>
 
             <Flex align="center" gap="2" wrap="wrap">

@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { Badge, Button, Card, Flex, Text } from "@radix-ui/themes";
-import { StarFilledIcon } from "@radix-ui/react-icons";
 import { createClient } from "@/lib/supabase/server";
+import { FollowStar } from "@/components/tracking/FollowStar";
 import { LibraryRow } from "./LibraryRow";
 
 /**
  * Every show the user follows or has watched episodes of, with how much is
- * left to watch. Followed ones carry the amber star — the same mark
- * FollowButton uses for the followed state.
+ * left to watch. Each row carries the follow star, which doubles as the
+ * toggle. Unfollowing a show with no watches drops it from the list on the
+ * next render — membership requires a follow or watched episodes.
  */
 export async function ShowsList() {
   const supabase = await createClient();
@@ -55,12 +56,11 @@ export async function ShowsList() {
             rating={show.rating}
             overview={show.overview}
             titleIcon={
-              show.followed ? (
-                <StarFilledIcon
-                  role="img"
-                  aria-label="Followed"
-                  color="var(--amber-9)"
-                  style={{ flexShrink: 0 }}
+              show.series_id != null ? (
+                <FollowStar
+                  seriesId={show.series_id}
+                  following={show.followed ?? false}
+                  revalidate="/app"
                 />
               ) : null
             }
