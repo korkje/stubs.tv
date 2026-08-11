@@ -108,6 +108,17 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
   throwing; ignoring `error` makes a permission failure look like a no-op.
   Ingestion code routes every call through a `check()` helper that throws.
 
+## Measuring things locally
+
+- **Never run `next build` or a second `next start` while the dev server is
+  up.** They all share `apps/web/.next`, and rebuilding underneath a running
+  server makes it serve 503s for RSC payloads — which looks exactly like an
+  application bug. Stop the dev server first, or accept that any measurement
+  taken that way is worthless.
+- Client-side navigation behaviour (prefetching, the router cache) differs
+  substantially between `next dev` and a production build. Never conclude
+  anything about caching from dev.
+
 ## Known workarounds
 
 - `apps/web/src/middleware.ts` uses the deprecated edge middleware convention
