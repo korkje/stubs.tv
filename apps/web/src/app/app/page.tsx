@@ -15,7 +15,7 @@ import { Stat } from "@/components/Stat";
 import { ShowsList } from "@/components/library/ShowsList";
 import { MoviesList } from "@/components/library/MoviesList";
 import { InvitesCard } from "@/components/invites/InvitesCard";
-import { ListSkeleton } from "@/components/library/Skeletons";
+import { DelayedSpinner } from "@/components/DelayedSpinner";
 import { formatRuntime } from "@/lib/format";
 
 /**
@@ -86,9 +86,9 @@ export default async function HomePage({
         </TabNav.Root>
 
         {/* Keyed on the tab: switching creates a fresh boundary, so the
-            skeleton shows immediately instead of the old list hanging
-            around while the new one renders on the server. */}
-        <Suspense key={movies ? "movies" : "shows"} fallback={<ListSkeleton />}>
+            pending state takes over immediately instead of the old list
+            hanging around while the new one renders on the server. */}
+        <Suspense key={movies ? "movies" : "shows"} fallback={<DelayedSpinner />}>
           {movies ? <MoviesList /> : <ShowsList />}
         </Suspense>
 

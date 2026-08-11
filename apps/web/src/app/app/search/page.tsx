@@ -8,6 +8,7 @@ import {
   VisuallyHidden,
 } from "@radix-ui/themes";
 import { Suspense } from "react";
+import { DelayedSpinner } from "@/components/DelayedSpinner";
 import { FadeIn } from "@/components/FadeIn";
 import { SearchForm } from "@/components/SearchForm";
 import { createClient } from "@/lib/supabase/server";
@@ -15,7 +16,6 @@ import { getMetadataProvider } from "@/lib/metadata/provider";
 import { resolveSearchResults, searchScores, titlePath } from "@/lib/metadata/ingest";
 import { AnimatedRows } from "@/components/library/AnimatedRows";
 import { LibraryRow } from "@/components/library/LibraryRow";
-import { ListSkeleton } from "@/components/library/Skeletons";
 import { FollowStar } from "@/components/tracking/FollowStar";
 import { SeenEye } from "@/components/tracking/SeenEye";
 
@@ -40,7 +40,7 @@ export default async function SearchPage({
         <SearchForm defaultValue={query} />
 
         {query ? (
-          <Suspense key={query} fallback={<ListSkeleton rows={6} />}>
+          <Suspense key={query} fallback={<DelayedSpinner />}>
             <Results query={query} />
           </Suspense>
         ) : (
