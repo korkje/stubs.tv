@@ -48,7 +48,14 @@ export async function ShowsList() {
                   <Text weight="bold" size="3">
                     {show.name}
                   </Text>
-                  <Flex align="center" gap="2" wrap="wrap">
+                  {/* Stacks on a phone, sits inline from sm up. align="start"
+                      is what stops the badge stretching to the full width: a
+                      column flex stretches its children by default. */}
+                  <Flex
+                    direction={{ initial: "column", sm: "row" }}
+                    align={{ initial: "start", sm: "center" }}
+                    gap={{ initial: "1", sm: "2" }}
+                  >
                     <Text size="2" color="gray">
                       {watched} of {aired} aired episodes seen
                     </Text>
