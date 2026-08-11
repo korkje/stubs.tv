@@ -37,9 +37,9 @@ export default async function MoviePage({ params }: { params: Promise<{ id: stri
   if (!movie) notFound();
 
   return (
-    <>
-      {movie.backdrop_url && <Backdrop url={movie.backdrop_url} alt={movie.name} />}
-      <Container size="4" px="4">
+    <Container size="4" px="4">
+      <Flex direction="column" gap="5">
+        {movie.backdrop_url && <Backdrop url={movie.backdrop_url} alt={movie.name} />}
         <Flex gap="5" align="start" wrap="wrap">
           <Box display={movie.backdrop_url ? { initial: "none", sm: "block" } : undefined}>
             <Poster url={movie.poster_url} alt={movie.name} width={160} />
@@ -79,9 +79,9 @@ export default async function MoviePage({ params }: { params: Promise<{ id: stri
               revalidate={path}
             />
           </Flex>
+          </Flex>
         </Flex>
-        </Flex>
-      </Container>
-    </>
+      </Flex>
+    </Container>
   );
 }
