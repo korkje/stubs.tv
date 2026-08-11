@@ -20,7 +20,7 @@ export default async function LoginPage({
   return (
     <Container size="1" px="4">
       <Flex direction="column" gap="4" py="9">
-        <Heading size="6">Sign in to stubs</Heading>
+        <Heading size="6">Sign in to stubs.tv</Heading>
 
         {error && (
           <Callout.Root color="red">

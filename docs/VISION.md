@@ -2,8 +2,16 @@
 
 ## One-liner
 
-stubs (stubs.tv) keeps track of the movies and TV shows you watch, episode by
+stubs.tv keeps track of the movies and TV shows you watch, episode by
 episode: what you have seen, what is left, and how much time it added up to.
+
+## Name
+
+The product name is **stubs.tv**, always lowercase and always with the TLD —
+the Last.fm model, where the domain is the brand. Never bare "stubs" in
+user-facing surfaces (UI copy, titles, emails, store listings): the word
+alone is generic, unsearchable, and collides with AMC's loyalty program. The
+name refers to movie ticket stubs.
 
 Write copy plainly. The ticket-stub name is a good one and does not need
 explaining or embellishing in the product's own voice.
@@ -11,7 +19,7 @@ explaining or embellishing in the product's own voice.
 ## Origin
 
 The owner used a TV-tracking service for years. One day it was gone, along
-with all watch history. It also had a dated UI and no movie support. stubs
+with all watch history. It also had a dated UI and no movie support. stubs.tv
 exists to fix all three failures:
 
 1. **Durability** — fair-source and self-hostable; the data can't die with a

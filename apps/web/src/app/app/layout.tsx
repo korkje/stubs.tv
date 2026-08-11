@@ -20,7 +20,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <Container size="4" px="4">
             <Flex align="center" justify="between" gap="3">
               <Flex align="center" gap={{ initial: "3", sm: "5" }}>
-                <Link href="/app" aria-label="stubs home">
+                <Link href="/app" aria-label="stubs.tv home">
                   <Box style={{ transform: "rotate(-6deg)", display: "flex" }}>
                     <StubsMark width={52} />
                   </Box>

@@ -6,7 +6,8 @@ anything else; keep it and the docs it points to up to date.
 
 ## What this project is
 
-**stubs** (stubs.tv) — a webapp for tracking watched movies and TV shows.
+**stubs.tv** — a webapp for tracking watched movies and TV shows. The
+domain is the brand ("always stubs.tv", see docs/VISION.md — Name).
 Search titles, follow shows/actors/directors, mark episodes/seasons/movies as
 seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
 

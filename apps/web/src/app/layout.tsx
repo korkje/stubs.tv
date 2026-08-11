@@ -5,7 +5,7 @@ import "@radix-ui/themes/styles.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "stubs",
+  title: "stubs.tv",
   description:
     "Keep track of the movies and TV shows you watch, episode by episode.",
 };

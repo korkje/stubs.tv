@@ -1,4 +1,4 @@
-# stubs
+# stubs.tv
 
 Keep track of the movies and TV shows you watch, episode by episode: search, follow shows and people, mark things as seen, and see what you have watched.
 
@@ -8,7 +8,7 @@ Keep track of the movies and TV shows you watch, episode by episode: search, fol
 
 ## Why
 
-The tracking service the owner relied on for years went offline one day and took all its watch history with it. stubs is the replacement: better UI, movies included, and — because it's fair-source and self-hostable — your data can never vanish with someone else's server.
+The tracking service the owner relied on for years went offline one day and took all its watch history with it. stubs.tv is the replacement: better UI, movies included, and — because it's fair-source and self-hostable — your data can never vanish with someone else's server.
 
 ## What it will do
 
