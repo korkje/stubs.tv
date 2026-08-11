@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { Button, Card, Flex, Text } from "@radix-ui/themes";
 import { createClient } from "@/lib/supabase/server";
+import { AnimatedRows } from "./AnimatedRows";
 import { LibraryRow } from "./LibraryRow";
+import { SeenEye } from "@/components/tracking/SeenEye";
 
 /** Every movie marked as seen, by title — the same ordering as Shows. */
 export async function MoviesList() {
@@ -44,6 +46,7 @@ export async function MoviesList() {
 
   return (
     <Flex direction="column" gap="3">
+      <AnimatedRows>
       {(movies ?? []).map((movie) => (
         <LibraryRow
           key={movie.id}
@@ -54,8 +57,14 @@ export async function MoviesList() {
           runtimeMin={movie.runtime_min}
           rating={scoreById.get(movie.id) ?? null}
           overview={movie.overview}
+          titleIcon={
+            // Unseeing here drops the movie from the list on the next
+            // render — membership is "marked as seen".
+            <SeenEye movieId={movie.id} seen revalidate="/app" />
+          }
         />
       ))}
+      </AnimatedRows>
     </Flex>
   );
 }

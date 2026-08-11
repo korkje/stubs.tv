@@ -1,7 +1,5 @@
 import {
   Badge,
-  Box,
-  Button,
   Callout,
   Container,
   Flex,
@@ -9,11 +7,13 @@ import {
   Text,
   VisuallyHidden,
 } from "@radix-ui/themes";
-import { SearchField } from "@/components/SearchField";
+import { Suspense } from "react";
+import { SearchForm } from "@/components/SearchForm";
 import { createClient } from "@/lib/supabase/server";
 import { getMetadataProvider } from "@/lib/metadata/provider";
 import { resolveSearchResults, searchScores, titlePath } from "@/lib/metadata/ingest";
 import { LibraryRow } from "@/components/library/LibraryRow";
+import { ListSkeleton } from "@/components/library/Skeletons";
 import { FollowStar } from "@/components/tracking/FollowStar";
 import { SeenEye } from "@/components/tracking/SeenEye";
 
@@ -34,19 +34,12 @@ export default async function SearchPage({
           <Heading as="h1">Search</Heading>
         </VisuallyHidden>
 
-        <form>
-          <Flex gap="3" align="center">
-            <Box flexGrow="1" style={{ minWidth: 0 }}>
-              <SearchField defaultValue={query} />
-            </Box>
-            <Button size="3" type="submit">
-              Search
-            </Button>
-          </Flex>
-        </form>
+        <SearchForm defaultValue={query} />
 
         {query ? (
-          <Results query={query} />
+          <Suspense key={query} fallback={<ListSkeleton rows={6} />}>
+            <Results query={query} />
+          </Suspense>
         ) : (
           <Text size="2" color="gray">
             Everything on TheTVDB is here — series, one-off specials and

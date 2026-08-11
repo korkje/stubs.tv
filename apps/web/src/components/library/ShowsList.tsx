@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Badge, Button, Card, Flex, Text } from "@radix-ui/themes";
 import { createClient } from "@/lib/supabase/server";
 import { FollowStar } from "@/components/tracking/FollowStar";
+import { AnimatedRows } from "./AnimatedRows";
 import { LibraryRow } from "./LibraryRow";
 
 /**
@@ -38,6 +39,7 @@ export async function ShowsList() {
 
   return (
     <Flex direction="column" gap="3">
+      <AnimatedRows>
       {shows.map((show) => {
         const aired = show.aired_episodes ?? 0;
         const watched = show.watched_episodes ?? 0;
@@ -78,6 +80,7 @@ export async function ShowsList() {
           />
         );
       })}
+      </AnimatedRows>
     </Flex>
   );
 }
