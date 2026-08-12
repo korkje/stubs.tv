@@ -593,6 +593,7 @@ export type Database = {
           episode_id: number
           episode_name: string
           episode_number: number
+          overview: string
           poster_url: string
           runtime_min: number
           season_number: number

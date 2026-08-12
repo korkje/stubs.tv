@@ -10,6 +10,7 @@ export interface UpNextEpisode {
   season_number: number;
   episode_number: number;
   episode_name: string | null;
+  overview: string | null;
   aired: string;
   runtime_min: number | null;
 }

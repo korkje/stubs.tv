@@ -11,9 +11,8 @@ import type { UpNextEpisode } from "@/lib/up-next/actions";
 
 /**
  * One episode in the up-next feed: the library-row look, carrying the show
- * name with the episode underneath, and the seen eye on the right for aired
- * episodes. No synopsis on purpose — this list looks into the future, and
- * episode synopses are spoilers.
+ * name with the episode underneath, a two-line synopsis where one exists,
+ * and the seen eye on the right for aired episodes.
  *
  * The row scales down and fades as it approaches the viewport's top or
  * bottom, which keeps the eye on the middle of the timeline. That lens is a
@@ -63,9 +62,9 @@ export function UpNextRow({ episode, aired }: { episode: UpNextEpisode; aired: b
                 </Text>
                 <Text size="2">{episode.episode_name ?? "Untitled"}</Text>
               </Flex>
-              {episode.runtime_min ? (
-                <Text size="1" color="gray">
-                  {episode.runtime_min}m
+              {episode.overview ? (
+                <Text as="div" size="1" color="gray" className="clamp-2-lines">
+                  {episode.overview}
                 </Text>
               ) : null}
             </Flex>
