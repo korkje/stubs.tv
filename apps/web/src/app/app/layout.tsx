@@ -10,8 +10,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <Box>
       {/* Sticky so the feed's long timeline always has the nav in reach.
-          Translucent over a blur, so rows sliding beneath stay legible as
-          context without competing with the controls. */}
+          Opaque on purpose: iOS Safari paints its own chrome by extending
+          the page background above the viewport, and a translucent blurred
+          bar visibly seams against that strip. */}
       <Box
         asChild
         py="3"
@@ -19,9 +20,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         top="0"
         style={{
           zIndex: 10,
-          backgroundColor: "color-mix(in srgb, var(--color-background) 85%, transparent)",
-          backdropFilter: "blur(8px)",
-          WebkitBackdropFilter: "blur(8px)",
+          backgroundColor: "var(--color-background)",
           borderBottom: "1px solid var(--gray-a6)",
         }}
       >
