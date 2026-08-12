@@ -581,6 +581,25 @@ export type Database = {
         Args: { p_season_number?: number; p_series_id: number }
         Returns: undefined
       }
+      up_next: {
+        Args: {
+          p_aired: string
+          p_before: boolean
+          p_id: number
+          p_limit?: number
+        }
+        Returns: {
+          aired: string
+          episode_id: number
+          episode_name: string
+          episode_number: number
+          poster_url: string
+          runtime_min: number
+          season_number: number
+          series_id: number
+          series_name: string
+        }[]
+      }
     }
     Enums: {
       credit_role: "actor" | "director" | "creator" | "writer"

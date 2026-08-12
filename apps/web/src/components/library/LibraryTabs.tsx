@@ -37,12 +37,12 @@ export function LibraryTabs({
     <Box position="relative">
       <TabNav.Root>
         <TabNav.Link asChild active={!movies}>
-          <Link href="/app" onClick={navigate("/app")}>
+          <Link href="/app/library" onClick={navigate("/app/library")}>
             Shows ({showCount})
           </Link>
         </TabNav.Link>
         <TabNav.Link asChild active={movies}>
-          <Link href="/app?tab=movies" onClick={navigate("/app?tab=movies")}>
+          <Link href="/app/library?tab=movies" onClick={navigate("/app/library?tab=movies")}>
             Movies ({movieCount})
           </Link>
         </TabNav.Link>

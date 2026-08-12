@@ -64,7 +64,7 @@ export async function ShowsList() {
                 <FollowStar
                   seriesId={show.series_id}
                   following={show.followed ?? false}
-                  revalidate="/app"
+                  revalidate="/app/library"
                 />
               ) : null
             }

@@ -1,0 +1,132 @@
+"use client";
+
+import { useRef, useState } from "react";
+import Link from "next/link";
+import { Box, Card, Flex, IconButton, Text } from "@radix-ui/themes";
+import { EyeNoneIcon, EyeOpenIcon } from "@radix-ui/react-icons";
+import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
+import { Poster } from "@/components/Poster";
+import { markSeen, unmarkSeen } from "@/lib/tracking/actions";
+import type { UpNextEpisode } from "@/lib/up-next/actions";
+
+/**
+ * One episode in the up-next feed: the library-row look, carrying the show
+ * name with the episode underneath, and the seen eye on the right for aired
+ * episodes. No synopsis on purpose — this list looks into the future, and
+ * episode synopses are spoilers.
+ *
+ * The row scales down and fades as it approaches the viewport's top or
+ * bottom, which keeps the eye on the middle of the timeline. That lens is a
+ * scroll-linked style, not an animation, so MotionConfig cannot suppress it —
+ * it is gated on the reduced-motion preference by hand.
+ */
+export function UpNextRow({ episode, aired }: { episode: UpNextEpisode; aired: boolean }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
+
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"],
+  });
+  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.35, 1, 1, 0.35]);
+  const scale = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.96, 1, 1, 0.96]);
+
+  const code = `${episode.season_number}×${String(episode.episode_number).padStart(2, "0")}`;
+
+  return (
+    <motion.div
+      ref={ref}
+      style={reduceMotion ? undefined : { opacity, scale }}
+    >
+      <Card asChild>
+        <Link href={`/app/series/${episode.series_id}?season=${episode.season_number}`}>
+          <Flex gap="4" align="start">
+            <Poster url={episode.poster_url} alt={episode.series_name} width={56} />
+            <Flex direction="column" gap="1" flexGrow="1" style={{ minWidth: 0 }}>
+              <Flex justify="between" align="start" gap="2">
+                <Text weight="bold" size="3">
+                  {episode.series_name}
+                </Text>
+                {aired && (
+                  <Flex
+                    align="center"
+                    flexShrink="0"
+                    style={{ height: "var(--line-height-3)" }}
+                  >
+                    <SeenToggle episode={episode} code={code} />
+                  </Flex>
+                )}
+              </Flex>
+              <Flex align="center" gap="2" wrap="wrap">
+                <Text size="1" color="gray" style={{ fontVariantNumeric: "tabular-nums" }}>
+                  {code}
+                </Text>
+                <Text size="2">{episode.episode_name ?? "Untitled"}</Text>
+              </Flex>
+              {episode.runtime_min ? (
+                <Text size="1" color="gray">
+                  {episode.runtime_min}m
+                </Text>
+              ) : null}
+            </Flex>
+          </Flex>
+        </Link>
+      </Card>
+    </motion.div>
+  );
+}
+
+/**
+ * Seen toggle owning its state locally: this feed's rows live in client
+ * state, so the optimistic-against-server-prop pattern the other toggles use
+ * would snap back — here the click is the truth. Revalidates the library
+ * rather than this route, so the feed does not reload under the user.
+ */
+function SeenToggle({ episode, code }: { episode: UpNextEpisode; code: string }) {
+  const [seen, setSeen] = useState(false);
+  const label = `${episode.series_name} ${code}`;
+
+  return (
+    <IconButton
+      variant="ghost"
+      color={seen ? "amber" : "gray"}
+      aria-label={seen ? `Mark ${label} as not seen` : `Mark ${label} as seen`}
+      aria-pressed={seen}
+      onClick={async (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const next = !seen;
+        setSeen(next);
+        try {
+          if (next) await markSeen("episode", episode.episode_id, "/app/library");
+          else await unmarkSeen("episode", episode.episode_id, "/app/library");
+        } catch {
+          setSeen(!next);
+        }
+      }}
+    >
+      {seen ? <EyeOpenIcon /> : <EyeNoneIcon />}
+    </IconButton>
+  );
+}
+
+export function DateLine({ label, today }: { label: string; today?: boolean }) {
+  return (
+    <Flex align="center" gap="3" pt="4" pb="1">
+      <Text
+        size="1"
+        weight={today ? "bold" : "medium"}
+        color={today ? undefined : "gray"}
+        style={today ? { color: "var(--amber-9)" } : undefined}
+      >
+        {label}
+      </Text>
+      <Box
+        flexGrow="1"
+        style={{
+          borderTop: `1px solid ${today ? "var(--amber-a6)" : "var(--gray-a4)"}`,
+        }}
+      />
+    </Flex>
+  );
+}

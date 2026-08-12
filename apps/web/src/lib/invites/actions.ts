@@ -14,5 +14,5 @@ export async function createInvite() {
   const { error } = await supabase.rpc("create_invite");
   if (error) throw new Error(`Could not create an invite: ${error.message}`);
 
-  revalidatePath("/app");
+  revalidatePath("/app/library");
 }

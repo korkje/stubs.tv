@@ -5,7 +5,11 @@ import { usePathname } from "next/navigation";
 import { Link as RadixLink } from "@radix-ui/themes";
 
 const LINKS = [
-  { href: "/app", label: "Home", isActive: (path: string) => path === "/app" },
+  {
+    href: "/app/library",
+    label: "Library",
+    isActive: (path: string) => path.startsWith("/app/library"),
+  },
   {
     href: "/app/search",
     label: "Search",

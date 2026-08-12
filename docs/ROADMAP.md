@@ -103,6 +103,11 @@ path, and the CPU budget is 10ms.
 
 ## Phase 4 — Anticipate (calendar)
 
+Shipped early (2026-08-12): Home is an "up next" feed — unwatched episodes
+of followed shows in release order, bidirectional infinite scroll centered
+on today; the Shows/Movies lists live under /app/library. Filtering the
+feed is still to come.
+
 - [ ] In-app "upcoming" view for followed shows/people
 - [ ] Tokenized per-user iCal feed (`/api/calendar/<token>.ics`)
 
@@ -115,9 +120,6 @@ path, and the CPU budget is 10ms.
 
 ## Icebox (explicitly deferred)
 
-- **Home as an "up next" queue, lists under a Library page.** Home becomes
-  the unwatched episodes of followed shows in release order; the current
-  Shows/Movies tabs move to a dedicated Library page. Owner idea, 2026-08-12.
 
 
 - Batch `resolve_entities()` for search — a search currently spends one RPC

@@ -60,7 +60,7 @@ export async function MoviesList() {
           titleIcon={
             // Unseeing here drops the movie from the list on the next
             // render — membership is "marked as seen".
-            <SeenEye movieId={movie.id} seen revalidate="/app" />
+            <SeenEye movieId={movie.id} seen revalidate="/app/library" />
           }
         />
       ))}
