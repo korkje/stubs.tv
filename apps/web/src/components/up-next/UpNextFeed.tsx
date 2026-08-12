@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Button, Card, Flex, Spinner, Text } from "@radix-ui/themes";
+import { MotionConfig, motion } from "motion/react";
 import { FadeIn } from "@/components/FadeIn";
 import { formatDate } from "@/lib/format";
 import { fetchUpNext, type UpNextEpisode } from "@/lib/up-next/actions";
@@ -43,13 +44,23 @@ export function UpNextFeed({
   const pendingScrollFix = useRef<number | null>(null);
   const busy = useRef(false);
 
-  // Open with Today a bit above the middle of the viewport.
+  // Open with Today a bit above the middle of the viewport. On client-side
+  // navigations Next's router scrolls the fresh segment to the top of the
+  // page — and it does so after this effect, because parent lifecycles run
+  // after children's. Re-assert the position from a frame callback, which
+  // runs after every layout effect but still before paint, so the page never
+  // flashes at the top.
   useLayoutEffect(() => {
-    const marker = todayRef.current;
-    if (!marker) return;
-    const target =
-      marker.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.4;
-    window.scrollTo({ top: Math.max(target, 0) });
+    const scrollToToday = () => {
+      const marker = todayRef.current;
+      if (!marker) return;
+      const target =
+        marker.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.4;
+      window.scrollTo({ top: Math.max(target, 0) });
+    };
+    scrollToToday();
+    const frame = requestAnimationFrame(scrollToToday);
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   const loadPast = useCallback(async () => {
@@ -144,7 +155,7 @@ export function UpNextFeed({
   const chronologicalPast = [...past].reverse();
 
   return (
-    <FadeIn>
+    <MotionConfig reducedMotion="user">
       <div ref={containerRef}>
         <div ref={topSentinelRef} />
         {(loadingPast || !hasMorePast) && (
@@ -160,28 +171,47 @@ export function UpNextFeed({
         )}
 
         <Flex direction="column" gap="2">
-          {chronologicalPast.map((episode, index) => (
-            <div key={episode.episode_id}>
-              {(index === 0 ||
-                chronologicalPast[index - 1].aired !== episode.aired) && (
-                <DateLine label={formatDate(episode.aired)} />
-              )}
-              <UpNextRow episode={episode} aired />
-            </div>
-          ))}
+          {chronologicalPast.map((episode, index) => {
+            const distance = chronologicalPast.length - index;
+            return (
+              <FeedRow
+                key={episode.episode_id}
+                distance={distance}
+                drift={8}
+                entrance={distance <= initialPast.length}
+              >
+                {(index === 0 ||
+                  chronologicalPast[index - 1].aired !== episode.aired) && (
+                  <DateLine label={formatDate(episode.aired)} />
+                )}
+                <UpNextRow episode={episode} aired />
+              </FeedRow>
+            );
+          })}
 
           <div ref={todayRef}>
-            <DateLine label="Today" today />
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+            >
+              <DateLine label="Today" today />
+            </motion.div>
           </div>
 
           {future.map((episode, index) => (
-            <div key={episode.episode_id}>
+            <FeedRow
+              key={episode.episode_id}
+              distance={index + 1}
+              drift={-8}
+              entrance={index < initialFuture.length}
+            >
               {episode.aired !== today &&
                 (index === 0 || future[index - 1].aired !== episode.aired) && (
                   <DateLine label={formatDate(episode.aired)} />
                 )}
               <UpNextRow episode={episode} aired={episode.aired <= today} />
-            </div>
+            </FeedRow>
           ))}
         </Flex>
 
@@ -198,6 +228,39 @@ export function UpNextFeed({
         )}
         <div ref={bottomSentinelRef} />
       </div>
-    </FadeIn>
+    </MotionConfig>
+  );
+}
+
+/**
+ * One feed entry's entrance, staggered middle-out: the delay grows with the
+ * row's distance from the Today line, and the drift pushes away from it —
+ * past rows settle upward, future rows downward — so the feed radiates from
+ * today instead of raining top-down. Rows paged in later skip the entrance
+ * (entrance=false) and simply appear where the scroll compensation puts them.
+ */
+function FeedRow({
+  distance,
+  drift,
+  entrance,
+  children,
+}: {
+  distance: number;
+  drift: number;
+  entrance: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <motion.div
+      initial={entrance ? { opacity: 0, y: drift } : false}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        duration: 0.2,
+        ease: "easeOut",
+        delay: Math.min(distance * 0.03, 0.4),
+      }}
+    >
+      {children}
+    </motion.div>
   );
 }
