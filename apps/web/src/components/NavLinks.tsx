@@ -14,10 +14,9 @@ const LINKS = [
 ];
 
 /**
- * The header nav, with an amber line under the section you are on
- * (spelled --amber-9: the gray color prop on the link remaps --accent-9) — the
- * same language as the active tab underline. Detail pages light up neither:
- * they are reached from both.
+ * The header nav. The section you are on keeps the same underline the links
+ * already show on hover — one visual, two meanings: "you can go here" and
+ * "you are here". Detail pages light up neither: they are reached from both.
  */
 export function NavLinks() {
   const pathname = usePathname();
@@ -34,12 +33,7 @@ export function NavLinks() {
             size="2"
             color="gray"
             highContrast
-            underline="hover"
-            style={
-              active
-                ? { boxShadow: "0 2px 0 0 var(--amber-9)" }
-                : undefined
-            }
+            underline={active ? "always" : "hover"}
           >
             <Link href={href} aria-current={active ? "page" : undefined}>
               {label}
