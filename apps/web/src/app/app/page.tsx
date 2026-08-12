@@ -8,13 +8,12 @@ import {
 } from "@radix-ui/themes";
 import { createClient } from "@/lib/supabase/server";
 import { FadeIn } from "@/components/FadeIn";
-import { Stat } from "@/components/Stat";
+import { TimeStat } from "@/components/TimeStat";
 import { LibraryTabs } from "@/components/library/LibraryTabs";
 import { ShowsList } from "@/components/library/ShowsList";
 import { MoviesList } from "@/components/library/MoviesList";
 import { InvitesCard } from "@/components/invites/InvitesCard";
 import { DelayedSpinner } from "@/components/DelayedSpinner";
-import { formatRuntime } from "@/lib/format";
 
 /**
  * Everything being tracked, split into Shows and Movies.
@@ -62,9 +61,9 @@ export default async function HomePage({
             they had when the count stats sat beside them. */}
         {hasHistory && (
           <Grid columns={{ initial: "3", sm: "6" }} gapX="4" gapY="4">
-            <Stat label="Show time" value={formatRuntime(totals?.episode_minutes ?? 0)} />
-            <Stat label="Movie time" value={formatRuntime(totals?.movie_minutes ?? 0)} />
-            <Stat label="Total time" value={formatRuntime(totals?.minutes_watched ?? 0)} />
+            <TimeStat label="Show time" minutes={totals?.episode_minutes ?? 0} />
+            <TimeStat label="Movie time" minutes={totals?.movie_minutes ?? 0} />
+            <TimeStat label="Total time" minutes={totals?.minutes_watched ?? 0} />
           </Grid>
         )}
 
