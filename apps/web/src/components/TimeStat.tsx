@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Flex, Text } from "@radix-ui/themes";
 import { MotionConfig } from "motion/react";
-import { AnimateNumber } from "motion-plus/react";
+import { AnimateNumber } from "@motionplus/core/react";
 
 /**
  * A Stat whose figure counts up from zero on arrival. The unit structure

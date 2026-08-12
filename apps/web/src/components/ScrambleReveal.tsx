@@ -1,22 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Text } from "@radix-ui/themes";
-import { useReducedMotion } from "motion/react";
+import { stagger, useReducedMotion } from "motion/react";
+import { ScrambleText } from "@motionplus/core/react";
 
 const GLYPHS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 /**
- * Same shape as the original, none of the meaning. Word lengths survive so
- * the scrambled block occupies honest space; letters do not.
- *
- * Deterministic (a seeded xorshift instead of Math.random): the component
- * renders scrambled on the server, and hydration must reproduce the exact
- * same nonsense or React rejects the tree. Re-scrambles during the reveal
- * sweep vary the seed for the flicker effect — by then hydration is over.
+ * Reduced-motion fallback: statically scrambled, deterministic so the server
+ * render and hydration agree. Word lengths survive; letters do not.
  */
-function scramble(text: string, seed = 1): string {
-  let state = seed >>> 0 || 1;
+function staticScramble(text: string): string {
+  let state = 1;
   for (let i = 0; i < text.length; i++) {
     state = (state ^ text.charCodeAt(i)) >>> 0;
   }
@@ -38,40 +34,23 @@ function scramble(text: string, seed = 1): string {
  * Spoiler protection: the synopsis renders scrambled until `revealed` flips
  * true — which the seen toggle drives, because "I have watched this" is
  * exactly when spoilers stop mattering; there is deliberately no separate
- * reveal control. Revealing sweeps left to right, unscrambling as it goes;
- * un-marking re-scrambles instantly. Under reduced motion both are instant.
+ * reveal control. Motion+'s ScrambleText plays a staggered per-character
+ * reveal, and un-marking animates the scramble back in.
  *
- * The real words stay out of the DOM (and screen readers, and copy-paste)
- * until revealed.
+ * The huge `interval` keeps the mask still while it waits (a feed full of
+ * perpetually flickering rows would be exhausting); the animation happens on
+ * the transitions. Until the client takes over, SSR shows the deterministic
+ * static scramble — never the real words, which also keeps them out of
+ * screen readers and copy-paste while masked.
  */
 export function ScrambleReveal({ text, revealed }: { text: string; revealed: boolean }) {
-  const [display, setDisplay] = useState(() => (revealed ? text : scramble(text)));
-  const frame = useRef(0);
-  const wasRevealed = useRef(revealed);
   const reduceMotion = useReducedMotion();
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    if (revealed === wasRevealed.current) return;
-    wasRevealed.current = revealed;
-    cancelAnimationFrame(frame.current);
-
-    if (!revealed) {
-      frame.current = requestAnimationFrame(() => setDisplay(scramble(text)));
-      return;
-    }
-    const start = performance.now();
-    const duration = reduceMotion ? 0 : Math.min(400 + text.length * 3, 1200);
-    const tick = (now: number) => {
-      const progress = duration === 0 ? 1 : Math.min((now - start) / duration, 1);
-      const cut = Math.floor(text.length * progress);
-      setDisplay(
-        progress < 1 ? text.slice(0, cut) + scramble(text.slice(cut), cut + 2) : text
-      );
-      if (progress < 1) frame.current = requestAnimationFrame(tick);
-    };
-    frame.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame.current);
-  }, [revealed, text, reduceMotion]);
+    const frame = requestAnimationFrame(() => setHydrated(true));
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   return (
     <Text
@@ -82,7 +61,18 @@ export function ScrambleReveal({ text, revealed }: { text: string; revealed: boo
       aria-hidden={!revealed}
       style={revealed ? undefined : { userSelect: "none" }}
     >
-      {display}
+      {!hydrated || reduceMotion ? (
+        revealed ? text : staticScramble(text)
+      ) : (
+        <ScrambleText
+          active={!revealed}
+          duration={Infinity}
+          delay={stagger(0.6 / Math.max(text.length, 1))}
+          chars={GLYPHS}
+        >
+          {text}
+        </ScrambleText>
+      )}
     </Text>
   );
 }

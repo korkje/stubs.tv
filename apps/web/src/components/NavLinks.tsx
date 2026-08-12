@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Link as RadixLink } from "@radix-ui/themes";
 
 const LINKS = [
+  { href: "/app", label: "Feed", isActive: (path: string) => path === "/app" },
   {
     href: "/app/library",
     label: "Library",
@@ -20,7 +21,8 @@ const LINKS = [
 /**
  * The header nav. The section you are on keeps the same underline the links
  * already show on hover — one visual, two meanings: "you can go here" and
- * "you are here". Detail pages light up neither: they are reached from both.
+ * "you are here". Detail pages light up nothing: they are reached from
+ * anywhere.
  */
 export function NavLinks() {
   const pathname = usePathname();
