@@ -34,6 +34,10 @@ export function NavLinks() {
             color="gray"
             highContrast
             underline={active ? "always" : "hover"}
+            // The stock decoration color is built for body links and nearly
+            // vanishes at this size — amber ink makes "you are here" legible
+            // without changing the underline itself.
+            style={active ? { textDecorationColor: "var(--amber-9)" } : undefined}
           >
             <Link href={href} aria-current={active ? "page" : undefined}>
               {label}
