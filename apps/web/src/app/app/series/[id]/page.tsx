@@ -51,7 +51,7 @@ export default async function SeriesPage({
   const supabase = await createClient();
   const path = `/app/series/${seriesId}`;
 
-  const [{ data: series }, { data: seasons }, { data: follow }, { data: rating }] =
+  const [{ data: series }, { data: seasons }, { data: follow }, { data: rating }, { data: profile }] =
     await Promise.all([
       supabase.from("series").select("*").eq("id", seriesId).maybeSingle(),
       supabase
@@ -71,12 +71,26 @@ export default async function SeriesPage({
         .eq("entity_type", "series")
         .eq("entity_id", seriesId)
         .maybeSingle(),
+      supabase
+        .from("profiles")
+        .select("specials, synopsis_mode")
+        .maybeSingle(),
     ]);
 
   if (!series) notFound();
 
-  // Specials (season 0) sort last: they are rarely what someone came for.
-  const orderedSeasons = (seasons ?? []).sort((a, b) => {
+  const settings = {
+    specials: profile?.specials ?? "uncounted",
+    synopsisMode: profile?.synopsis_mode ?? "show",
+  };
+
+  // Specials (season 0) sort last: they are rarely what someone came for —
+  // or nowhere at all, for users who hide them.
+  const visibleSeasons =
+    settings.specials === "hidden"
+      ? (seasons ?? []).filter((row) => row.season_number !== 0)
+      : (seasons ?? []);
+  const orderedSeasons = visibleSeasons.sort((a, b) => {
     if (a.season_number === 0) return 1;
     if (b.season_number === 0) return -1;
     return (a.season_number ?? 0) - (b.season_number ?? 0);
@@ -222,6 +236,7 @@ export default async function SeriesPage({
                         seriesId={seriesId}
                         seasonNumber={number}
                         revalidate={path}
+                        synopsisMode={settings.synopsisMode}
                       />
                     )}
                   </Collapse>
@@ -241,10 +256,12 @@ async function SeasonEpisodes({
   seriesId,
   seasonNumber,
   revalidate,
+  synopsisMode,
 }: {
   seriesId: number;
   seasonNumber: number;
   revalidate: string;
+  synopsisMode: string;
 }) {
   const supabase = await createClient();
 
@@ -275,6 +292,7 @@ async function SeasonEpisodes({
               seen={seenIds.has(episode.id)}
               revalidate={revalidate}
               last={index === (episodes ?? []).length - 1}
+              synopsisMode={synopsisMode}
             />
           ))}
         </StaggerIn>

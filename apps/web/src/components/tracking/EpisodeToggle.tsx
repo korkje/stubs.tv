@@ -15,11 +15,14 @@ export function EpisodeToggle({
   seen,
   revalidate,
   label,
+  onToggled,
 }: {
   episodeId: number;
   seen: boolean;
   revalidate: string;
   label: string;
+  /** Fires with the optimistic value, e.g. to unscramble a synopsis. */
+  onToggled?: (seen: boolean) => void;
 }) {
   const [optimisticSeen, setOptimisticSeen] = useOptimistic(seen);
   const [, startTransition] = useTransition();
@@ -33,6 +36,7 @@ export function EpisodeToggle({
       aria-pressed={optimisticSeen}
       onClick={() => {
         const next = !optimisticSeen;
+        onToggled?.(next);
         startTransition(async () => {
           setOptimisticSeen(next);
           if (next) await markSeen("episode", episodeId, revalidate);

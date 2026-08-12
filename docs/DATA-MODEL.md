@@ -83,6 +83,10 @@ profiles
   display_name  text
   plan          enum: comp | basic | pro   -- comp = friends & family
   is_admin      boolean default false
+  timezone      text                       -- IANA; where "Today" falls (null = UTC)
+  specials      text: hidden|uncounted|counted  -- see Settings in the app
+  bulk_mark_specials boolean default true  -- "Mark show" touches specials
+  synopsis_mode text: show|scramble|hide   -- spoiler protection, unwatched only
   created_at    timestamptz
 
 follows

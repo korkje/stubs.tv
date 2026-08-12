@@ -1,6 +1,10 @@
+"use client";
+
+import { useState } from "react";
 import { Box, Flex, Text } from "@radix-ui/themes";
 import type { Episode } from "@stubs/db";
 import { EpisodeSummary } from "./EpisodeSummary";
+import { ScrambleReveal } from "@/components/ScrambleReveal";
 import { EpisodeToggle } from "./EpisodeToggle";
 import { formatDate } from "@/lib/format";
 
@@ -16,12 +20,20 @@ export function EpisodeRow({
   seen,
   revalidate,
   last,
+  synopsisMode,
 }: {
   episode: Episode;
   seen: boolean;
   revalidate: string;
   last: boolean;
+  /** Spoiler protection; applies to episodes not yet seen. */
+  synopsisMode: string;
 }) {
+  // Mirrors the toggle's optimistic flip so the scramble can react to it;
+  // the server prop wins again after the revalidated render arrives.
+  const [marked, setMarked] = useState<boolean | null>(null);
+  const effectiveSeen = marked ?? seen;
+
   const code = `${episode.season_number}×${String(episode.number).padStart(2, "0")}`;
 
   return (
@@ -48,7 +60,12 @@ export function EpisodeRow({
               {episode.name ?? "Untitled"}
             </Text>
           </Flex>
-          {episode.overview && <EpisodeSummary overview={episode.overview} />}
+          {episode.overview && (seen || synopsisMode === "show") && (
+            <EpisodeSummary overview={episode.overview} />
+          )}
+          {episode.overview && !seen && synopsisMode === "scramble" && (
+            <ScrambleReveal text={episode.overview} revealed={effectiveSeen} />
+          )}
         </Box>
 
         <Flex gap="3" flexShrink="0">
@@ -69,6 +86,7 @@ export function EpisodeRow({
           seen={seen}
           revalidate={revalidate}
           label={`${code} ${episode.name ?? ""}`.trim()}
+          onToggled={setMarked}
         />
       </Box>
     </Flex>

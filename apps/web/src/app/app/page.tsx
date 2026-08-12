@@ -1,4 +1,5 @@
 import { Container, Heading, VisuallyHidden } from "@radix-ui/themes";
+import { createClient } from "@/lib/supabase/server";
 import { fetchUpNext } from "@/lib/up-next/actions";
 import { UpNextFeed } from "@/components/up-next/UpNextFeed";
 
@@ -8,12 +9,20 @@ import { UpNextFeed } from "@/components/up-next/UpNextFeed";
  * (bidirectional infinite scroll, the focus lens) lives in the client feed;
  * this page just seeds the first window on the server.
  *
- * "Today" is the UTC date on purpose: between midnight and small-hours local
- * time the marker may sit on what feels like yesterday, which is a fair
- * trade against carrying a timezone preference this early.
+ * "Today" is the calendar date in the user's chosen timezone (settings),
+ * falling back to UTC until one is picked.
  */
 export default async function HomePage() {
-  const today = new Date().toISOString().slice(0, 10);
+  const supabase = await createClient();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("timezone, synopsis_mode")
+    .maybeSingle();
+
+  // en-CA formats as YYYY-MM-DD, matching the aired column.
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: profile?.timezone ?? "UTC",
+  }).format(new Date());
 
   const [past, future] = await Promise.all([
     fetchUpNext(true, today, 0),
@@ -25,7 +34,12 @@ export default async function HomePage() {
       <VisuallyHidden>
         <Heading as="h1">Up next</Heading>
       </VisuallyHidden>
-      <UpNextFeed today={today} initialPast={past} initialFuture={future} />
+      <UpNextFeed
+        today={today}
+        initialPast={past}
+        initialFuture={future}
+        synopsisMode={profile?.synopsis_mode ?? "show"}
+      />
     </Container>
   );
 }

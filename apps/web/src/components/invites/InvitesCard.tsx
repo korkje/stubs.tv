@@ -5,8 +5,9 @@ import { CopyInviteLink } from "./CopyInviteLink";
 
 /**
  * Invite links to share while signups are invite-only. Every invite ever
- * created is listed (a redeemed one is still spent), newest first. Hidden
- * entirely once signups are open — the whole point of the card disappears.
+ * created is listed (a redeemed one is still spent), newest first. Once
+ * signups open the card only says so — it has its own page now, which must
+ * not render blank.
  */
 export async function InvitesCard() {
   const supabase = await createClient();
@@ -20,7 +21,17 @@ export async function InvitesCard() {
       .order("created_at", { ascending: false }),
   ]);
 
-  if (settings?.open_signups) return null;
+  if (settings?.open_signups) {
+    return (
+      <Card>
+        <Flex p="2">
+          <Text color="gray">
+            Signups are open — nobody needs an invite right now.
+          </Text>
+        </Flex>
+      </Card>
+    );
+  }
 
   const isAdmin = profile?.is_admin ?? false;
   const used = invites?.length ?? 0;

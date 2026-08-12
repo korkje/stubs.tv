@@ -1,12 +1,24 @@
 import Link from "next/link";
-import { Box, Button, Container, Flex } from "@radix-ui/themes";
-import { ExitIcon } from "@radix-ui/react-icons";
+import { Box, Container, Flex } from "@radix-ui/themes";
+import { createClient } from "@/lib/supabase/server";
 import { NavLinks } from "@/components/NavLinks";
 import { StubsMark } from "@/components/StubsMark";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { signout } from "@/app/login/actions";
+import { UserMenu } from "@/components/UserMenu";
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  // The avatar wants a letter; the display name is the honest source and the
+  // email the fallback.
+  const supabase = await createClient();
+  const [{ data: profile }, { data: userData }] = await Promise.all([
+    supabase.from("profiles").select("display_name").maybeSingle(),
+    supabase.auth.getUser(),
+  ]);
+  const initial = (
+    profile?.display_name?.trim() ||
+    userData?.user?.email ||
+    "?"
+  )[0].toUpperCase();
+
   return (
     <Box>
       {/* Sticky so the feed's long timeline always has the nav in reach.
@@ -40,15 +52,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </Flex>
               </Flex>
               <Flex align="center" gap="3" flexShrink="0">
-                <ThemeToggle />
-                <form action={signout}>
-                  {/* Drops to icon-only on phones, where the full nav plus a
-                      worded button overflows the width. */}
-                  <Button variant="soft" color="gray" size="2" aria-label="Sign out">
-                    <ExitIcon />
-                    <span className="label-when-room">Sign out</span>
-                  </Button>
-                </form>
+                <UserMenu initial={initial} />
               </Flex>
             </Flex>
           </Container>

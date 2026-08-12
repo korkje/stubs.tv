@@ -6,6 +6,7 @@ import { Box, Card, Flex, IconButton, Text } from "@radix-ui/themes";
 import { EyeNoneIcon, EyeOpenIcon } from "@radix-ui/react-icons";
 import { easeIn, easeOut, motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { Poster } from "@/components/Poster";
+import { ScrambleReveal } from "@/components/ScrambleReveal";
 import { markSeen, unmarkSeen } from "@/lib/tracking/actions";
 import type { UpNextEpisode } from "@/lib/up-next/actions";
 
@@ -19,9 +20,19 @@ import type { UpNextEpisode } from "@/lib/up-next/actions";
  * scroll-linked style, not an animation, so MotionConfig cannot suppress it —
  * it is gated on the reduced-motion preference by hand.
  */
-export function UpNextRow({ episode, aired }: { episode: UpNextEpisode; aired: boolean }) {
+export function UpNextRow({
+  episode,
+  aired,
+  synopsisMode,
+}: {
+  episode: UpNextEpisode;
+  aired: boolean;
+  synopsisMode: string;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
+  // Lifted from the toggle: marking seen also unscrambles the synopsis.
+  const [seen, setSeen] = useState(false);
 
   // Progress runs from the row entering at the bottom of the viewport to it
   // disappearing under the sticky nav — "end 56px" (the nav's height), not
@@ -63,7 +74,7 @@ export function UpNextRow({ episode, aired }: { episode: UpNextEpisode; aired: b
                     flexShrink="0"
                     style={{ height: "var(--line-height-3)" }}
                   >
-                    <SeenToggle episode={episode} code={code} />
+                    <SeenToggle episode={episode} code={code} seen={seen} onChange={setSeen} />
                   </Flex>
                 )}
               </Flex>
@@ -73,10 +84,15 @@ export function UpNextRow({ episode, aired }: { episode: UpNextEpisode; aired: b
                 </Text>
                 <Text size="2">{episode.episode_name ?? "Untitled"}</Text>
               </Flex>
-              {episode.overview ? (
+              {/* Everything in this feed is unwatched, so the spoiler
+                  setting applies to every synopsis. */}
+              {episode.overview && synopsisMode === "show" ? (
                 <Text as="div" size="1" color="gray" className="clamp-2-lines">
                   {episode.overview}
                 </Text>
+              ) : null}
+              {episode.overview && synopsisMode === "scramble" ? (
+                <ScrambleReveal text={episode.overview} revealed={seen} />
               ) : null}
             </Flex>
           </Flex>
@@ -92,8 +108,17 @@ export function UpNextRow({ episode, aired }: { episode: UpNextEpisode; aired: b
  * would snap back — here the click is the truth. Revalidates the library
  * rather than this route, so the feed does not reload under the user.
  */
-function SeenToggle({ episode, code }: { episode: UpNextEpisode; code: string }) {
-  const [seen, setSeen] = useState(false);
+function SeenToggle({
+  episode,
+  code,
+  seen,
+  onChange,
+}: {
+  episode: UpNextEpisode;
+  code: string;
+  seen: boolean;
+  onChange: (seen: boolean) => void;
+}) {
   const label = `${episode.series_name} ${code}`;
 
   return (
@@ -106,12 +131,12 @@ function SeenToggle({ episode, code }: { episode: UpNextEpisode; code: string })
         event.preventDefault();
         event.stopPropagation();
         const next = !seen;
-        setSeen(next);
+        onChange(next);
         try {
           if (next) await markSeen("episode", episode.episode_id, "/app/library");
           else await unmarkSeen("episode", episode.episode_id, "/app/library");
         } catch {
-          setSeen(!next);
+          onChange(!next);
         }
       }}
     >

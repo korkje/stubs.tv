@@ -23,10 +23,12 @@ export function UpNextFeed({
   today,
   initialPast,
   initialFuture,
+  synopsisMode,
 }: {
   today: string;
   initialPast: UpNextEpisode[];
   initialFuture: UpNextEpisode[];
+  synopsisMode: string;
 }) {
   // past is newest-first (as fetched); rendered reversed so time reads
   // downwards. future is soonest-first and renders as-is.
@@ -184,7 +186,7 @@ export function UpNextFeed({
                   chronologicalPast[index - 1].aired !== episode.aired) && (
                   <DateLine label={formatDate(episode.aired)} />
                 )}
-                <UpNextRow episode={episode} aired />
+                <UpNextRow episode={episode} aired synopsisMode={synopsisMode} />
               </FeedRow>
             );
           })}
@@ -210,7 +212,7 @@ export function UpNextFeed({
                 (index === 0 || future[index - 1].aired !== episode.aired) && (
                   <DateLine label={formatDate(episode.aired)} />
                 )}
-              <UpNextRow episode={episode} aired={episode.aired <= today} />
+              <UpNextRow episode={episode} aired={episode.aired <= today} synopsisMode={synopsisMode} />
             </FeedRow>
           ))}
         </Flex>

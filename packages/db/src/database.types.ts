@@ -308,24 +308,36 @@ export type Database = {
       }
       profiles: {
         Row: {
+          bulk_mark_specials: boolean
           created_at: string
           display_name: string | null
           is_admin: boolean
           plan: Database["public"]["Enums"]["plan"]
+          specials: string
+          synopsis_mode: string
+          timezone: string | null
           user_id: string
         }
         Insert: {
+          bulk_mark_specials?: boolean
           created_at?: string
           display_name?: string | null
           is_admin?: boolean
           plan?: Database["public"]["Enums"]["plan"]
+          specials?: string
+          synopsis_mode?: string
+          timezone?: string | null
           user_id: string
         }
         Update: {
+          bulk_mark_specials?: boolean
           created_at?: string
           display_name?: string | null
           is_admin?: boolean
           plan?: Database["public"]["Enums"]["plan"]
+          specials?: string
+          synopsis_mode?: string
+          timezone?: string | null
           user_id?: string
         }
         Relationships: []

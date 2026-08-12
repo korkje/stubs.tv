@@ -12,7 +12,6 @@ import { TimeStat } from "@/components/TimeStat";
 import { LibraryTabs } from "@/components/library/LibraryTabs";
 import { ShowsList } from "@/components/library/ShowsList";
 import { MoviesList } from "@/components/library/MoviesList";
-import { InvitesCard } from "@/components/invites/InvitesCard";
 import { DelayedSpinner } from "@/components/DelayedSpinner";
 
 /**
@@ -80,8 +79,6 @@ export default async function LibraryPage({
         <Suspense fallback={<DelayedSpinner />}>
           {movies ? <MoviesList /> : <ShowsList />}
         </Suspense>
-
-        <InvitesCard />
       </Flex>
       </FadeIn>
     </Container>
