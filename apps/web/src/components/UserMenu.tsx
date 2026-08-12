@@ -24,7 +24,13 @@ export function UserMenu({ initial }: { initial: string }) {
           <Avatar size="2" radius="full" fallback={initial} variant="soft" color="amber" />
         </IconButton>
       </DropdownMenu.Trigger>
-      <DropdownMenu.Content align="end">
+      <DropdownMenu.Content
+        align="end"
+        // Radix restores focus to the trigger on close, which paints the
+        // avatar with a focus ring after every mouse interaction. Keyboard
+        // users can Tab back; pointer users lose nothing.
+        onCloseAutoFocus={(event) => event.preventDefault()}
+      >
         {/* Icons trail on the right so the labels stay flush left. */}
         <DropdownMenu.Item asChild>
           <Link href="/app/settings">

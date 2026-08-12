@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Text } from "@radix-ui/themes";
 import { stagger, useReducedMotion } from "motion/react";
 import { ScrambleText } from "@motionplus/core/react";
@@ -8,8 +8,8 @@ import { ScrambleText } from "@motionplus/core/react";
 const GLYPHS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 /**
- * Reduced-motion fallback: statically scrambled, deterministic so the server
- * render and hydration agree. Word lengths survive; letters do not.
+ * A still mask: deterministic (seeded, so server render and hydration
+ * agree), same shape as the original, none of the meaning.
  */
 function staticScramble(text: string): string {
   let state = 1;
@@ -30,27 +30,67 @@ function staticScramble(text: string): string {
   return out;
 }
 
+type Anim =
+  | { phase: "masked" | "revealed" | "masking"; active?: undefined }
+  | { phase: "revealing"; active: boolean };
+
 /**
- * Spoiler protection: the synopsis renders scrambled until `revealed` flips
- * true — which the seen toggle drives, because "I have watched this" is
- * exactly when spoilers stop mattering; there is deliberately no separate
- * reveal control. Motion+'s ScrambleText plays a staggered per-character
- * reveal, and un-marking animates the scramble back in.
+ * Spoiler protection: the synopsis is masked by a STILL scramble at rest —
+ * a feed of perpetually flickering rows is exhausting — and Motion+'s
+ * ScrambleText mounts only for the transitions. Revealing mounts it
+ * scrambling and releases it a frame later, so the characters sweep into
+ * the real text; masking mounts it scrambling over the real text and
+ * settles to the still mask once the sweep is done (that direction has no
+ * completion callback, hence the timer). The seen toggle is the only
+ * control; "I have watched this" is exactly when spoilers stop mattering.
+ * Under reduced motion both switches are instant.
  *
- * The huge `interval` keeps the mask still while it waits (a feed full of
- * perpetually flickering rows would be exhausting); the animation happens on
- * the transitions. Until the client takes over, SSR shows the deterministic
- * static scramble — never the real words, which also keeps them out of
- * screen readers and copy-paste while masked.
+ * The effect depends on `revealed` alone: transitions advance through
+ * guarded functional updates, so internal phase changes never re-run the
+ * effect — an earlier version cleaned up its own settle timer that way and
+ * froze the mask-back halfway.
  */
 export function ScrambleReveal({ text, revealed }: { text: string; revealed: boolean }) {
   const reduceMotion = useReducedMotion();
-  const [hydrated, setHydrated] = useState(false);
+  const [anim, setAnim] = useState<Anim>({ phase: revealed ? "revealed" : "masked" });
+  const pending = useRef<{ raf: number; timer?: ReturnType<typeof setTimeout> }>({
+    raf: 0,
+  });
 
   useEffect(() => {
-    const frame = requestAnimationFrame(() => setHydrated(true));
-    return () => cancelAnimationFrame(frame);
-  }, []);
+    const work = pending.current;
+    work.raf = requestAnimationFrame(() => {
+      if (reduceMotion) {
+        setAnim({ phase: revealed ? "revealed" : "masked" });
+        return;
+      }
+      if (revealed) {
+        setAnim((prev) =>
+          prev.phase === "revealed" || prev.phase === "revealing"
+            ? prev
+            : { phase: "revealing", active: true }
+        );
+        work.raf = requestAnimationFrame(() => {
+          setAnim((prev) =>
+            prev.phase === "revealing" ? { phase: "revealing", active: false } : prev
+          );
+        });
+      } else {
+        setAnim((prev) =>
+          prev.phase === "masked" || prev.phase === "masking"
+            ? prev
+            : { phase: "masking" }
+        );
+        work.timer = setTimeout(() => {
+          setAnim((prev) => (prev.phase === "masking" ? { phase: "masked" } : prev));
+        }, 1800);
+      }
+    });
+    return () => {
+      cancelAnimationFrame(work.raf);
+      if (work.timer) clearTimeout(work.timer);
+    };
+  }, [revealed, reduceMotion]);
 
   return (
     <Text
@@ -61,14 +101,19 @@ export function ScrambleReveal({ text, revealed }: { text: string; revealed: boo
       aria-hidden={!revealed}
       style={revealed ? undefined : { userSelect: "none" }}
     >
-      {!hydrated || reduceMotion ? (
-        revealed ? text : staticScramble(text)
-      ) : (
+      {anim.phase === "masked" && staticScramble(text)}
+      {anim.phase === "revealed" && text}
+      {(anim.phase === "revealing" || anim.phase === "masking") && (
         <ScrambleText
-          active={!revealed}
+          active={anim.phase === "masking" ? true : anim.active}
           duration={Infinity}
-          delay={stagger(0.6 / Math.max(text.length, 1))}
+          delay={stagger(0.8 / Math.max(text.length, 1))}
           chars={GLYPHS}
+          onComplete={
+            anim.phase === "revealing"
+              ? () => setAnim({ phase: "revealed" })
+              : undefined
+          }
         >
           {text}
         </ScrambleText>
