@@ -39,7 +39,9 @@ export async function ShowsList() {
 
   return (
     <Flex direction="column">
-      <AnimatedRows>
+      {/* Keyed so the tab swap replaces the list instead of React
+          reusing the instance and cross-animating shows into movies. */}
+      <AnimatedRows key="shows">
       {shows.map((show) => {
         const aired = show.aired_episodes ?? 0;
         const watched = show.watched_episodes ?? 0;

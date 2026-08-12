@@ -40,7 +40,11 @@ export default async function SearchPage({
         <SearchForm defaultValue={query} />
 
         {query ? (
-          <Suspense key={query} fallback={<DelayedSpinner />}>
+          /* Deliberately NOT keyed on the query: a stable boundary keeps the
+             current results on screen while the next ones render — the
+             search button's spinner is the one pending indicator — and the
+             fallback only appears when the page streams in on first load. */
+          <Suspense fallback={<DelayedSpinner />}>
             <Results query={query} />
           </Suspense>
         ) : (
@@ -126,7 +130,9 @@ async function Results({ query }: { query: string }) {
   // cannot drift apart from them in shape, spacing or type sizes.
   return (
     <Flex direction="column">
-      <AnimatedRows>
+      {/* Keyed on the query so a new result set mounts fresh and staggers
+          in, instead of cross-animating against the old rows. */}
+      <AnimatedRows key={query}>
       {ranked.map((result) => {
         const internalId = ids.get(`${result.kind}:${result.providerId}`);
         if (!internalId) return null;

@@ -46,7 +46,7 @@ export async function MoviesList() {
 
   return (
     <Flex direction="column">
-      <AnimatedRows>
+      <AnimatedRows key="movies">
       {(movies ?? []).map((movie) => (
         <LibraryRow
           key={movie.id}

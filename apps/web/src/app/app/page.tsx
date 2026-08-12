@@ -1,17 +1,16 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import {
   Container,
   Flex,
   Grid,
   Heading,
   Separator,
-  TabNav,
   VisuallyHidden,
 } from "@radix-ui/themes";
 import { createClient } from "@/lib/supabase/server";
 import { FadeIn } from "@/components/FadeIn";
 import { Stat } from "@/components/Stat";
+import { LibraryTabs } from "@/components/library/LibraryTabs";
 import { ShowsList } from "@/components/library/ShowsList";
 import { MoviesList } from "@/components/library/MoviesList";
 import { InvitesCard } from "@/components/invites/InvitesCard";
@@ -76,19 +75,13 @@ export default async function HomePage({
           </>
         )}
 
-        <TabNav.Root>
-          <TabNav.Link asChild active={!movies}>
-            <Link href="/app">Shows</Link>
-          </TabNav.Link>
-          <TabNav.Link asChild active={movies}>
-            <Link href="/app?tab=movies">Movies</Link>
-          </TabNav.Link>
-        </TabNav.Root>
+        <LibraryTabs movies={movies} />
 
-        {/* Keyed on the tab: switching creates a fresh boundary, so the
-            pending state takes over immediately instead of the old list
-            hanging around while the new one renders on the server. */}
-        <Suspense key={movies ? "movies" : "shows"} fallback={<DelayedSpinner />}>
+        {/* Deliberately NOT keyed on the tab: a stable boundary keeps the
+            current list on screen through the switch transition — the tabs
+            component shows the pending spinner — and the fallback only
+            appears while the page streams in on first load. */}
+        <Suspense fallback={<DelayedSpinner />}>
           {movies ? <MoviesList /> : <ShowsList />}
         </Suspense>
 
