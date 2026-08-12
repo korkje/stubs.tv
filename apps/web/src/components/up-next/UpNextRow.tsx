@@ -1,10 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Box, Card, Flex, IconButton, Text } from "@radix-ui/themes";
 import { EyeNoneIcon, EyeOpenIcon } from "@radix-ui/react-icons";
-import { easeIn, easeOut, motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { Poster } from "@/components/Poster";
 import { ScrambleReveal } from "@/components/ScrambleReveal";
 import { markSeen, unmarkSeen } from "@/lib/tracking/actions";
@@ -14,11 +13,6 @@ import type { UpNextEpisode } from "@/lib/up-next/actions";
  * One episode in the up-next feed: the library-row look, carrying the show
  * name with the episode underneath, a two-line synopsis where one exists,
  * and the seen eye on the right for aired episodes.
- *
- * The row scales down and fades as it approaches the viewport's top or
- * bottom, which keeps the eye on the middle of the timeline. That lens is a
- * scroll-linked style, not an animation, so MotionConfig cannot suppress it —
- * it is gated on the reduced-motion preference by hand.
  */
 export function UpNextRow({
   episode,
@@ -29,36 +23,13 @@ export function UpNextRow({
   aired: boolean;
   synopsisMode: string;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const reduceMotion = useReducedMotion();
   // Lifted from the toggle: marking seen also unscrambles the synopsis.
   const [seen, setSeen] = useState(false);
-
-  // Progress runs from the row entering at the bottom of the viewport to it
-  // disappearing under the sticky nav — "end 56px" (the nav's height), not
-  // "end start", or the top half of the fade plays hidden behind the bar and
-  // the lens looks weaker at the top than the bottom.
-  //
-  // Easing is directional on purpose: each fade segment is gentle where it
-  // meets the full-size plateau (no flat-to-linear kink) but keeps its
-  // velocity at the viewport edge, so rows visibly go on shrinking until
-  // they are actually gone — easeInOut here reads as the shrink stalling
-  // just before the exit. The middle segment is constant, its ease is moot.
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end 56px"],
-  });
-  const lens = { ease: [easeOut, easeOut, easeIn] };
-  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.35, 1, 1, 0.35], lens);
-  const scale = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.96, 1, 1, 0.96], lens);
 
   const code = `${episode.season_number}×${String(episode.episode_number).padStart(2, "0")}`;
 
   return (
-    <motion.div
-      ref={ref}
-      style={reduceMotion ? undefined : { opacity, scale }}
-    >
+    <div>
       <Card asChild>
         <Link href={`/app/series/${episode.series_id}?season=${episode.season_number}`}>
           <Flex gap="4" align="start">
@@ -98,7 +69,7 @@ export function UpNextRow({
           </Flex>
         </Link>
       </Card>
-    </motion.div>
+    </div>
   );
 }
 
