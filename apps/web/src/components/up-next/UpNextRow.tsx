@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { Box, Card, Flex, IconButton, Text } from "@radix-ui/themes";
 import { EyeNoneIcon, EyeOpenIcon } from "@radix-ui/react-icons";
-import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
+import { easeInOut, motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { Poster } from "@/components/Poster";
 import { markSeen, unmarkSeen } from "@/lib/tracking/actions";
 import type { UpNextEpisode } from "@/lib/up-next/actions";
@@ -23,12 +23,18 @@ export function UpNextRow({ episode, aired }: { episode: UpNextEpisode; aired: b
   const ref = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
 
+  // Progress runs from the row entering at the bottom of the viewport to it
+  // disappearing under the sticky nav — "end 56px" (the nav's height), not
+  // "end start", or the top half of the fade plays hidden behind the bar and
+  // the lens looks weaker at the top than the bottom. Eased per segment so
+  // the effect ramps in gently instead of kinking from flat to linear.
   const { scrollYProgress } = useScroll({
     target: ref,
-    offset: ["start end", "end start"],
+    offset: ["start end", "end 56px"],
   });
-  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.35, 1, 1, 0.35]);
-  const scale = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.96, 1, 1, 0.96]);
+  const lens = { ease: easeInOut };
+  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.35, 1, 1, 0.35], lens);
+  const scale = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.96, 1, 1, 0.96], lens);
 
   const code = `${episode.season_number}×${String(episode.episode_number).padStart(2, "0")}`;
 
