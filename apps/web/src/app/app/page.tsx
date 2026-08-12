@@ -4,7 +4,6 @@ import {
   Flex,
   Grid,
   Heading,
-  Separator,
   VisuallyHidden,
 } from "@radix-ui/themes";
 import { createClient } from "@/lib/supabase/server";
@@ -38,18 +37,17 @@ export default async function HomePage({
 
   const supabase = await createClient();
 
-  const [{ data: totals }, { count: showsFollowed }] = await Promise.all([
+  // The shows count matches the list's membership rule: followed or with
+  // watched episodes (series_progress carries exactly those rows).
+  const [{ data: totals }, { count: showCount }] = await Promise.all([
     supabase.from("watch_totals").select("*").maybeSingle(),
     supabase
-      .from("follows")
-      .select("*", { count: "exact", head: true })
-      .eq("entity_type", "series"),
+      .from("series_progress")
+      .select("*", { count: "exact", head: true }),
   ]);
+  const movieCount = totals?.movies_seen ?? 0;
 
-  const hasHistory =
-    (totals?.episodes_seen ?? 0) > 0 ||
-    (totals?.movies_seen ?? 0) > 0 ||
-    (showsFollowed ?? 0) > 0;
+  const hasHistory = (showCount ?? 0) > 0 || movieCount > 0;
 
   return (
     <Container size="3" px="4">
@@ -59,23 +57,22 @@ export default async function HomePage({
           <Heading as="h1">Home</Heading>
         </VisuallyHidden>
 
+        {/* The counts live in the tabs; the stats row keeps what the tabs
+            cannot say — time. Six columns so the cells keep the same rhythm
+            they had when the count stats sat beside them. */}
         {hasHistory && (
-          <>
-            {/* Six stats rather than four: three per row on a phone reads far
-                better than a row of three and an orphan. */}
-            <Grid columns={{ initial: "3", sm: "6" }} gapX="4" gapY="4">
-              <Stat label="Shows followed" value={String(showsFollowed ?? 0)} />
-              <Stat label="Episodes seen" value={String(totals?.episodes_seen ?? 0)} />
-              <Stat label="Movies seen" value={String(totals?.movies_seen ?? 0)} />
-              <Stat label="Show time" value={formatRuntime(totals?.episode_minutes ?? 0)} />
-              <Stat label="Movie time" value={formatRuntime(totals?.movie_minutes ?? 0)} />
-              <Stat label="Total time" value={formatRuntime(totals?.minutes_watched ?? 0)} />
-            </Grid>
-            <Separator size="4" />
-          </>
+          <Grid columns={{ initial: "3", sm: "6" }} gapX="4" gapY="4">
+            <Stat label="Show time" value={formatRuntime(totals?.episode_minutes ?? 0)} />
+            <Stat label="Movie time" value={formatRuntime(totals?.movie_minutes ?? 0)} />
+            <Stat label="Total time" value={formatRuntime(totals?.minutes_watched ?? 0)} />
+          </Grid>
         )}
 
-        <LibraryTabs movies={movies} />
+        <LibraryTabs
+          movies={movies}
+          showCount={showCount ?? 0}
+          movieCount={movieCount}
+        />
 
         {/* Deliberately NOT keyed on the tab: a stable boundary keeps the
             current list on screen through the switch transition — the tabs

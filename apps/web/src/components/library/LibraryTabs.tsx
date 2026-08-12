@@ -14,7 +14,15 @@ import { MotionConfig, motion } from "motion/react";
  * fades in after a grace period, so prefetched or cached switches never show
  * it. The active tab moves when the content does — the two always agree.
  */
-export function LibraryTabs({ movies }: { movies: boolean }) {
+export function LibraryTabs({
+  movies,
+  showCount,
+  movieCount,
+}: {
+  movies: boolean;
+  showCount: number;
+  movieCount: number;
+}) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -30,12 +38,12 @@ export function LibraryTabs({ movies }: { movies: boolean }) {
       <TabNav.Root>
         <TabNav.Link asChild active={!movies}>
           <Link href="/app" onClick={navigate("/app")}>
-            Shows
+            Shows ({showCount})
           </Link>
         </TabNav.Link>
         <TabNav.Link asChild active={movies}>
           <Link href="/app?tab=movies" onClick={navigate("/app?tab=movies")}>
-            Movies
+            Movies ({movieCount})
           </Link>
         </TabNav.Link>
       </TabNav.Root>
