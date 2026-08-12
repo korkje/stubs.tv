@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { Avatar, DropdownMenu, IconButton } from "@radix-ui/themes";
+import { Avatar, DropdownMenu, Flex, IconButton } from "@radix-ui/themes";
 import { EnvelopeClosedIcon, ExitIcon, GearIcon } from "@radix-ui/react-icons";
 import { signout } from "@/app/login/actions";
 
@@ -25,14 +25,19 @@ export function UserMenu({ initial }: { initial: string }) {
         </IconButton>
       </DropdownMenu.Trigger>
       <DropdownMenu.Content align="end">
+        {/* Icons trail on the right so the labels stay flush left. */}
         <DropdownMenu.Item asChild>
           <Link href="/app/settings">
-            <GearIcon /> Settings
+            <Flex align="center" justify="between" gap="5" width="100%">
+              Settings <GearIcon />
+            </Flex>
           </Link>
         </DropdownMenu.Item>
         <DropdownMenu.Item asChild>
           <Link href="/app/invites">
-            <EnvelopeClosedIcon /> Invites
+            <Flex align="center" justify="between" gap="5" width="100%">
+              Invites <EnvelopeClosedIcon />
+            </Flex>
           </Link>
         </DropdownMenu.Item>
         <DropdownMenu.Separator />
@@ -49,7 +54,9 @@ export function UserMenu({ initial }: { initial: string }) {
             router.refresh();
           }}
         >
-          <ExitIcon /> Sign out
+          <Flex align="center" justify="between" gap="5" width="100%">
+            Sign out <ExitIcon />
+          </Flex>
         </DropdownMenu.Item>
       </DropdownMenu.Content>
     </DropdownMenu.Root>

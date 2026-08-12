@@ -7,13 +7,13 @@ import {
   Heading,
   RadioGroup,
   Separator,
-  Switch,
   Text,
   TextField,
 } from "@radix-ui/themes";
 import { createClient } from "@/lib/supabase/server";
 import { updateSettings } from "@/lib/settings/actions";
 import { FadeIn } from "@/components/FadeIn";
+import { SpecialsField } from "@/components/settings/SpecialsField";
 import { TimezoneField } from "@/components/settings/TimezoneField";
 
 /**
@@ -75,7 +75,7 @@ export default async function SettingsPage({
 
                 <Flex direction="column" gap="2" align="start">
                   <Heading as="h2" size="3">
-                    Timezone
+                    Time zone
                   </Heading>
                   <TimezoneField initial={profile?.timezone ?? ""} />
                 </Flex>
@@ -86,30 +86,10 @@ export default async function SettingsPage({
                   <Heading as="h2" size="3">
                     Specials
                   </Heading>
-                  <RadioGroup.Root
-                    name="specials"
-                    defaultValue={profile?.specials ?? "uncounted"}
-                  >
-                    <RadioGroup.Item value="uncounted">
-                      Show, but don&apos;t count — listed on show pages, left out
-                      of progress and the home feed
-                    </RadioGroup.Item>
-                    <RadioGroup.Item value="counted">
-                      Count everywhere — progress, the home feed, all of it
-                    </RadioGroup.Item>
-                    <RadioGroup.Item value="hidden">
-                      Hide entirely — as if specials did not exist
-                    </RadioGroup.Item>
-                  </RadioGroup.Root>
-                  <Text as="label" size="2">
-                    <Flex gap="2" align="center">
-                      <Switch
-                        name="bulk_mark_specials"
-                        defaultChecked={profile?.bulk_mark_specials ?? true}
-                      />
-                      “Mark show” also marks specials (unless hidden)
-                    </Flex>
-                  </Text>
+                  <SpecialsField
+                    initialSpecials={profile?.specials ?? "uncounted"}
+                    initialBulk={profile?.bulk_mark_specials ?? true}
+                  />
                 </Flex>
 
                 <Separator size="4" />
@@ -123,13 +103,19 @@ export default async function SettingsPage({
                   </Text>
                   <RadioGroup.Root
                     name="synopsis_mode"
-                    defaultValue={profile?.synopsis_mode ?? "show"}
+                    defaultValue={
+                      profile?.synopsis_mode === "scramble" ? "scramble" : "show"
+                    }
                   >
                     <RadioGroup.Item value="show">Show them</RadioGroup.Item>
                     <RadioGroup.Item value="scramble">
-                      Scramble them — unscramble one with a click
+                      <Flex direction="column">
+                        <Text size="2">Scramble them</Text>
+                        <Text size="1" color="gray">
+                          Marking an episode watched unscrambles its synopsis.
+                        </Text>
+                      </Flex>
                     </RadioGroup.Item>
-                    <RadioGroup.Item value="hide">Hide them</RadioGroup.Item>
                   </RadioGroup.Root>
                 </Flex>
 
