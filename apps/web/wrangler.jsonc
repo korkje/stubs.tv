@@ -1,7 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "stubs",
-  "main": ".open-next/worker.js",
+  "main": "custom-worker.ts",
   "compatibility_date": "2026-08-01",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
@@ -10,6 +10,11 @@
   },
   "observability": {
     "enabled": true
+  },
+  // Hourly metadata refresh: the scheduled handler in custom-worker.ts
+  // invokes /api/refresh, which sweeps the stalest followed series.
+  "triggers": {
+    "crons": ["0 * * * *"]
   },
   "routes": [{ "pattern": "stubs.tv", "custom_domain": true }]
 }

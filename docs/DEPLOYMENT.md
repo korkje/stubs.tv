@@ -119,10 +119,13 @@ env. Set from `apps/web/`, one-time, from a trusted machine:
 ```sh
 npx wrangler secret put TVDB_API_KEY         # TheTVDB v4 API key
 npx wrangler secret put SUPABASE_SECRET_KEY  # Supabase secret (service_role) key
+npx wrangler secret put CRON_SECRET          # any long random string; guards /api/refresh
 ```
 
-Both are required from Phase 1: metadata search and title pages return a
-server error without them. `SUPABASE_SECRET_KEY` grants full database access
+The first two are required from Phase 1: metadata search and title pages
+return a server error without them. `CRON_SECRET` guards the hourly
+metadata-refresh route the worker's cron trigger invokes (ADR-0010);
+without it the cron runs but the route rejects it. `SUPABASE_SECRET_KEY` grants full database access
 (it bypasses row level security), so it must never become a GitHub variable
 or reach the browser.
 
