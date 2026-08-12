@@ -179,7 +179,7 @@ export function UpNextFeed({
               <FeedRow
                 key={episode.episode_id}
                 distance={distance}
-                drift={8}
+                drift={-8}
                 entrance={distance <= initialPast.length}
               >
                 {(index === 0 ||
@@ -205,7 +205,7 @@ export function UpNextFeed({
             <FeedRow
               key={episode.episode_id}
               distance={index + 1}
-              drift={-8}
+              drift={8}
               entrance={index < initialFuture.length}
             >
               {episode.aired !== today &&
@@ -237,10 +237,12 @@ export function UpNextFeed({
 
 /**
  * One feed entry's entrance, staggered middle-out: the delay grows with the
- * row's distance from the Today line, and the drift pushes away from it —
- * past rows settle upward, future rows downward — so the feed radiates from
- * today instead of raining top-down. Rows paged in later skip the entrance
- * (entrance=false) and simply appear where the scroll compensation puts them.
+ * row's distance from the Today line, so the feed radiates from today
+ * instead of raining top-down. Every row rises into place, matching the
+ * library lists — below the Today line that reads exactly like them, and
+ * above it the rows lean toward today as they settle. Rows paged in later
+ * skip the entrance (entrance=false) and simply appear where the scroll
+ * compensation puts them.
  */
 function FeedRow({
   distance,
@@ -248,6 +250,7 @@ function FeedRow({
   entrance,
   children,
 }: {
+  /** 1 for the row against the Today line, growing outward. */
   distance: number;
   drift: number;
   entrance: boolean;
