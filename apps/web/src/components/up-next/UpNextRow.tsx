@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { Box, Card, Flex, IconButton, Text } from "@radix-ui/themes";
 import { EyeNoneIcon, EyeOpenIcon } from "@radix-ui/react-icons";
-import { easeInOut, motion, useReducedMotion, useScroll, useTransform } from "motion/react";
+import { easeIn, easeOut, motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { Poster } from "@/components/Poster";
 import { markSeen, unmarkSeen } from "@/lib/tracking/actions";
 import type { UpNextEpisode } from "@/lib/up-next/actions";
@@ -26,13 +26,18 @@ export function UpNextRow({ episode, aired }: { episode: UpNextEpisode; aired: b
   // Progress runs from the row entering at the bottom of the viewport to it
   // disappearing under the sticky nav — "end 56px" (the nav's height), not
   // "end start", or the top half of the fade plays hidden behind the bar and
-  // the lens looks weaker at the top than the bottom. Eased per segment so
-  // the effect ramps in gently instead of kinking from flat to linear.
+  // the lens looks weaker at the top than the bottom.
+  //
+  // Easing is directional on purpose: each fade segment is gentle where it
+  // meets the full-size plateau (no flat-to-linear kink) but keeps its
+  // velocity at the viewport edge, so rows visibly go on shrinking until
+  // they are actually gone — easeInOut here reads as the shrink stalling
+  // just before the exit. The middle segment is constant, its ease is moot.
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start end", "end 56px"],
   });
-  const lens = { ease: easeInOut };
+  const lens = { ease: [easeOut, easeOut, easeIn] };
   const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.35, 1, 1, 0.35], lens);
   const scale = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.96, 1, 1, 0.96], lens);
 
