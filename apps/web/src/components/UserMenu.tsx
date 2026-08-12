@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { Avatar, DropdownMenu, IconButton } from "@radix-ui/themes";
+import { EnvelopeClosedIcon, ExitIcon, GearIcon } from "@radix-ui/react-icons";
 import { signout } from "@/app/login/actions";
 
 /**
@@ -25,10 +26,14 @@ export function UserMenu({ initial }: { initial: string }) {
       </DropdownMenu.Trigger>
       <DropdownMenu.Content align="end">
         <DropdownMenu.Item asChild>
-          <Link href="/app/settings">Settings</Link>
+          <Link href="/app/settings">
+            <GearIcon /> Settings
+          </Link>
         </DropdownMenu.Item>
         <DropdownMenu.Item asChild>
-          <Link href="/app/invites">Invites</Link>
+          <Link href="/app/invites">
+            <EnvelopeClosedIcon /> Invites
+          </Link>
         </DropdownMenu.Item>
         <DropdownMenu.Separator />
         <DropdownMenu.Label>Theme</DropdownMenu.Label>
@@ -44,7 +49,7 @@ export function UserMenu({ initial }: { initial: string }) {
             router.refresh();
           }}
         >
-          Sign out
+          <ExitIcon /> Sign out
         </DropdownMenu.Item>
       </DropdownMenu.Content>
     </DropdownMenu.Root>
