@@ -33,16 +33,6 @@ export function EpisodeRow({
         last ? undefined : { borderBottom: "1px solid var(--gray-a4)" }
       }
     >
-      {/* Nudged down so the icon sits on the first line of text, not above it. */}
-      <Box flexShrink="0" style={{ paddingTop: "2px" }}>
-        <EpisodeToggle
-          episodeId={episode.id}
-          seen={seen}
-          revalidate={revalidate}
-          label={`${code} ${episode.name ?? ""}`.trim()}
-        />
-      </Box>
-
       <Flex
         direction={{ initial: "column", sm: "row" }}
         gap={{ initial: "1", sm: "4" }}
@@ -70,6 +60,17 @@ export function EpisodeRow({
           </Text>
         </Flex>
       </Flex>
+
+      {/* On the right like the library rows' toggles — easier to reach.
+          Nudged down so the icon sits on the first line of text. */}
+      <Box flexShrink="0" style={{ paddingTop: "2px" }}>
+        <EpisodeToggle
+          episodeId={episode.id}
+          seen={seen}
+          revalidate={revalidate}
+          label={`${code} ${episode.name ?? ""}`.trim()}
+        />
+      </Box>
     </Flex>
   );
 }

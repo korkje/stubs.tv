@@ -15,6 +15,7 @@ import { Backdrop } from "@/components/Backdrop";
 import { Collapse } from "@/components/Collapse";
 import { FadeIn } from "@/components/FadeIn";
 import { SeasonHeader } from "@/components/tracking/SeasonHeader";
+import { StaggerIn } from "@/components/StaggerIn";
 import { Poster } from "@/components/Poster";
 import { Stat } from "@/components/Stat";
 import { BulkMarkButtons } from "@/components/tracking/BulkMarkButtons";
@@ -266,15 +267,17 @@ async function SeasonEpisodes({
   return (
     <Card>
       <Box px="1">
-        {(episodes ?? []).map((episode, index) => (
-          <EpisodeRow
-            key={episode.id}
-            episode={episode}
-            seen={seenIds.has(episode.id)}
-            revalidate={revalidate}
-            last={index === (episodes ?? []).length - 1}
-          />
-        ))}
+        <StaggerIn>
+          {(episodes ?? []).map((episode, index) => (
+            <EpisodeRow
+              key={episode.id}
+              episode={episode}
+              seen={seenIds.has(episode.id)}
+              revalidate={revalidate}
+              last={index === (episodes ?? []).length - 1}
+            />
+          ))}
+        </StaggerIn>
       </Box>
     </Card>
   );

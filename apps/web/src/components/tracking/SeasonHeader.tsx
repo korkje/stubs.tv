@@ -35,13 +35,17 @@ export function SeasonHeader({
         }}
       >
         <Flex align="center" gap="2">
-          {isPending ? (
-            <Spinner size="1" />
-          ) : open ? (
-            <ChevronDownIcon />
-          ) : (
-            <ChevronRightIcon />
-          )}
+          {/* A fixed slot: the caret and the spinner are different sizes,
+              and letting the swap resize the row makes the title twitch. */}
+          <Flex align="center" justify="center" width="15px" height="15px" flexShrink="0">
+            {isPending ? (
+              <Spinner size="1" />
+            ) : open ? (
+              <ChevronDownIcon />
+            ) : (
+              <ChevronRightIcon />
+            )}
+          </Flex>
           <Heading size="4">{title}</Heading>
           <Text size="2" color="gray">
             {subtitle}
