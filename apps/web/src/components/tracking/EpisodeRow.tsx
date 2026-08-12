@@ -60,10 +60,13 @@ export function EpisodeRow({
               {episode.name ?? "Untitled"}
             </Text>
           </Flex>
-          {episode.overview && (seen || synopsisMode === "show") && (
+          {/* In scramble mode the reveal component stays mounted either
+              way — swapping to the plain summary when the server confirms
+              the watch would cut the animations short. */}
+          {episode.overview && synopsisMode !== "scramble" && (
             <EpisodeSummary overview={episode.overview} />
           )}
-          {episode.overview && !seen && synopsisMode === "scramble" && (
+          {episode.overview && synopsisMode === "scramble" && (
             <ScrambleReveal text={episode.overview} revealed={effectiveSeen} />
           )}
         </Box>
