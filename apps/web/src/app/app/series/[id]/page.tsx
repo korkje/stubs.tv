@@ -109,7 +109,10 @@ export default async function SeriesPage({
 
   // Any number of seasons can be open at once; the set lives in the URL as
   // a comma list. A single-season show has nothing to choose between, so it
-  // opens by default.
+  // opens by default — but ONLY when the URL says nothing about seasons.
+  // "?season=" means "the user closed everything": without that distinction
+  // a one-season show would reopen the moment it was closed, since closing
+  // the last season would drop back to the bare path.
   const openSeasons = new Set(
     (season ?? "")
       .split(",")
@@ -121,14 +124,12 @@ export default async function SeriesPage({
     openSeasons.add(orderedSeasons[0].season_number ?? 0);
   }
 
-  // Toggling a season adds or removes it from the list; an empty list
-  // returns to the bare path so the URL stays clean when nothing is open.
+  // Toggling a season adds or removes it from the list.
   const seasonHref = (number: number) => {
     const next = new Set(openSeasons);
     if (next.has(number)) next.delete(number);
     else next.add(number);
-    const list = [...next].sort((a, b) => a - b).join(",");
-    return list ? `${path}?season=${list}` : path;
+    return `${path}?season=${[...next].sort((a, b) => a - b).join(",")}`;
   };
 
   return (
