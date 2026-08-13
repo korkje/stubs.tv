@@ -60,8 +60,14 @@ Requires Node ≥24 (see `.nvmrc`) and Docker (for the local Supabase stack).
 npm install
 npx supabase start        # prints the local API URL and anon key
 cp apps/web/.env.example apps/web/.env.local   # paste the anon key in
+npx supabase db reset     # applies migrations and seeds a dev account
 npm run dev               # http://localhost:3000
 ```
+
+Sign in as **dev@stubs.local** / **password**. Signups are invite-only, and an
+invite needs an existing user to create it, so a fresh database has no way in
+— `supabase/seed.sql` mints that first account. It is an admin, so it can
+issue invites from `/app/invites` for any further test accounts.
 
 Self-hosting is a first-class, documented path and will stay that way.
 

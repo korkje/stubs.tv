@@ -92,7 +92,12 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
   `npm run deploy` is a break-glass escape hatch only
 - `npx supabase start` — local Supabase stack (needs Docker); copy the
   printed URL/anon key into `apps/web/.env.local` (see `apps/web/.env.example`)
-- `npx supabase db reset` — reapply all migrations from scratch
+- `npx supabase db reset` — reapply all migrations from scratch, then run
+  `supabase/seed.sql`, which mints the local dev account
+  (dev@stubs.local / password). Invite-only signup leaves a fresh database
+  with no way in — no user means no invite, no invite means no user — so
+  that seed is how you get signed in locally. Local only: never
+  `db reset --linked`.
 - `npm run db:types` — regenerate `@stubs/db` types after a migration
   (requires local Supabase running); commit the result
 
