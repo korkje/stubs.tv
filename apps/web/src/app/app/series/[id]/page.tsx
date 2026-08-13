@@ -73,7 +73,7 @@ export default async function SeriesPage({
         .maybeSingle(),
       supabase
         .from("profiles")
-        .select("specials, synopsis_mode")
+        .select("specials, bulk_mark_specials, synopsis_mode")
         .maybeSingle(),
     ]);
 
@@ -81,6 +81,7 @@ export default async function SeriesPage({
 
   const settings = {
     specials: profile?.specials ?? "uncounted",
+    bulkMarkSpecials: profile?.bulk_mark_specials ?? true,
     synopsisMode: profile?.synopsis_mode ?? "show",
   };
 
@@ -96,15 +97,29 @@ export default async function SeriesPage({
     return (a.season_number ?? 0) - (b.season_number ?? 0);
   });
 
-  const sum = (pick: (s: (typeof orderedSeasons)[number]) => number | null) =>
-    orderedSeasons.reduce((total, s) => total + (pick(s) ?? 0), 0);
+  const sum = (
+    rows: typeof orderedSeasons,
+    pick: (s: (typeof orderedSeasons)[number]) => number | null
+  ) => rows.reduce((total, s) => total + (pick(s) ?? 0), 0);
 
   const totals = {
-    episodes: sum((s) => s.episode_count),
-    aired: sum((s) => s.aired_count),
-    seen: sum((s) => s.seen_count),
-    runtime: sum((s) => s.runtime_min),
-    seenRuntime: sum((s) => s.seen_runtime_min),
+    episodes: sum(orderedSeasons, (s) => s.episode_count),
+    aired: sum(orderedSeasons, (s) => s.aired_count),
+    seen: sum(orderedSeasons, (s) => s.seen_count),
+    runtime: sum(orderedSeasons, (s) => s.runtime_min),
+    seenRuntime: sum(orderedSeasons, (s) => s.seen_runtime_min),
+  };
+
+  // "Mark show" sweeps only the seasons the bulk_mark_specials switch says it
+  // does, so its all-seen state must be judged over that same set. Counting
+  // unswept specials would pin the button at "Mark show" no matter how many
+  // times it is clicked.
+  const sweepSeasons = settings.bulkMarkSpecials
+    ? orderedSeasons
+    : orderedSeasons.filter((row) => row.season_number !== 0);
+  const sweep = {
+    aired: sum(sweepSeasons, (s) => s.aired_count),
+    seen: sum(sweepSeasons, (s) => s.seen_count),
   };
 
   // Any number of seasons can be open at once; the set lives in the URL as
@@ -182,11 +197,11 @@ export default async function SeriesPage({
                 score={rating?.score ?? null}
                 revalidate={path}
               />
-              {totals.aired > 0 && (
+              {sweep.aired > 0 && (
                 <BulkMarkButtons
                   seriesId={seriesId}
                   revalidate={path}
-                  allSeen={totals.seen >= totals.aired}
+                  allSeen={sweep.seen >= sweep.aired}
                   size="2"
                   label="show"
                 />
