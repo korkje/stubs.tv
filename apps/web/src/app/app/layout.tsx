@@ -20,16 +20,28 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   )[0].toUpperCase();
 
   return (
-    <Box>
-      {/* Sticky so the feed's long timeline always has the nav in reach.
+    <Box pt="var(--nav-height)">
+      {/* Pinned to the top so the feed's long timeline always has the nav in
+          reach — and fixed rather than sticky. A sticky element's painted
+          position is a function of the scroll offset, and iOS Safari catches up
+          on that a beat late, so every hop to or from the feed flicked the bar:
+          the feed opens scrolled to Today and the router resets to the top on
+          the way out, which moves the offset in one step both times. A fixed
+          bar is painted against the viewport and has nothing to catch up on.
+          The cost is that it no longer occupies space, hence --nav-height above
+          and the pinned height below — one value, so the bar and the gap left
+          for it cannot drift apart.
           Opaque on purpose: iOS Safari paints its own chrome by extending
           the page background above the viewport, and a translucent blurred
           bar visibly seams against that strip. */}
-      <Box
+      <Flex
         asChild
-        py="3"
-        position="sticky"
+        align="center"
+        position="fixed"
         top="0"
+        left="0"
+        right="0"
+        height="var(--nav-height)"
         style={{
           zIndex: 10,
           backgroundColor: "var(--color-background)",
@@ -37,6 +49,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         }}
       >
         <header>
+          {/* Container brings its own flex-grow, so it fills the bar's width
+              and the align above centres the row in its height. */}
           <Container size="3" px="4">
             <Flex align="center" justify="between" gap="3">
               <Flex align="center" gap={{ initial: "3", sm: "5" }}>
@@ -57,7 +71,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             </Flex>
           </Container>
         </header>
-      </Box>
+      </Flex>
       <Box py="5">{children}</Box>
     </Box>
   );
