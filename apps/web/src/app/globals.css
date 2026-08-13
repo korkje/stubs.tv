@@ -24,6 +24,24 @@ body {
 }
 
 /*
+ * The height of the app's nav bar. It is fixed (see apps/web/src/app/app/
+ * layout.tsx for why), so it no longer occupies space of its own and the page
+ * content reserves this much above itself instead. The bar is pinned to this
+ * value rather than grown from its own padding, which is what keeps the two
+ * from drifting apart.
+ *
+ * The row inside is as tall as the account avatar — Radix size 2, --space-6;
+ * the ghost icon button around it cancels its padding with matching negative
+ * margins, and the ticket mark is shorter at 31.2px — with --space-3 above and
+ * below, plus the hairline border, which the bar's border-box height includes.
+ * Written in tokens so it follows the theme's scaling, and declared on
+ * .radix-themes because that is the only scope where those tokens exist.
+ */
+.radix-themes {
+  --nav-height: calc(var(--space-6) + var(--space-3) * 2 + 1px);
+}
+
+/*
  * Keep the scrollbar's width reserved whether or not the page needs one. The
  * feed is always tall — two pages of rows, and it opens scrolled — while the
  * loading state and the shorter pages fit the viewport, so navigating between
