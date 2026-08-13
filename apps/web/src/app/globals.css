@@ -24,6 +24,36 @@ body {
 }
 
 /*
+ * Keep the scrollbar's width reserved whether or not the page needs one. The
+ * feed is always tall — two pages of rows, and it opens scrolled — while the
+ * loading state and the shorter pages fit the viewport, so navigating between
+ * them added or removed the scrollbar. Losing it widens the viewport by the
+ * scrollbar's width, which re-centers every Container by half of that: 7.5px
+ * of sideways step in the nav, which is what reads as a flicker on the way to
+ * and from the feed. There is nothing to reserve where scrollbars overlay the
+ * content (iOS, and macOS unless it is set to show them always), and Safari
+ * before 18.2 ignores the property.
+ */
+html {
+  scrollbar-gutter: stable;
+}
+
+/*
+ * With the gutter always reserved, Radix's modals must not compensate for it.
+ * Opening one (the account menu, any dialog) locks the body through
+ * react-remove-scroll, which measures the gutter and adds a matching
+ * margin-right so the page holds still while the scrollbar goes away — right
+ * when locking removed the scrollbar, but a stable gutter stays put, so the
+ * two stack and shift the nav by that same 7.5px. Zeroing the margin is safe:
+ * no Radix component positions itself against the compensation. Their rule is
+ * `!important` and is injected after this file, so ours has to outrank it on
+ * specificity rather than order — hence the leading `html`.
+ */
+html body[data-scroll-locked] {
+  margin-right: 0 !important;
+}
+
+/*
  * Drops a button's text label, leaving the icon, only on screens too narrow
  * to fit it. The nav holds two links now rather than three, so everything
  * fits from about 360px up — narrower than any current phone.
