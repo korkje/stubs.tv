@@ -27,7 +27,9 @@ pipeline, search and read-only title pages — is done; slice 2 is tracking
 - [x] Metadata schema migrations + `MetadataProvider` interface + `TvdbProvider`
 - [x] Generated database types (`@stubs/db`)
 - [x] Search with lazy ingestion: results become stub rows so links carry
-      internal IDs, and a title is fully fetched when first opened
+      internal IDs, and a title is fully fetched when first opened — or when
+      it is followed or marked seen, which is the other way a stub can enter
+      the library without its page ever being visited
 - [x] Series page: seasons and episodes, runtime totals
 - [x] Movie page
 

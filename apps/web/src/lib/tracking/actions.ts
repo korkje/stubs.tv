@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { ensureMovieIngested, ensureSeriesIngested } from "@/lib/metadata/ingest";
 
 type WatchableType = "episode" | "movie";
 type RateableType = "series" | "season" | "episode" | "movie";
@@ -25,7 +26,13 @@ function fail(context: string, error: { message: string } | null): void {
   if (error) throw new Error(`Could not ${context}: ${error.message}`);
 }
 
-/** Marks one episode or film as seen, dated now. */
+/**
+ * Marks one episode or film as seen, dated now.
+ *
+ * A film can be marked straight from the search results, whose row is still
+ * a stub — see the note on ensureSeriesIngested's call in setFollowing for
+ * why that has to be filled in here.
+ */
 export async function markSeen(
   entityType: WatchableType,
   entityId: number,
@@ -44,6 +51,11 @@ export async function markSeen(
   );
 
   fail("mark as seen", error);
+
+  // Episodes only exist as rows once their series was ingested, so reaching
+  // one means the work is already done.
+  if (entityType === "movie") await ensureMovieIngested(entityId);
+
   revalidatePath(revalidate);
 }
 
@@ -109,6 +121,23 @@ export async function unmarkEpisodesSeen(
   revalidatePath(revalidate);
 }
 
+/**
+ * Follows or unfollows a show.
+ *
+ * Following is also the point a show gets fetched in full. Search resolves
+ * its hits to stub rows — a name and a provider id, nothing else (see
+ * resolve_entities) — and until this ran, only opening the show's own page
+ * filled one in. A show followed from the search results therefore sat in the
+ * library as a bare name with no artwork, and contributed nothing to the feed
+ * at all, since that reads episodes and a stub has none. The fetch is the
+ * same one the show's page performs, so following a show already on file
+ * costs a single freshness check.
+ *
+ * Deliberately after the follow is written, and deliberately not caught: the
+ * follow survives a provider outage, and a failed fetch surfaces as a failed
+ * action — the star snaps back and the retry ingests — rather than quietly
+ * leaving the stub behind.
+ */
 export async function setFollowing(
   seriesId: number,
   following: boolean,
@@ -122,6 +151,7 @@ export async function setFollowing(
       { onConflict: "user_id,entity_type,entity_id", ignoreDuplicates: true }
     );
     fail("follow", error);
+    await ensureSeriesIngested(seriesId);
   } else {
     const { error } = await supabase
       .from("follows")
