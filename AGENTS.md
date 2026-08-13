@@ -79,6 +79,8 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
 - [docs/ROADMAP.md](docs/ROADMAP.md) — phases and current status
 - [docs/PRIVACY.md](docs/PRIVACY.md) — GDPR strategy
 - [docs/decisions/](docs/decisions/) — ADRs
+- [docs/plans/](docs/plans/) — specs for work that is planned but not
+  started, written to be picked up cold
 
 ## Commands (run from the repo root)
 

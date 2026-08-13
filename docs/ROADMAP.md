@@ -108,8 +108,11 @@ of followed shows in release order, bidirectional infinite scroll centered
 on today; the Shows/Movies lists live under /app/library. Filtering the
 feed is still to come.
 
+- [x] Hourly metadata refresh for followed shows (ADR-0010) — the feed and
+      any calendar are only as fresh as the ingested air dates
 - [ ] In-app "upcoming" view for followed shows/people
-- [ ] Tokenized per-user iCal feed (`/api/calendar/<token>.ics`)
+- [ ] Tokenized per-user iCal feed — planned in detail in
+      [docs/plans/ical-feed.md](plans/ical-feed.md), ready to pick up
 
 ## Phase 5 — Charge (public launch, only if 1–4 prove out)
 
