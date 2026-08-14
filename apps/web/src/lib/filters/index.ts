@@ -331,10 +331,13 @@ export function restrict(
   return out;
 }
 
-/** How many facets are actually narrowing anything — for the badges. */
+/**
+ * How many facets are actually narrowing anything — for the badges. The
+ * query deliberately does not count: the search field already shows its own
+ * state, so lighting the filter button for it read as a phantom filter.
+ */
 export function activeCount(filters: Filters): number {
   return (
-    (filters.query ? 1 : 0) +
     (filters.following !== null ? 1 : 0) +
     (filters.behind !== null ? 1 : 0) +
     (filters.status ? 1 : 0) +
