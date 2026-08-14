@@ -8,7 +8,8 @@ import { Flex, Link as RadixLink, Text } from "@radix-ui/themes";
  *
  * The app layout is also what keeps it at the bottom: a page shorter than the
  * viewport would otherwise leave the footer floating in the middle of the
- * screen.
+ * screen. globals.css hides it while the page it belongs to is still loading
+ * — see the `[data-pending]` rule there.
  */
 export function SiteFooter() {
   return (
