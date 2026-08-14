@@ -31,8 +31,45 @@ export interface AnimatedRow {
  *
  * It is a client component receiving server-rendered rows: AnimatePresence
  * keeps a departed child around just long enough to play the exit.
+ *
+ * The diff animation is for lists that overlap. `remountOn` takes the values
+ * of the surface's single-choice facets; when one switches between two
+ * non-null values ("Ended" → "Ongoing", Following → Not following) the old
+ * and new lists are disjoint by construction, and watching every row
+ * collapse while a whole other list expands is churn, not continuity — so
+ * the list remounts and plays its entrance instead. Null at either end means
+ * "All" was involved: one list contains the other, and the diff is the
+ * point. The host can only say what the facets are NOW, so the previous
+ * values are remembered here.
  */
-export function AnimatedRows({ rows }: { rows: AnimatedRow[] }) {
+export function AnimatedRows({
+  rows,
+  remountOn = [],
+}: {
+  rows: AnimatedRow[];
+  remountOn?: readonly (string | boolean | null)[];
+}) {
+  const [prevRemountOn, setPrevRemountOn] = useState(remountOn);
+  const [epoch, setEpoch] = useState(0);
+  if (
+    prevRemountOn.length !== remountOn.length ||
+    prevRemountOn.some((value, i) => value !== remountOn[i])
+  ) {
+    setPrevRemountOn(remountOn);
+    if (
+      prevRemountOn.some(
+        (value, i) =>
+          value !== null && remountOn[i] !== null && value !== remountOn[i]
+      )
+    ) {
+      setEpoch(epoch + 1);
+    }
+  }
+
+  return <RowList key={epoch} rows={rows} />;
+}
+
+function RowList({ rows }: { rows: AnimatedRow[] }) {
   // The ids whose rows were present at mount AND have been here since:
   // those got the staggered entrance (their `initial` was locked when they
   // mounted; the set is irrelevant to them afterwards). The set exists for

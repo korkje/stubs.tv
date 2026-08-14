@@ -49,7 +49,11 @@ touching this code. What the rework settled:
   exit over its own replacement), and a departed row's id must be
   **forgotten when it leaves** so its return animates instead of popping
   in at full height. Sort changes still remount deliberately — a reorder
-  moves every row at once, which reads better as a fresh entrance.
+  moves every row at once, which reads better as a fresh entrance. So does
+  a single-choice facet switching between two non-null values (`remountOn`
+  in AnimatedRows): "Ended" → "Ongoing" produces disjoint lists, and
+  diffing those is all churn. The diff is reserved for changes touching
+  "All", where one list contains the other.
 - **The feed's filters are gone**; following a show already is the feed's
   filter, so what remains is one setting — include watched episodes —
   behind the floating button, which stays **inside the content column** on

@@ -128,8 +128,14 @@ export async function ShowsList({
           clip boxes. Deliberately NOT keyed on the filters: the instance
           surviving a filter change is what lets AnimatedRows animate the
           difference — dropped rows collapse away, survivors keep their
-          place, returning rows expand back in. */}
-      <AnimatedRows key={`shows:${sort.key}:${sort.ascending}`} rows={rows} />
+          place, returning rows expand back in. The single-choice facets go
+          in remountOn instead: only a change touching "All" produces
+          overlapping lists worth diffing. */}
+      <AnimatedRows
+        key={`shows:${sort.key}:${sort.ascending}`}
+        remountOn={[filters.status, filters.following, filters.behind]}
+        rows={rows}
+      />
     </Flex>
   );
 }

@@ -212,96 +212,108 @@ export function FilterControls({
   const has = (facet: keyof Filters) => facets.includes(facet);
   const set = (patch: Partial<Filters>) => onChange({ ...filters, ...patch });
 
+  const hasChoices =
+    has("status") || has("following") || has("behind") || has("includeWatched");
+  const hasRanges = has("rating") || has("runtime");
+
   // Two grids, not one: the choice controls and the sliders each share a
   // grid so same-kind fields always land on the same row — which is also
-  // what guarantees the two sliders identical label-to-track spacing.
+  // what guarantees the two sliders identical label-to-track spacing. A
+  // grid with no fields must not render at all: it is invisible but still
+  // an item of this flex, and its extra gap was a band of dead space in
+  // any surface missing a whole kind (the movies popover has no choice
+  // facets).
   return (
     <Flex direction="column" gap="4">
-      <Grid columns={columns} gapX="6" gapY="4">
-        {has("status") && (
-          <Field label="Status">
-            {/* Same shape as the other choice facets, "All" included —
-                single-select, since no real question here needs two of the
-                three statuses at once. */}
-            <SegmentedControl.Root
-              value={filters.status ?? "all"}
-              onValueChange={(value) =>
-                set({ status: value === "all" ? null : (value as Status) })
-              }
-              {...SEGMENTED_FIT}
-            >
-              <SegmentedControl.Item value="all">All</SegmentedControl.Item>
-              {STATUSES.map((status) => (
-                <SegmentedControl.Item key={status.value} value={status.value}>
-                  {status.label}
-                </SegmentedControl.Item>
-              ))}
-            </SegmentedControl.Root>
-          </Field>
-        )}
+      {hasChoices && (
+        <Grid columns={columns} gapX="6" gapY="4">
+          {has("status") && (
+            <Field label="Status">
+              {/* Same shape as the other choice facets, "All" included —
+                  single-select, since no real question here needs two of the
+                  three statuses at once. */}
+              <SegmentedControl.Root
+                value={filters.status ?? "all"}
+                onValueChange={(value) =>
+                  set({ status: value === "all" ? null : (value as Status) })
+                }
+                {...SEGMENTED_FIT}
+              >
+                <SegmentedControl.Item value="all">All</SegmentedControl.Item>
+                {STATUSES.map((status) => (
+                  <SegmentedControl.Item key={status.value} value={status.value}>
+                    {status.label}
+                  </SegmentedControl.Item>
+                ))}
+              </SegmentedControl.Root>
+            </Field>
+          )}
 
-        {has("following") && (
-          <Field label="Following">
-            <TriState
-              value={filters.following}
-              yes="Following"
-              no="Not following"
-              onChange={(following) => set({ following })}
+          {has("following") && (
+            <Field label="Following">
+              <TriState
+                value={filters.following}
+                yes="Following"
+                no="Not following"
+                onChange={(following) => set({ following })}
+              />
+            </Field>
+          )}
+
+          {has("behind") && (
+            <Field label="Progress">
+              <TriState
+                value={filters.behind}
+                yes="Behind"
+                no="Caught up"
+                onChange={(behind) => set({ behind })}
+              />
+            </Field>
+          )}
+
+          {has("includeWatched") && (
+            <Field label="Watched episodes">
+              <Text as="label" size="2">
+                <Flex gap="2" align="center" height="var(--space-6)">
+                  <Switch
+                    checked={filters.includeWatched}
+                    onCheckedChange={(includeWatched) => set({ includeWatched })}
+                  />
+                  Include episodes I have seen
+                </Flex>
+              </Text>
+            </Field>
+          )}
+        </Grid>
+      )}
+
+      {hasRanges && (
+        <Grid columns={columns} gapX="6" gapY="4">
+          {has("rating") && (
+            <RangeField
+              label="My rating"
+              value={filters.rating}
+              min={RATING_MIN}
+              max={RATING_MAX}
+              step={1}
+              format={ratingLabel}
+              onCommit={(rating) => set({ rating })}
             />
-          </Field>
-        )}
+          )}
 
-        {has("behind") && (
-          <Field label="Progress">
-            <TriState
-              value={filters.behind}
-              yes="Behind"
-              no="Caught up"
-              onChange={(behind) => set({ behind })}
+          {has("runtime") && (
+            <RangeField
+              label={runtime.label}
+              value={filters.runtime}
+              min={RUNTIME_MIN}
+              max={runtime.max}
+              step={runtime.step}
+              format={(value) => runtimeLabel(value, runtime.max)}
+              onCommit={(value) => set({ runtime: value })}
             />
-          </Field>
-        )}
-
-        {has("includeWatched") && (
-          <Field label="Watched episodes">
-            <Text as="label" size="2">
-              <Flex gap="2" align="center" height="var(--space-6)">
-                <Switch
-                  checked={filters.includeWatched}
-                  onCheckedChange={(includeWatched) => set({ includeWatched })}
-                />
-                Include episodes I have seen
-              </Flex>
-            </Text>
-          </Field>
-        )}
-      </Grid>
-
-      <Grid columns={columns} gapX="6" gapY="4">
-        {has("rating") && (
-          <RangeField
-            label="My rating"
-            value={filters.rating}
-            min={RATING_MIN}
-            max={RATING_MAX}
-            step={1}
-            format={ratingLabel}
-            onCommit={(rating) => set({ rating })}
-          />
-        )}
-
-        {has("runtime") && (
-          <RangeField
-            label={runtime.label}
-            value={filters.runtime}
-            min={RUNTIME_MIN}
-            max={runtime.max}
-            step={runtime.step}
-            format={(value) => runtimeLabel(value, runtime.max)}
-            onCommit={(value) => set({ runtime: value })}
-          />
-        )}
-      </Grid>
+          )}
+        </Grid>
+      )}
     </Flex>
   );
 }

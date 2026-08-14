@@ -23,6 +23,7 @@ import {
   MixerHorizontalIcon,
 } from "@radix-ui/react-icons";
 import {
+  DEFAULT_SORT,
   NO_FILTERS,
   STATUSES,
   activeCount,
@@ -134,13 +135,21 @@ export function LibraryToolbar({
   // the serializer already knows, so ask it instead of restating the rule.
   const sorted = serializeFilters(NO_FILTERS, sort).size > 0;
 
+  // No "Filters" heading — the panel opens out of a button that says so,
+  // and the sort popover already set the precedent of trusting that. Clear
+  // all sits below the controls instead, so appearing on the first change
+  // never shifts them.
   const filterPanel = (
     <Flex direction="column" gap="4">
-      <Flex justify="between" align="center">
-        <Text size="2" weight="medium" color="gray">
-          Filters
-        </Text>
-        {active > 0 && (
+      <FilterControls
+        filters={filters}
+        facets={facets}
+        runtime={runtime}
+        columns={compact ? "1" : { initial: "1", sm: "2" }}
+        onChange={(next) => navigate(next)}
+      />
+      {active > 0 && (
+        <Flex justify="end">
           <Button
             size="1"
             variant="ghost"
@@ -149,15 +158,8 @@ export function LibraryToolbar({
           >
             Clear all
           </Button>
-        )}
-      </Flex>
-      <FilterControls
-        filters={filters}
-        facets={facets}
-        runtime={runtime}
-        columns={compact ? "1" : { initial: "1", sm: "2" }}
-        onChange={(next) => navigate(next)}
-      />
+        </Flex>
+      )}
     </Flex>
   );
 
@@ -306,7 +308,14 @@ export function LibraryToolbar({
       {!compact && (
         <Collapse>
           {filtersOpen ? (
-            <Card>
+            // The theme's translucent panels give the card a backdrop-filter,
+            // and WebKit does not paint text under one while an ancestor
+            // animates opacity — in Safari the whole panel opened blank and
+            // its text appeared only once the Collapse settled. Over the flat
+            // page background the blur changes nothing visible, so it is the
+            // right side to give up. (If Safari ever regresses again here,
+            // the other lever is dropping opacity from Collapse itself.)
+            <Card style={{ "--backdrop-filter-panel": "none" } as React.CSSProperties}>
               <Box p="1">{filterPanel}</Box>
             </Card>
           ) : null}
@@ -315,8 +324,10 @@ export function LibraryToolbar({
 
       {/* Shut, the chips are how the filters stay visible and removable
           without reopening the panel. Open, the controls already show their
-          own state and repeating it here would just be noise. */}
-      {(compact || !filtersOpen) && active > 0 && (
+          own state and repeating it here would just be noise. The sort gets
+          a chip too — it narrows nothing, but a non-default order is the
+          same kind of silent state, and this is its only one-tap way back. */}
+      {(compact || !filtersOpen) && (active > 0 || sorted) && (
         <Flex gap="2" wrap="wrap" align="center">
           {filters.status && (
             <Chip
@@ -351,8 +362,21 @@ export function LibraryToolbar({
               onClear={() => navigate({ ...filters, runtime: null })}
             />
           )}
-          {active > 1 && (
-            <Button size="1" variant="ghost" color="gray" onClick={() => navigate(NO_FILTERS)}>
+          {sorted && (
+            <Chip
+              label={`Sort: ${
+                sortKeys.find((k) => k.value === sort.key)?.label ?? sort.key
+              } ${sort.ascending ? "↑" : "↓"}`}
+              onClear={() => navigate(filters, DEFAULT_SORT)}
+            />
+          )}
+          {active + (sorted ? 1 : 0) > 1 && (
+            <Button
+              size="1"
+              variant="ghost"
+              color="gray"
+              onClick={() => navigate(NO_FILTERS, DEFAULT_SORT)}
+            >
               Clear all
             </Button>
           )}
@@ -371,7 +395,7 @@ function Chip({ label, onClear }: { label: string; onClear: () => void }) {
         size="1"
         variant="ghost"
         color="amber"
-        aria-label={`Remove filter: ${label}`}
+        aria-label={`Clear ${label}`}
         onClick={onClear}
       >
         <Cross2Icon />
