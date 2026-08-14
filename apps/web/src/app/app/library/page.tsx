@@ -7,7 +7,19 @@ import {
   VisuallyHidden,
 } from "@radix-ui/themes";
 import { createClient } from "@/lib/supabase/server";
+import {
+  LIBRARY_FACETS,
+  MOVIE_FACETS,
+  MOVIE_RUNTIME,
+  MOVIE_SORT_KEYS,
+  SHOW_RUNTIME,
+  SHOW_SORT_KEYS,
+  parseFilters,
+  parseSort,
+  restrict,
+} from "@/lib/filters";
 import { FadeIn } from "@/components/FadeIn";
+import { LibraryToolbar } from "@/components/filters/LibraryToolbar";
 import { TimeStat } from "@/components/TimeStat";
 import { LibraryTabs } from "@/components/library/LibraryTabs";
 import { ShowsList } from "@/components/library/ShowsList";
@@ -28,10 +40,16 @@ import { DelayedSpinner } from "@/components/DelayedSpinner";
 export default async function LibraryPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { tab } = await searchParams;
-  const movies = tab === "movies";
+  const params = await searchParams;
+  const movies = params.tab === "movies";
+  // Each tab restricts to its own facets and validates against its own
+  // sort keys: a shows URL opened on the movies tab must not leave phantom
+  // chips for facets the tab has no controls to clear, nor ask the view to
+  // order by a column it does not have.
+  const filters = restrict(parseFilters(params), movies ? MOVIE_FACETS : LIBRARY_FACETS);
+  const sort = parseSort(params, movies ? MOVIE_SORT_KEYS : SHOW_SORT_KEYS);
 
   const supabase = await createClient();
 
@@ -72,12 +90,42 @@ export default async function LibraryPage({
           movieCount={movieCount}
         />
 
+        {/* Below the tabs, not above them: that scopes the controls to the
+            active tab, which is what lets the two tabs offer different
+            facets, sort keys and slider scales through the same bar.
+            Movies' two-slider facet set opens as a popover (compact);
+            the shows' five facets get the inline panel. */}
+        {movies ? (
+          <LibraryToolbar
+            filters={filters}
+            sort={sort}
+            facets={MOVIE_FACETS}
+            sortKeys={MOVIE_SORT_KEYS}
+            searchPlaceholder="Search your movies"
+            runtime={MOVIE_RUNTIME}
+            compact
+          />
+        ) : (
+          <LibraryToolbar
+            filters={filters}
+            sort={sort}
+            facets={LIBRARY_FACETS}
+            sortKeys={SHOW_SORT_KEYS}
+            searchPlaceholder="Search your shows"
+            runtime={SHOW_RUNTIME}
+          />
+        )}
+
         {/* Deliberately NOT keyed on the tab: a stable boundary keeps the
             current list on screen through the switch transition — the tabs
             component shows the pending spinner — and the fallback only
             appears while the page streams in on first load. */}
         <Suspense fallback={<DelayedSpinner />}>
-          {movies ? <MoviesList /> : <ShowsList />}
+          {movies ? (
+            <MoviesList filters={filters} sort={sort} />
+          ) : (
+            <ShowsList filters={filters} sort={sort} />
+          )}
         </Suspense>
       </Flex>
       </FadeIn>

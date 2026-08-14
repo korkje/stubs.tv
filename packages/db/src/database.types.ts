@@ -92,6 +92,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "credits_movie_id_fkey"
+            columns: ["movie_id"]
+            isOneToOne: false
+            referencedRelation: "movies_seen"
+            referencedColumns: ["movie_id"]
+          },
+          {
             foreignKeyName: "credits_person_id_fkey"
             columns: ["person_id"]
             isOneToOne: false
@@ -485,6 +492,19 @@ export type Database = {
       }
     }
     Views: {
+      movies_seen: {
+        Row: {
+          movie_id: number | null
+          name: string | null
+          overview: string | null
+          poster_url: string | null
+          rating: number | null
+          released: string | null
+          runtime_min: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       season_progress: {
         Row: {
           aired_count: number | null
@@ -523,6 +543,8 @@ export type Database = {
           rating: number | null
           runtime_min: number | null
           series_id: number | null
+          status: string | null
+          unwatched_episodes: number | null
           user_id: string | null
           watched_episodes: number | null
         }
@@ -598,7 +620,13 @@ export type Database = {
           p_aired: string
           p_before: boolean
           p_id: number
+          p_include_watched?: boolean
           p_limit?: number
+          p_rating_max?: number
+          p_rating_min?: number
+          p_runtime_max?: number
+          p_runtime_min?: number
+          p_status?: string[]
         }
         Returns: {
           aired: string
@@ -611,6 +639,7 @@ export type Database = {
           season_number: number
           series_id: number
           series_name: string
+          watched: boolean
         }[]
       }
     }

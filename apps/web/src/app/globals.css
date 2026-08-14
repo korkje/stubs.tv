@@ -72,6 +72,24 @@ html body[data-scroll-locked] {
 }
 
 /*
+ * A popover dismissed in the same click that starts a navigation (open the
+ * library's sort, click the other tab) plays its closing animation, but the
+ * unmount that should follow gets absorbed into the pending transition —
+ * the node lingers until the new page commits, and once the animation ends
+ * its styles revert to the visible base state: the popover pops back from
+ * the dead for however long the server takes. A static opacity on the
+ * closed state costs the animation nothing (a running animation outranks
+ * it) and keeps the corpse invisible for however long React holds it.
+ * Select menus close through the same Presence machinery, so they get the
+ * same rule.
+ */
+.rt-PopoverContent[data-state="closed"],
+.rt-SelectContent[data-state="closed"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/*
  * Drops a button's text label, leaving the icon, only on screens too narrow
  * to fit it. The nav holds two links now rather than three, so everything
  * fits from about 360px up — narrower than any current phone.

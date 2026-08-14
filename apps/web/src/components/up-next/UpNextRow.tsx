@@ -24,7 +24,12 @@ export function UpNextRow({
   synopsisMode: string;
 }) {
   // Lifted from the toggle: marking seen also unscrambles the synopsis.
-  const [seen, setSeen] = useState(false);
+  //
+  // Seeded from the row rather than from false: with "include watched" on,
+  // the feed carries episodes that have been seen, and starting them at
+  // false would draw a closed eye on something already watched and make the
+  // toggle's first click a no-op in the wrong direction.
+  const [seen, setSeen] = useState(episode.watched);
 
   const code = `${episode.season_number}×${String(episode.episode_number).padStart(2, "0")}`;
 
@@ -55,8 +60,12 @@ export function UpNextRow({
                 </Text>
                 <Text size="2">{episode.episode_name ?? "Untitled"}</Text>
               </Flex>
-              {/* Everything in this feed is unwatched, so the spoiler
-                  setting applies to every synopsis. */}
+              {/* The spoiler setting applies to what has not been watched.
+                  That used to be everything here; with "include watched" it
+                  is not, and scrambling the synopsis of an episode the user
+                  has already seen would be protecting them from their own
+                  memory — hence `revealed={seen}`, which starts true for a
+                  watched row. */}
               {episode.overview && synopsisMode === "show" ? (
                 <Text as="div" size="1" color="gray" className="clamp-2-lines">
                   {episode.overview}

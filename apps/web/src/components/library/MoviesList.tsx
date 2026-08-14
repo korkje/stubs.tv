@@ -1,70 +1,124 @@
 import Link from "next/link";
 import { Button, Card, Flex, Text } from "@radix-ui/themes";
 import { createClient } from "@/lib/supabase/server";
+import {
+  MOVIE_RUNTIME,
+  escapeLike,
+  ratingBounds,
+  runtimeBounds,
+  serializeFilters,
+  type Filters,
+  type Sort,
+} from "@/lib/filters";
 import { AnimatedRows } from "./AnimatedRows";
 import { LibraryRow } from "./LibraryRow";
 import { SeenEye } from "@/components/tracking/SeenEye";
 
-/** Every movie marked as seen, by title — the same ordering as Shows. */
-export async function MoviesList() {
+/**
+ * Every movie marked as seen. Filtering and sorting are pushed into the
+ * query against the movies_seen view — the view exists because rating
+ * lives in another table, and "sort by my rating" cannot be expressed
+ * across two PostgREST requests without merging in the worker, which the
+ * 10ms CPU ceiling rules out.
+ */
+export async function MoviesList({
+  filters,
+  sort,
+}: {
+  filters: Filters;
+  sort: Sort;
+}) {
   const supabase = await createClient();
 
-  // Watches are polymorphic (episode or movie) so there is no foreign key to
-  // join on — fetch the watched ids, then the movies they point at.
-  const { data: watches } = await supabase
-    .from("watches")
-    .select("entity_id")
-    .eq("entity_type", "movie");
+  // movies_seen is a security_invoker view, so this returns only the
+  // signed-in user's movies.
+  let query = supabase.from("movies_seen").select("*");
 
-  const movieIds = (watches ?? []).map((watch) => watch.entity_id);
-
-  if (movieIds.length === 0) {
-    return (
-      <Card>
-        <Flex direction="column" align="start" gap="3" p="2">
-          <Text color="gray">
-            No movies marked as seen yet. Everything you mark shows up here.
-          </Text>
-          <Button asChild>
-            <Link href="/app/search">Search movies</Link>
-          </Button>
-        </Flex>
-      </Card>
-    );
+  if (filters.query) {
+    query = query.ilike("name", `%${escapeLike(filters.query)}%`);
   }
 
-  const [{ data: movies }, { data: ratings }] = await Promise.all([
-    supabase.from("movies").select("*").in("id", movieIds).order("name"),
-    supabase
-      .from("ratings")
-      .select("entity_id, score")
-      .eq("entity_type", "movie")
-      .in("entity_id", movieIds),
-  ]);
+  const rating = ratingBounds(filters.rating);
+  if (rating.min !== null) query = query.gte("rating", rating.min);
+  if (rating.max !== null) query = query.lte("rating", rating.max);
 
-  const scoreById = new Map((ratings ?? []).map((r) => [r.entity_id, r.score]));
+  const runtime = runtimeBounds(filters.runtime, MOVIE_RUNTIME.max);
+  if (runtime.min !== null) query = query.gte("runtime_min", runtime.min);
+  if (runtime.max !== null) query = query.lte("runtime_min", runtime.max);
+
+  // nullsFirst: false on every key. Postgres sorts DESC with NULLS FIRST, so
+  // without it "highest rated" would open with every unrated movie.
+  query = query.order(sort.key, { ascending: sort.ascending, nullsFirst: false });
+  // Ties always break on name, implicitly — the same rule as the shows.
+  if (sort.key !== "name") {
+    query = query.order("name", { ascending: true, nullsFirst: false });
+  }
+
+  const { data: movies } = await query;
+
+  const rows =
+    !movies || movies.length === 0
+      ? // The empty state rides the same list as the rows, so narrowing to
+        // nothing collapses the last rows while the message expands in.
+        [
+          {
+            id: "empty",
+            node: <EmptyState filtered={serializeFilters(filters).size > 0} />,
+          },
+        ]
+      : movies.map((movie) => ({
+          id: `movie-${movie.movie_id}`,
+          node: (
+            <LibraryRow
+              href={`/app/movies/${movie.movie_id}`}
+              name={movie.name ?? "Untitled"}
+              posterUrl={movie.poster_url}
+              date={movie.released}
+              runtimeMin={movie.runtime_min}
+              rating={movie.rating}
+              overview={movie.overview}
+              titleIcon={
+                movie.movie_id != null ? (
+                  // Unseeing here drops the movie from the list on the next
+                  // render — membership is "marked as seen".
+                  <SeenEye movieId={movie.movie_id} seen revalidate="/app/library" />
+                ) : null
+              }
+            />
+          ),
+        }));
 
   return (
     <Flex direction="column">
-      <AnimatedRows key="movies">
-      {(movies ?? []).map((movie) => (
-        <LibraryRow
-          key={movie.id}
-          href={`/app/movies/${movie.id}`}
-          name={movie.name}
-          posterUrl={movie.poster_url}
-          date={movie.released}
-          runtimeMin={movie.runtime_min}
-          rating={scoreById.get(movie.id) ?? null}
-          overview={movie.overview}
-          titleIcon={
-            // Unseeing here drops the movie from the list on the next
-            // render — membership is "marked as seen".
-            <SeenEye movieId={movie.id} seen revalidate="/app/library" />
-          }
-        />
-      ))}
-      </AnimatedRows>
+      {/* Same keying rules as the shows list: the tab in the key stops
+          cross-animating between the two lists, the sort in it makes a
+          reorder a fresh entrance, and the filters deliberately absent from
+          it let a filter change animate the difference. */}
+      <AnimatedRows key={`movies:${sort.key}:${sort.ascending}`} rows={rows} />
     </Flex>
+  );
+}
+
+/**
+ * "Nothing matches" and "nothing here" are different situations and the
+ * way out of each is different: clear the filters — back to this tab, not
+ * the default one — or go find a movie.
+ */
+function EmptyState({ filtered }: { filtered: boolean }) {
+  return (
+    <Card>
+      <Flex direction="column" align="start" gap="3" p="2">
+        <Text color="gray">
+          {filtered
+            ? "No movies match these filters."
+            : "No movies marked as seen yet. Everything you mark shows up here."}
+        </Text>
+        <Button asChild variant={filtered ? "soft" : "solid"}>
+          <Link href={filtered ? "/app/library?tab=movies" : "/app/search"}>
+            {filtered ? "Clear filters" : "Search movies"}
+          </Link>
+        </Button>
+      </Flex>
+    </Card>
   );
 }

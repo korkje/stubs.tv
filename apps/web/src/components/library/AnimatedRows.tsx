@@ -1,7 +1,23 @@
 "use client";
 
-import { Children, isValidElement, useState } from "react";
+import { useState } from "react";
 import { AnimatePresence, MotionConfig, motion } from "motion/react";
+
+/**
+ * A row with its identity carried EXPLICITLY, not as a React key. The
+ * distinction matters: these rows are server-rendered, and while element
+ * keys survive the initial SSR payload, an RSC update from a soft
+ * navigation delivers the same children with their keys stripped to
+ * positions. Identity by key therefore breaks exactly when it matters —
+ * mid-filter-change — making every surviving row look like a departure
+ * plus an arrival, so the whole list exits over itself while its
+ * replacement animates in.
+ */
+export interface AnimatedRow {
+  /** Stable and data-derived (an internal id), unique within the list. */
+  id: string;
+  node: React.ReactNode;
+}
 
 /**
  * List wrapper that animates rows in and out. Each row is two layers: an
@@ -14,26 +30,36 @@ import { AnimatePresence, MotionConfig, motion } from "motion/react";
  * rows added to an already-mounted list expand into place.
  *
  * It is a client component receiving server-rendered rows: AnimatePresence
- * keeps a departed child around just long enough to play the exit. Keys come
- * from the rows themselves, so they must be stable and data-derived (they
- * are: internal ids).
+ * keeps a departed child around just long enough to play the exit.
  */
-export function AnimatedRows({ children }: { children: React.ReactNode }) {
-  const rows = Children.toArray(children).filter(isValidElement);
-  // The keys present when the list mounted, captured once: those rows get
-  // the staggered entrance, rows arriving later expand into place instead.
-  // Motion reads `initial` at each row's mount, so nothing restyles.
-  const [initialKeys] = useState(() => new Set(rows.map((row) => row.key)));
+export function AnimatedRows({ rows }: { rows: AnimatedRow[] }) {
+  // The ids whose rows were present at mount AND have been here since:
+  // those got the staggered entrance (their `initial` was locked when they
+  // mounted; the set is irrelevant to them afterwards). The set exists for
+  // rows that LEAVE — a departure deletes its id, so a row that was here
+  // at mount, left with a filter, and came back reads as new and expands
+  // into place. Keeping departed ids forever was an earlier bug: the
+  // return of such a row got `initial={false}` and popped in full-height
+  // while its neighbours animated. Deletions happen via adjust-during-
+  // render; nothing is ever added, because a newcomer's entrance is
+  // decided once, at its own mount.
+  const [atMountIds, setAtMountIds] = useState(
+    () => new Set(rows.map((row) => row.id))
+  );
+  const currentIds = new Set(rows.map((row) => row.id));
+  if ([...atMountIds].some((id) => !currentIds.has(id))) {
+    setAtMountIds(new Set([...atMountIds].filter((id) => currentIds.has(id))));
+  }
 
   return (
     <MotionConfig reducedMotion="user">
       <AnimatePresence>
         {rows.map((row, index) => {
-          const atMount = initialKeys.has(row.key);
+          const atMount = atMountIds.has(row.id);
 
           return (
             <motion.div
-              key={row.key}
+              key={row.id}
               style={{ overflow: "hidden" }}
               initial={atMount ? false : { height: 0 }}
               animate={{ height: "auto" }}
@@ -66,7 +92,7 @@ export function AnimatedRows({ children }: { children: React.ReactNode }) {
                   transition: { duration: 0.2, ease: "easeIn" },
                 }}
               >
-                {row}
+                {row.node}
               </motion.div>
             </motion.div>
           );

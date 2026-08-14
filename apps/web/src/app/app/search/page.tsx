@@ -132,14 +132,16 @@ async function Results({ query }: { query: string }) {
     <Flex direction="column">
       {/* Keyed on the query so a new result set mounts fresh and staggers
           in, instead of cross-animating against the old rows. */}
-      <AnimatedRows key={query}>
-      {ranked.map((result) => {
+      <AnimatedRows
+        key={query}
+        rows={ranked.flatMap((result) => {
         const internalId = ids.get(`${result.kind}:${result.providerId}`);
-        if (!internalId) return null;
+        if (!internalId) return [];
 
-        return (
+        return {
+          id: `${result.kind}-${result.providerId}`,
+          node: (
           <LibraryRow
-            key={`${result.kind}-${result.providerId}`}
             href={titlePath(result.kind, internalId)}
             name={result.name}
             posterUrl={result.posterUrl}
@@ -168,9 +170,10 @@ async function Results({ query }: { query: string }) {
               )
             }
           />
-        );
+          ),
+        };
       })}
-      </AnimatedRows>
+      />
     </Flex>
   );
 }

@@ -13,6 +13,13 @@ import { MotionConfig, motion } from "motion/react";
  * end of the tab row until the new list is ready to animate in. The spinner
  * fades in after a grace period, so prefetched or cached switches never show
  * it. The active tab moves when the content does — the two always agree.
+ *
+ * The links carry no filters, which is deliberate rather than an oversight:
+ * the filters below belong to the Shows tab, and Movies has no notion of a
+ * status or an episode length. Carrying them across would either filter on
+ * fields the other tab does not have or leave dead parameters in the URL, so
+ * a tab switch is a clean slate. When Movies grows facets of its own, the
+ * shared ones should start travelling with the link.
  */
 export function LibraryTabs({
   movies,

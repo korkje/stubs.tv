@@ -7,6 +7,7 @@ import { MotionConfig, motion } from "motion/react";
 import { FadeIn } from "@/components/FadeIn";
 import { formatDate } from "@/lib/format";
 import { fetchUpNext, type UpNextEpisode } from "@/lib/up-next/actions";
+import { type Filters } from "@/lib/filters";
 import { DateLine, UpNextRow } from "./UpNextRow";
 
 const PAGE = 20;
@@ -24,11 +25,20 @@ export function UpNextFeed({
   initialPast,
   initialFuture,
   synopsisMode,
+  filters,
 }: {
   today: string;
   initialPast: UpNextEpisode[];
   initialFuture: UpNextEpisode[];
   synopsisMode: string;
+  /**
+   * Must match the filters the seed pages were fetched with — the later
+   * pages are fetched from here, and a page fetched under different filters
+   * than the one above it would interleave rows that do not belong
+   * together. The page keys this component on them, so a filter change
+   * remounts rather than mixes.
+   */
+  filters: Filters;
 }) {
   // past is newest-first (as fetched); rendered reversed so time reads
   // downwards. future is soonest-first and renders as-is.
@@ -72,7 +82,7 @@ export function UpNextFeed({
     try {
       const cursor = past[past.length - 1];
       const page = cursor
-        ? await fetchUpNext(true, cursor.aired, cursor.episode_id, PAGE)
+        ? await fetchUpNext(true, cursor.aired, cursor.episode_id, PAGE, filters)
         : [];
       // Remember how tall the list is now: the layout effect below restores
       // the viewport by however much the prepended rows add.
@@ -83,7 +93,7 @@ export function UpNextFeed({
       setLoadingPast(false);
       busy.current = false;
     }
-  }, [past]);
+  }, [past, filters]);
 
   const loadFuture = useCallback(async () => {
     if (busy.current) return;
@@ -92,7 +102,7 @@ export function UpNextFeed({
     try {
       const cursor = future[future.length - 1];
       const page = cursor
-        ? await fetchUpNext(false, cursor.aired, cursor.episode_id + 1, PAGE)
+        ? await fetchUpNext(false, cursor.aired, cursor.episode_id + 1, PAGE, filters)
         : [];
       setFuture((rows) => [...rows, ...page]);
       setHasMoreFuture(page.length === PAGE);
@@ -100,7 +110,7 @@ export function UpNextFeed({
       setLoadingFuture(false);
       busy.current = false;
     }
-  }, [future]);
+  }, [future, filters]);
 
   // Compensate the scroll position after a prepend commits.
   useLayoutEffect(() => {
@@ -129,13 +139,17 @@ export function UpNextFeed({
   }, [loadPast, loadFuture, hasMorePast, hasMoreFuture]);
 
   if (past.length === 0 && future.length === 0) {
+    // The feed's only knob is "include watched", which can only ever ADD
+    // rows — so an empty feed is an empty feed, and the answer is always
+    // "go follow something".
     return (
       <FadeIn>
         <Card>
           <Flex direction="column" align="start" gap="3" p="2">
             <Text color="gray">
-              Nothing here yet: this feed shows unwatched episodes of the shows
-              you follow, past and upcoming. Follow a show and it fills up.
+              Nothing here yet: this feed shows unwatched episodes of the
+              shows you follow, past and upcoming. Follow a show and it
+              fills up.
             </Text>
             <Flex gap="3">
               <Button asChild>
