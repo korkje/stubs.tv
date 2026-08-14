@@ -12,6 +12,49 @@ import { DateLine, UpNextRow } from "./UpNextRow";
 
 const PAGE = 20;
 
+/** How long the viewport must hold still before a prepend may land. */
+const SCROLL_QUIET_MS = 150;
+
+/**
+ * Resolves once it is safe to prepend to a scrolled document.
+ *
+ * On Blink and Gecko that is immediately: they apply a same-frame
+ * programmatic scroll atomically with the layout change, so the
+ * prepend-plus-compensation lands invisibly even mid-scroll. WebKit's
+ * compositor keeps producing frames from the stale layer tree while a
+ * gesture scroll runs — a prepend mid-flick paints shifted for a few
+ * frames (visible flicker), and the compensating scrollBy kills iOS
+ * momentum dead, or is ignored outright during an active gesture, which
+ * left the sentinel in range and chain-fired a second page. So on WebKit
+ * this waits for the scroll to go quiet; applied at a standstill, the
+ * compensation is exact and there is no momentum to kill. The page was
+ * fetched 600px ahead of the viewport, so holding it briefly costs
+ * nothing visible.
+ *
+ * Detected by vendor rather than by feature: the race is a trait of
+ * WebKit's scrolling architecture, not of any missing API — and on iOS
+ * every browser is WebKit, whatever its name.
+ */
+function scrollSettled(): Promise<void> {
+  const webkit =
+    typeof navigator !== "undefined" &&
+    navigator.vendor === "Apple Computer, Inc.";
+  if (!webkit) return Promise.resolve();
+  return new Promise((resolve) => {
+    let timer: number;
+    const done = () => {
+      window.removeEventListener("scroll", onScroll);
+      resolve();
+    };
+    const onScroll = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(done, SCROLL_QUIET_MS);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    timer = window.setTimeout(done, SCROLL_QUIET_MS);
+  });
+}
+
 /**
  * The bidirectional feed: the unwatched past grows upwards, the scheduled
  * future downwards, split by an amber Today line that starts a bit above the
@@ -84,6 +127,12 @@ export function UpNextFeed({
       const page = cursor
         ? await fetchUpNext(true, cursor.aired, cursor.episode_id, PAGE, filters)
         : [];
+      // On WebKit, hold the page until the viewport stands still (see
+      // scrollSettled). Applying mid-gesture there flickered — and iOS
+      // could ignore the compensating scroll outright, which left the
+      // sentinel still in range and chain-fired the next page: the feed
+      // visibly expanded twice in quick succession.
+      await scrollSettled();
       // Remember how tall the list is now: the layout effect below restores
       // the viewport by however much the prepended rows add.
       pendingScrollFix.current = containerRef.current?.offsetHeight ?? null;
