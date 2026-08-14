@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Box, Container, Flex } from "@radix-ui/themes";
 import { createClient } from "@/lib/supabase/server";
 import { NavLinks } from "@/components/NavLinks";
+import { SiteFooter } from "@/components/SiteFooter";
 import { StubsMark } from "@/components/StubsMark";
 import { UserMenu } from "@/components/UserMenu";
 
@@ -20,7 +21,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   )[0].toUpperCase();
 
   return (
-    <Box pt="var(--nav-height)">
+    // A column as tall as the viewport, so the footer below sits on the bottom
+    // edge of a page too short to reach it on its own — the emptier states, and
+    // anything that renders while the real content is still loading. The
+    // padding is inside that height (border-box), so a short page comes to
+    // exactly one screen and grows no scrollbar. dvh rather than vh to match
+    // html/body in globals.css: with vh, the mobile toolbars collapsing would
+    // leave a strip of background below the footer.
+    <Flex direction="column" minHeight="100dvh" pt="var(--nav-height)">
       {/* Pinned to the top so the feed's long timeline always has the nav in
           reach — and fixed rather than sticky. A sticky element's painted
           position is a function of the scroll offset, and iOS Safari catches up
@@ -72,7 +80,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </Container>
         </header>
       </Flex>
-      <Box py="5">{children}</Box>
-    </Box>
+      <Box py="5" flexGrow="1">
+        {children}
+      </Box>
+      <SiteFooter />
+    </Flex>
   );
 }
