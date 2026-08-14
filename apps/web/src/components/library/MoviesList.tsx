@@ -54,7 +54,10 @@ export async function MoviesList({
     query = query.order("name", { ascending: true, nullsFirst: false });
   }
 
-  const { data: movies } = await query;
+  const { data: movies, error } = await query;
+  // Same rule as the shows: a swallowed error renders as the empty state,
+  // and "nothing matches" must never be how a failure looks.
+  if (error) throw new Error(`Could not load the movies: ${error.message}`);
 
   const rows =
     !movies || movies.length === 0

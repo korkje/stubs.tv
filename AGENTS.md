@@ -113,8 +113,14 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
   holds EXECUTE on new functions and those roles inherit it, so revoking from
   them alone is a no-op. Remember to re-grant to `service_role` afterwards.
 - **Check Postgrest errors.** supabase-js returns `{ data, error }` instead of
-  throwing; ignoring `error` makes a permission failure look like a no-op.
-  Ingestion code routes every call through a `check()` helper that throws.
+  throwing; ignoring `error` makes a permission failure look like a no-op —
+  or, on a read, like an empty result (an unapplied migration once spent a
+  debugging session disguised as "No shows match these filters"). The
+  convention: every query checks `error` and **throws** with a message naming
+  what failed. Ingestion routes writes through its `check()` helper; server
+  components throw inline and land on the route-group error boundary
+  (`app/app/error.tsx`), which shows the digest that ties a user report to
+  the worker's logs.
 
 ## Measuring things locally
 

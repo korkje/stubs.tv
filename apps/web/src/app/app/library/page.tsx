@@ -55,12 +55,20 @@ export default async function LibraryPage({
 
   // The shows count matches the list's membership rule: followed or with
   // watched episodes (series_progress carries exactly those rows).
-  const [{ data: totals }, { count: showCount }] = await Promise.all([
+  const [totalsResult, showCountResult] = await Promise.all([
     supabase.from("watch_totals").select("*").maybeSingle(),
     supabase
       .from("series_progress")
       .select("*", { count: "exact", head: true }),
   ]);
+  // Unchecked, a failure here renders as "no history" — the same lie in a
+  // different place as an unchecked list query rendering as "no matches".
+  if (totalsResult.error)
+    throw new Error(`Could not load the watch totals: ${totalsResult.error.message}`);
+  if (showCountResult.error)
+    throw new Error(`Could not count the shows: ${showCountResult.error.message}`);
+  const totals = totalsResult.data;
+  const showCount = showCountResult.count;
   const movieCount = totals?.movies_seen ?? 0;
 
   const hasHistory = (showCount ?? 0) > 0 || movieCount > 0;

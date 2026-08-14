@@ -67,7 +67,12 @@ export async function ShowsList({
     query = query.order("name", { ascending: true, nullsFirst: false });
   }
 
-  const { data: shows } = await query;
+  const { data: shows, error } = await query;
+  // Swallowing this made a failed query render as "No shows match these
+  // filters" — indistinguishable from zero matches (an unapplied migration
+  // wore that disguise for a whole debugging session). The app segment's
+  // error boundary turns the throw into a visible failure.
+  if (error) throw new Error(`Could not load the shows: ${error.message}`);
 
   const rows =
     !shows || shows.length === 0
