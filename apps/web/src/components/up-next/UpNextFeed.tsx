@@ -12,8 +12,8 @@ import { DateLine, UpNextRow } from "./UpNextRow";
 
 const PAGE = 20;
 
-/** How long the viewport must hold still before a prepend may land. */
-const SCROLL_QUIET_MS = 150;
+/** How long the viewport must hold perfectly still before a prepend lands. */
+const SCROLL_STILL_MS = 150;
 
 /**
  * Resolves once it is safe to prepend to a scrolled document.
@@ -26,32 +26,56 @@ const SCROLL_QUIET_MS = 150;
  * frames (visible flicker), and the compensating scrollBy kills iOS
  * momentum dead, or is ignored outright during an active gesture, which
  * left the sentinel in range and chain-fired a second page. So on WebKit
- * this waits for the scroll to go quiet; applied at a standstill, the
- * compensation is exact and there is no momentum to kill. The page was
- * fetched 600px ahead of the viewport, so holding it briefly costs
- * nothing visible.
+ * this waits for a genuine standstill, where the compensation is exact
+ * and there is no momentum to kill.
+ *
+ * Standstill is judged by POSITION — scrollY unchanged across animation
+ * frames for a beat, with no finger on the screen. The first version
+ * listened for a gap in scroll events instead, and iOS throttles those:
+ * the slow tail of a deceleration left >150ms gaps while the view was
+ * still visibly gliding, so pages kept landing mid-glide and flickering.
+ *
+ * `arriving` is the escape hatch: when the user is about to reach the
+ * spinner despite the wait (one long continuous scroll), the page lands
+ * anyway — one visible shift beats staring at a spinner that refuses to
+ * become content.
  *
  * Detected by vendor rather than by feature: the race is a trait of
  * WebKit's scrolling architecture, not of any missing API — and on iOS
  * every browser is WebKit, whatever its name.
  */
-function scrollSettled(): Promise<void> {
+function scrollSettled(arriving: () => boolean): Promise<void> {
   const webkit =
     typeof navigator !== "undefined" &&
     navigator.vendor === "Apple Computer, Inc.";
   if (!webkit) return Promise.resolve();
   return new Promise((resolve) => {
-    let timer: number;
+    let touching = false;
+    const onTouch = (event: TouchEvent) => {
+      touching = event.touches.length > 0;
+    };
+    window.addEventListener("touchstart", onTouch, { passive: true });
+    window.addEventListener("touchend", onTouch, { passive: true });
+    window.addEventListener("touchcancel", onTouch, { passive: true });
     const done = () => {
-      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("touchstart", onTouch);
+      window.removeEventListener("touchend", onTouch);
+      window.removeEventListener("touchcancel", onTouch);
       resolve();
     };
-    const onScroll = () => {
-      window.clearTimeout(timer);
-      timer = window.setTimeout(done, SCROLL_QUIET_MS);
+    let lastY = window.scrollY;
+    let stillSince = performance.now();
+    const tick = (now: number) => {
+      if (arriving()) return done();
+      const y = window.scrollY;
+      if (y !== lastY || touching) {
+        lastY = y;
+        stillSince = now;
+      }
+      if (now - stillSince >= SCROLL_STILL_MS) return done();
+      requestAnimationFrame(tick);
     };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    timer = window.setTimeout(done, SCROLL_QUIET_MS);
+    requestAnimationFrame(tick);
   });
 }
 
@@ -131,8 +155,13 @@ export function UpNextFeed({
       // scrollSettled). Applying mid-gesture there flickered — and iOS
       // could ignore the compensating scroll outright, which left the
       // sentinel still in range and chain-fired the next page: the feed
-      // visibly expanded twice in quick succession.
-      await scrollSettled();
+      // visibly expanded twice in quick succession. The escape: about to
+      // scroll into the spinner, land regardless — the wait exists to
+      // hide a shift, not to hold content hostage.
+      await scrollSettled(() => {
+        const sentinel = topSentinelRef.current;
+        return !sentinel || sentinel.getBoundingClientRect().bottom > -300;
+      });
       // Remember how tall the list is now: the layout effect below restores
       // the viewport by however much the prepended rows add.
       pendingScrollFix.current = containerRef.current?.offsetHeight ?? null;
@@ -179,7 +208,11 @@ export function UpNextFeed({
       .map(([el, load]) => {
         const observer = new IntersectionObserver(
           (entries) => entries.some((entry) => entry.isIntersecting) && load(),
-          { rootMargin: "600px 0px" }
+          // Generous on purpose: on WebKit a fetched page also waits for a
+          // still viewport before landing, so the head start has to cover
+          // the fetch AND a natural pause in the user's scrolling. At 600px
+          // a steady scroll overran it and parked the user at the spinner.
+          { rootMargin: "1500px 0px" }
         );
         observer.observe(el as Element);
         return observer;

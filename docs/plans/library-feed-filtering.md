@@ -61,13 +61,19 @@ touching this code. What the rework settled:
   back down. `overflow-anchor: none` on the feed container leaves exactly
   one mechanism (ours, since anchoring is not implemented everywhere), and
   the top spinner sits in a fixed-height slot so starting a load shifts
-  nothing either. On WebKit the prepend additionally waits for the scroll
-  to go quiet (`scrollSettled`): its compositor keeps painting from the
+  nothing either. On WebKit the prepend additionally waits for a genuine
+  standstill (`scrollSettled`): its compositor keeps painting from the
   stale layer tree mid-gesture (flicker), and iOS drops a programmatic
   scroll during one — which un-compensated the viewport, left the sentinel
-  in range and chain-fired a second page. Detected by vendor, not feature:
-  the race is an architecture trait, and Playwright's trunk WebKit even
-  reports scroll-anchoring support that no shipping Safari has.
+  in range and chain-fired a second page. Standstill is judged by
+  POSITION over animation frames with no active touch, not by a gap in
+  scroll events — iOS throttles those, and the event-gap version kept
+  landing pages mid-glide. Two reliefs keep the wait from becoming a
+  stall: pages prefetch 1500px out, and an arrival escape lands the page
+  mid-scroll if the user is about to reach the spinner anyway. Detected
+  by vendor, not feature: the race is an architecture trait, and
+  Playwright's trunk WebKit even reports scroll-anchoring support that no
+  shipping Safari has.
 - **The feed's filters are gone**; following a show already is the feed's
   filter, so what remains is one setting — include watched episodes —
   behind the floating button, which stays **inside the content column** on
