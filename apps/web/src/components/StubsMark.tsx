@@ -18,43 +18,55 @@ export function StubsMark({ width = 120 }: { width?: number | string }) {
     >
       <defs>
         <mask id="stubs-mark-ticket">
-          <rect x="2" y="2" width="116" height="68" rx="10" fill="white" />
+          <rect x="2" y="2" width="116" height="68" fill="white" />
           <circle cx="2" cy="36" r="8" fill="black" />
           <circle cx="118" cy="36" r="8" fill="black" />
-          <circle cx="84" cy="2" r="1.9" fill="black" />
-          <circle cx="84" cy="13.33" r="1.9" fill="black" />
-          <circle cx="84" cy="24.67" r="1.9" fill="black" />
-          <circle cx="84" cy="36" r="1.9" fill="black" />
-          <circle cx="84" cy="47.33" r="1.9" fill="black" />
-          <circle cx="84" cy="58.67" r="1.9" fill="black" />
-          <circle cx="84" cy="70" r="1.9" fill="black" />
+          <circle cx="84" cy="2" r="2" fill="black" />
+          <circle cx="84" cy="13.33" r="2" fill="black" />
+          <circle cx="84" cy="24.67" r="2" fill="black" />
+          <circle cx="84" cy="36" r="2" fill="black" />
+          <circle cx="84" cy="47.33" r="2" fill="black" />
+          <circle cx="84" cy="58.67" r="2" fill="black" />
+          <circle cx="84" cy="70" r="2" fill="black" />
         </mask>
+        {/* Radix Icons' StarFilled path (MIT), verbatim. It fills with
+            currentColor, so the tint comes from `color` on each <use> — a
+            `fill` there would lose to the path's own presentation attribute. */}
+        <symbol id="stubs-mark-star" viewBox="0 0 15 15">
+          <path
+            d="M7.22303 0.665992C7.32551 0.419604 7.67454 0.419604 7.77702 0.665992L9.41343 4.60039C9.45663 4.70426 9.55432 4.77523 9.66645 4.78422L13.914 5.12475C14.18 5.14607 14.2878 5.47802 14.0852 5.65162L10.849 8.42374C10.7636 8.49692 10.7263 8.61176 10.7524 8.72118L11.7411 12.866C11.803 13.1256 11.5206 13.3308 11.2929 13.1917L7.6564 10.9705C7.5604 10.9119 7.43965 10.9119 7.34365 10.9705L3.70718 13.1917C3.47945 13.3308 3.19708 13.1256 3.25899 12.866L4.24769 8.72118C4.2738 8.61176 4.23648 8.49692 4.15105 8.42374L0.914889 5.65162C0.712228 5.47802 0.820086 5.14607 1.08608 5.12475L5.3336 4.78422C5.44573 4.77523 5.54342 4.70426 5.58662 4.60039L7.22303 0.665992Z"
+            fill="currentColor"
+          />
+        </symbol>
       </defs>
       <g mask="url(#stubs-mark-ticket)">
         <rect x="2" y="2" width="116" height="68" rx="10" fill={body} />
-        <polygon
-          points="26,18.5 27.23,21.3 30.28,21.61 28,23.65 28.65,26.64 26,25.1 23.35,26.64 24,23.65 21.72,21.61 24.77,21.3"
-          fill={ink}
-          stroke={ink}
-          strokeWidth="1.5"
-          strokeLinejoin="round"
+        <use
+          href="#stubs-mark-star"
+          x="20"
+          y="18"
+          width="11"
+          height="11"
+          color={ink}
         />
-        <polygon
-          points="39,18.5 40.23,21.3 43.28,21.61 41,23.65 41.65,26.64 39,25.1 36.35,26.64 37,23.65 34.72,21.61 37.77,21.3"
-          fill={ink}
-          stroke={ink}
-          strokeWidth="1.5"
-          strokeLinejoin="round"
+        <use
+          href="#stubs-mark-star"
+          x="33"
+          y="18"
+          width="11"
+          height="11"
+          color={ink}
         />
-        <polygon
-          points="52,18.5 53.23,21.3 56.28,21.61 54,23.65 54.65,26.64 52,25.1 49.35,26.64 50,23.65 47.72,21.61 50.77,21.3"
-          fill={ink}
-          stroke={ink}
-          strokeWidth="1.5"
-          strokeLinejoin="round"
+        <use
+          href="#stubs-mark-star"
+          x="46"
+          y="18"
+          width="11"
+          height="11"
+          color={ink}
         />
-        <rect x="20" y="34" width="46" height="4.5" rx="2.25" fill={ink} />
-        <rect x="20" y="45.5" width="30" height="4.5" rx="2.25" fill={ink} />
+        <rect x="20" y="34" width="46" height="4" rx="1" fill={ink} />
+        <rect x="20" y="46" width="30" height="4" rx="1" fill={ink} />
       </g>
     </svg>
   );
