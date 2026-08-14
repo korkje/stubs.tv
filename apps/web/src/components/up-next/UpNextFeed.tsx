@@ -12,80 +12,21 @@ import { DateLine, UpNextRow } from "./UpNextRow";
 
 const PAGE = 20;
 
-/** How long the viewport must hold perfectly still before a prepend lands. */
-const SCROLL_STILL_MS = 150;
-
-/**
- * Resolves once it is safe to prepend to a scrolled document.
- *
- * On Blink and Gecko that is immediately: they apply a same-frame
- * programmatic scroll atomically with the layout change, so the
- * prepend-plus-compensation lands invisibly even mid-scroll. WebKit's
- * compositor keeps producing frames from the stale layer tree while a
- * gesture scroll runs — a prepend mid-flick paints shifted for a few
- * frames (visible flicker), and the compensating scrollBy kills iOS
- * momentum dead, or is ignored outright during an active gesture, which
- * left the sentinel in range and chain-fired a second page. So on WebKit
- * this waits for a genuine standstill, where the compensation is exact
- * and there is no momentum to kill.
- *
- * Standstill is judged by POSITION — scrollY unchanged across animation
- * frames for a beat, with no finger on the screen. The first version
- * listened for a gap in scroll events instead, and iOS throttles those:
- * the slow tail of a deceleration left >150ms gaps while the view was
- * still visibly gliding, so pages kept landing mid-glide and flickering.
- *
- * `arriving` is the escape hatch: when the user is about to reach the
- * spinner despite the wait (one long continuous scroll), the page lands
- * anyway — one visible shift beats staring at a spinner that refuses to
- * become content.
- *
- * Detected by vendor rather than by feature: the race is a trait of
- * WebKit's scrolling architecture, not of any missing API — and on iOS
- * every browser is WebKit, whatever its name.
- */
-function scrollSettled(arriving: () => boolean): Promise<void> {
-  const webkit =
-    typeof navigator !== "undefined" &&
-    navigator.vendor === "Apple Computer, Inc.";
-  if (!webkit) return Promise.resolve();
-  return new Promise((resolve) => {
-    let touching = false;
-    const onTouch = (event: TouchEvent) => {
-      touching = event.touches.length > 0;
-    };
-    window.addEventListener("touchstart", onTouch, { passive: true });
-    window.addEventListener("touchend", onTouch, { passive: true });
-    window.addEventListener("touchcancel", onTouch, { passive: true });
-    const done = () => {
-      window.removeEventListener("touchstart", onTouch);
-      window.removeEventListener("touchend", onTouch);
-      window.removeEventListener("touchcancel", onTouch);
-      resolve();
-    };
-    let lastY = window.scrollY;
-    let stillSince = performance.now();
-    const tick = (now: number) => {
-      if (arriving()) return done();
-      const y = window.scrollY;
-      if (y !== lastY || touching) {
-        lastY = y;
-        stillSince = now;
-      }
-      if (now - stillSince >= SCROLL_STILL_MS) return done();
-      requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
-  });
-}
-
 /**
  * The bidirectional feed: the unwatched past grows upwards, the scheduled
  * future downwards, split by an amber Today line that starts a bit above the
- * middle of the screen. Rows arrive through keyset-paginated server actions;
- * sentinels near each end trigger the next page. Prepending to a scrolled
- * document would normally yank the viewport, so the scroll position is
- * compensated by the height the new rows added.
+ * middle of the screen. Rows arrive through keyset-paginated server actions.
+ *
+ * The two directions load differently, and the asymmetry is the point.
+ * Downwards a sentinel auto-loads: appending never moves content above it,
+ * so it is safe mid-scroll on every engine. Upwards is a "Show older"
+ * BUTTON: a prepend must be paired with a scroll compensation, and WebKit's
+ * main thread can neither observe nor adjust the compositor's scroll while
+ * a gesture runs — three auto-load strategies (immediate, event-quiet,
+ * position-still + escape) all flickered or double-loaded on a real iPhone,
+ * and react-virtuoso's window-scroll prepend has the same open defect (the
+ * plan doc holds the post-mortem). A tap, by contrast, IS a standstill, and
+ * at a standstill the compensation is exact everywhere.
  */
 export function UpNextFeed({
   today,
@@ -118,7 +59,6 @@ export function UpNextFeed({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const todayRef = useRef<HTMLDivElement>(null);
-  const topSentinelRef = useRef<HTMLDivElement>(null);
   const bottomSentinelRef = useRef<HTMLDivElement>(null);
   const pendingScrollFix = useRef<number | null>(null);
   const busy = useRef(false);
@@ -151,19 +91,11 @@ export function UpNextFeed({
       const page = cursor
         ? await fetchUpNext(true, cursor.aired, cursor.episode_id, PAGE, filters)
         : [];
-      // On WebKit, hold the page until the viewport stands still (see
-      // scrollSettled). Applying mid-gesture there flickered — and iOS
-      // could ignore the compensating scroll outright, which left the
-      // sentinel still in range and chain-fired the next page: the feed
-      // visibly expanded twice in quick succession. The escape: about to
-      // scroll into the spinner, land regardless — the wait exists to
-      // hide a shift, not to hold content hostage.
-      await scrollSettled(() => {
-        const sentinel = topSentinelRef.current;
-        return !sentinel || sentinel.getBoundingClientRect().bottom > -300;
-      });
       // Remember how tall the list is now: the layout effect below restores
-      // the viewport by however much the prepended rows add.
+      // the viewport by however much the prepended rows add, so the rows on
+      // screen hold still and the older ones stack above, ready to scroll
+      // into. Reliable because this only ever runs from a button tap — the
+      // viewport is at a standstill.
       pendingScrollFix.current = containerRef.current?.offsetHeight ?? null;
       setPast((rows) => [...rows, ...page]);
       setHasMorePast(page.length === PAGE);
@@ -198,27 +130,19 @@ export function UpNextFeed({
     if (delta > 0) window.scrollBy(0, delta);
   }, [past]);
 
+  // Auto-load applies to the future only — appends never move content above
+  // them, so they are safe mid-scroll on every engine. Generous margin:
+  // fetched and in place well before the user arrives, and early is free.
   useEffect(() => {
-    const pairs: [Element | null, () => void, boolean][] = [
-      [topSentinelRef.current, loadPast, hasMorePast],
-      [bottomSentinelRef.current, loadFuture, hasMoreFuture],
-    ];
-    const observers = pairs
-      .filter(([el, , more]) => el && more)
-      .map(([el, load]) => {
-        const observer = new IntersectionObserver(
-          (entries) => entries.some((entry) => entry.isIntersecting) && load(),
-          // Generous on purpose: on WebKit a fetched page also waits for a
-          // still viewport before landing, so the head start has to cover
-          // the fetch AND a natural pause in the user's scrolling. At 600px
-          // a steady scroll overran it and parked the user at the spinner.
-          { rootMargin: "1500px 0px" }
-        );
-        observer.observe(el as Element);
-        return observer;
-      });
-    return () => observers.forEach((observer) => observer.disconnect());
-  }, [loadPast, loadFuture, hasMorePast, hasMoreFuture]);
+    const el = bottomSentinelRef.current;
+    if (!el || !hasMoreFuture) return;
+    const observer = new IntersectionObserver(
+      (entries) => entries.some((entry) => entry.isIntersecting) && loadFuture(),
+      { rootMargin: "1500px 0px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [loadFuture, hasMoreFuture]);
 
   if (past.length === 0 && future.length === 0) {
     // The feed's only knob is "include watched", which can only ever ADD
@@ -260,19 +184,20 @@ export function UpNextFeed({
           the viewport a full page back down. One mechanism only, ours —
           anchoring is not implemented everywhere, the manual fix is. */}
       <div ref={containerRef} style={{ overflowAnchor: "none" }}>
-        <div ref={topSentinelRef} />
-        {/* A slot of constant height, whatever it shows. With anchoring
-            off, the spinner popping into existence above the rows would
-            push everything the user is reading down by its own height at
-            the start of every load. */}
+        {/* A slot of constant height, whatever it shows: the swap from
+            button to spinner must not nudge the rows below it. */}
         <Flex justify="center" align="center" style={{ height: 44 }}>
           {loadingPast ? (
             <Spinner size="2" />
-          ) : !hasMorePast ? (
+          ) : hasMorePast ? (
+            <Button size="1" variant="soft" color="gray" onClick={loadPast}>
+              Show older episodes
+            </Button>
+          ) : (
             <Text size="1" color="gray">
               Nothing older left to watch.
             </Text>
-          ) : null}
+          )}
         </Flex>
 
         <Flex direction="column" gap="2">

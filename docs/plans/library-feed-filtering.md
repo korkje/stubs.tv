@@ -61,19 +61,25 @@ touching this code. What the rework settled:
   back down. `overflow-anchor: none` on the feed container leaves exactly
   one mechanism (ours, since anchoring is not implemented everywhere), and
   the top spinner sits in a fixed-height slot so starting a load shifts
-  nothing either. On WebKit the prepend additionally waits for a genuine
-  standstill (`scrollSettled`): its compositor keeps painting from the
-  stale layer tree mid-gesture (flicker), and iOS drops a programmatic
-  scroll during one — which un-compensated the viewport, left the sentinel
-  in range and chain-fired a second page. Standstill is judged by
-  POSITION over animation frames with no active touch, not by a gap in
-  scroll events — iOS throttles those, and the event-gap version kept
-  landing pages mid-glide. Two reliefs keep the wait from becoming a
-  stall: pages prefetch 1500px out, and an arrival escape lands the page
-  mid-scroll if the user is about to reach the spinner anyway. Detected
-  by vendor, not feature: the race is an architecture trait, and
-  Playwright's trunk WebKit even reports scroll-anchoring support that no
-  shipping Safari has.
+  nothing either. **Auto-loading the past died on WebKit — do not
+  rebuild it without reading this.** Its main thread can neither observe
+  nor adjust the compositor's scroll while a gesture runs, so every
+  strategy for landing a prepend above a moving viewport failed on a
+  real iPhone in turn: immediate compensation flickered (compositor
+  paints from the stale layer tree) and died mid-gesture (iOS drops the
+  scrollBy, leaving the sentinel in range to chain-fire a second page);
+  waiting for a gap in scroll events false-quieted (iOS throttles them
+  mid-glide); waiting for scrollY to hold still false-quieted too (iOS
+  syncs scrollY to the main thread sparsely during momentum), and the
+  anti-stall escape just made mid-scroll landings the common case.
+  react-virtuoso is no exit: its window-scroll prepend has the same open
+  defect (petyosi/react-virtuoso#1009), because the physics are the
+  window scroller's, not ours. The resolution is a **"Show older
+  episodes" button**: a tap is a standstill, where the compensation is
+  exact on every engine — and the future keeps auto-loading, because
+  appends never move content above them. (Also learned: Playwright's
+  trunk WebKit reports scroll-anchoring support no shipping Safari has —
+  don't trust capability checks validated only there.)
 - **The feed's filters are gone**; following a show already is the feed's
   filter, so what remains is one setting — include watched episodes —
   behind the floating button, which stays **inside the content column** on
