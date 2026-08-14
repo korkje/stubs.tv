@@ -172,19 +172,26 @@ export function UpNextFeed({
 
   return (
     <MotionConfig reducedMotion="user">
-      <div ref={containerRef}>
+      {/* overflow-anchor: none — the browser's scroll anchoring compensates
+          a prepend on its own, and the manual compensation above cannot see
+          that it did: both corrections applied, and every past page hurled
+          the viewport a full page back down. One mechanism only, ours —
+          anchoring is not implemented everywhere, the manual fix is. */}
+      <div ref={containerRef} style={{ overflowAnchor: "none" }}>
         <div ref={topSentinelRef} />
-        {(loadingPast || !hasMorePast) && (
-          <Flex justify="center" py="3">
-            {loadingPast ? (
-              <Spinner size="2" />
-            ) : (
-              <Text size="1" color="gray">
-                Nothing older left to watch.
-              </Text>
-            )}
-          </Flex>
-        )}
+        {/* A slot of constant height, whatever it shows. With anchoring
+            off, the spinner popping into existence above the rows would
+            push everything the user is reading down by its own height at
+            the start of every load. */}
+        <Flex justify="center" align="center" style={{ height: 44 }}>
+          {loadingPast ? (
+            <Spinner size="2" />
+          ) : !hasMorePast ? (
+            <Text size="1" color="gray">
+              Nothing older left to watch.
+            </Text>
+          ) : null}
+        </Flex>
 
         <Flex direction="column" gap="2">
           {chronologicalPast.map((episode, index) => {

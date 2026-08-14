@@ -54,6 +54,14 @@ touching this code. What the rework settled:
   in AnimatedRows): "Ended" → "Ongoing" produces disjoint lists, and
   diffing those is all churn. The diff is reserved for changes touching
   "All", where one list contains the other.
+- **The feed's prepend compensation must be the only compensation.** The
+  browser's own scroll anchoring corrects an insertion above the viewport
+  by itself, and the feed's manual `scrollBy` cannot see that it did — both
+  corrections applied, and every past page hurled the viewport a full page
+  back down. `overflow-anchor: none` on the feed container leaves exactly
+  one mechanism (ours, since anchoring is not implemented everywhere), and
+  the top spinner sits in a fixed-height slot so starting a load shifts
+  nothing either.
 - **The feed's filters are gone**; following a show already is the feed's
   filter, so what remains is one setting — include watched episodes —
   behind the floating button, which stays **inside the content column** on
