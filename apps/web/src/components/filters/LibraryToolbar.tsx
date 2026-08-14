@@ -148,31 +148,18 @@ export function LibraryToolbar({
   const sorted = serializeFilters(NO_FILTERS, sort).size > 0;
 
   // No "Filters" heading — the panel opens out of a button that says so,
-  // and the sort popover already set the precedent of trusting that. Clear
-  // all sits below the controls instead, so appearing on the first change
-  // never shifts them.
+  // and the sort popover already set the precedent of trusting that. No
+  // "Clear all" in here either: it came and went with the first and last
+  // active filter, resizing the panel and shoving the list below it
+  // mid-animation. The chips row keeps the one-tap way out.
   const filterPanel = (
-    <Flex direction="column" gap="4">
-      <FilterControls
-        filters={filters}
-        facets={facets}
-        runtime={runtime}
-        columns={compact ? "1" : { initial: "1", sm: "2" }}
-        onChange={(next) => navigate(next)}
-      />
-      {active > 0 && (
-        <Flex justify="end">
-          <Button
-            size="1"
-            variant="ghost"
-            color="gray"
-            onClick={() => navigate(NO_FILTERS)}
-          >
-            Clear all
-          </Button>
-        </Flex>
-      )}
-    </Flex>
+    <FilterControls
+      filters={filters}
+      facets={facets}
+      runtime={runtime}
+      columns={compact ? "1" : { initial: "1", sm: "2" }}
+      onChange={(next) => navigate(next)}
+    />
   );
 
   const filterButton = (
@@ -387,7 +374,12 @@ export function LibraryToolbar({
               size="1"
               variant="ghost"
               color="gray"
-              onClick={() => navigate(NO_FILTERS, DEFAULT_SORT)}
+              // The search text survives: it is not a filter, has no chip
+              // here, and wiping state this row never showed would make
+              // "clear all" mean more than what is on screen.
+              onClick={() =>
+                navigate({ ...NO_FILTERS, query: filters.query }, DEFAULT_SORT)
+              }
             >
               Clear all
             </Button>
