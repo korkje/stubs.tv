@@ -37,7 +37,7 @@ import { Collapse } from "@/components/Collapse";
 import { FilterControls, ratingLabel, runtimeLabel } from "./FilterControls";
 
 /** How long typing settles before it becomes a navigation. */
-const SEARCH_DEBOUNCE_MS = 300;
+const SEARCH_DEBOUNCE_MS = 500;
 
 /**
  * Search, filters and sort for the library, sitting below the tab bar.
@@ -97,13 +97,22 @@ export function LibraryToolbar({
   const [draft, setDraft] = useState(filters.query);
 
   // ...but a change from elsewhere (the back button, the search chip's
-  // clear) still has to reach it. Adjusting during render rather than in an
+  // clear) still has to reach it. "Elsewhere" is the crux: the component's
+  // own debounced navigation also arrives back through this prop, and by
+  // then the field may hold newer keystrokes — syncing on that echo ate the
+  // end of whatever was typed during the round-trip. `sent` remembers the
+  // last query this component itself navigated to, so only a query it did
+  // not send counts as external. Adjusting during render rather than in an
   // effect: React re-runs this component before touching the DOM, so the
   // field never paints the stale value, and there is no second commit.
+  const [sent, setSent] = useState(filters.query);
   const [synced, setSynced] = useState(filters.query);
   if (filters.query !== synced) {
     setSynced(filters.query);
-    setDraft(filters.query);
+    if (filters.query !== sent) {
+      setSent(filters.query);
+      setDraft(filters.query);
+    }
   }
 
   const navigate = (next: Filters, nextSort: Sort = sort) => {
@@ -122,7 +131,10 @@ export function LibraryToolbar({
   // above, draft already equals filters.query, so there is nothing to do.
   useEffect(() => {
     if (draft === filters.query) return;
-    const id = setTimeout(() => navigate({ ...filters, query: draft }), SEARCH_DEBOUNCE_MS);
+    const id = setTimeout(() => {
+      setSent(draft);
+      navigate({ ...filters, query: draft });
+    }, SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(id);
     // navigate closes over the current filters and sort, both of which are
     // in the dependency list by way of `filters`; adding the function itself
