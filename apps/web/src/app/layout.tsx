@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { Theme } from "@radix-ui/themes";
+import { Box, Flex, Theme } from "@radix-ui/themes";
 import { AppearanceProvider } from "@/components/AppearanceProvider";
+import { SiteFooter } from "@/components/SiteFooter";
 import "@radix-ui/themes/styles.css";
 import "./globals.css";
 
@@ -46,7 +47,16 @@ export default function RootLayout({
       <body>
         <AppearanceProvider>
           <Theme accentColor="amber" grayColor="sand" radius="large">
-            {children}
+            {/* The column fills the viewport and the content grows into
+                whatever the footer does not use, which pins the footer to the
+                bottom of a page too short to reach it on its own — every
+                signed-out page, and the app's emptier states. dvh rather than
+                vh so the mobile toolbars collapsing does not leave a strip of
+                background below it. */}
+            <Flex direction="column" minHeight="100dvh">
+              <Box flexGrow="1">{children}</Box>
+              <SiteFooter />
+            </Flex>
           </Theme>
         </AppearanceProvider>
       </body>

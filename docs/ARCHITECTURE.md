@@ -82,6 +82,13 @@ may know that (see ADR-0004):
 Adding TMDB later = implementing the same interface + adding rows to
 `external_ids`. No schema migration of user data.
 
+**Attribution is the one deliberate exception to that rule.** TheTVDB's terms
+require crediting them wherever their metadata is shown, so `SiteFooter`
+names and links them from the root layout — every page, signed in or out.
+It is a fixed string in the UI rather than a leak of the provider: no TVDB
+IDs, no TVDB response shapes. It stays as long as TheTVDB is a provider, and
+a second provider means crediting that one too, not replacing this.
+
 ### Cache lifecycle (planned — not built yet)
 
 As it stands the copy only grows: search leaves a stub row for every result

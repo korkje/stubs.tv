@@ -31,6 +31,9 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
 6. **Metadata goes through the provider abstraction.** Never leak TVDB IDs or
    TVDB API shapes outside the ingestion layer; everything downstream uses our
    internal IDs. See ADR-0004 and [docs/DATA-MODEL.md](docs/DATA-MODEL.md).
+   The credit in the site footer is the one deliberate exception — TheTVDB's
+   terms require it, so don't "clean it up" (see ARCHITECTURE.md — Metadata
+   ingestion).
 
 ## Stack (decided — ADRs in docs/decisions/)
 
