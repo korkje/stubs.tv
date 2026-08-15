@@ -57,14 +57,19 @@ where `supabase/config.toml` disables it). Configure once under
   dashboard** (edits would be overwritten on the next deploy). The HTML
   lives in `supabase/templates/`, wired up for local dev in
   `supabase/config.toml`, and CI pushes it to the hosted project via the
-  Management API (`scripts/push-email-templates.sh`). Every link goes
-  through `/auth/confirm?token_hash={{ .TokenHash }}&type=…`, which
-  verifies the token and signs the user in — a plain link would verify the
-  account but drop the user on the homepage unauthenticated.
+  Management API (`scripts/push-email-templates.sh`). Confirmation and
+  magic-link mails go through `/auth/confirm?token_hash={{ .TokenHash }}&type=…`,
+  which verifies the token and signs the user in — a plain link would verify
+  the account but drop the user on the homepage unauthenticated. Recovery is
+  the exception: it links to `/auth/reset-password?token_hash=…`, which shows
+  the new-password form and only spends the token on submit (ADR-0011).
+- Editing a template locally does not reach a running stack — GoTrue reads
+  them at boot. `docker restart supabase_auth_<project>` picks them up.
 
 Stuck during testing (rate-limited, unverified account)? The hourly limit
 resets on its own, and a user can be confirmed manually from
-*Authentication → Users*.
+*Authentication → Users*. Recovery mail shares the same custom-SMTP hourly
+budget as signup mail.
 
 ### 2. Cloudflare API token
 

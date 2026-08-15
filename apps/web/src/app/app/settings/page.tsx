@@ -11,7 +11,7 @@ import {
   TextField,
 } from "@radix-ui/themes";
 import { createClient } from "@/lib/supabase/server";
-import { updateSettings } from "@/lib/settings/actions";
+import { changePassword, updateSettings } from "@/lib/settings/actions";
 import { FadeIn } from "@/components/FadeIn";
 import { SpecialsField } from "@/components/settings/SpecialsField";
 import { TimezoneField } from "@/components/settings/TimezoneField";
@@ -24,9 +24,14 @@ import { TimezoneField } from "@/components/settings/TimezoneField";
 export default async function SettingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ saved?: string; error?: string }>;
+  searchParams: Promise<{
+    saved?: string;
+    error?: string;
+    password_saved?: string;
+    password_error?: string;
+  }>;
 }) {
-  const { saved, error } = await searchParams;
+  const { saved, error, password_saved, password_error } = await searchParams;
 
   const supabase = await createClient();
   const { data: profile } = await supabase
@@ -121,6 +126,61 @@ export default async function SettingsPage({
 
                 <Flex>
                   <Button type="submit">Save settings</Button>
+                </Flex>
+              </Flex>
+            </form>
+          </Card>
+
+          {/* Its own form and its own messages: the settings form above posts
+              every field it contains, and a password has no business riding
+              along with a timezone. */}
+          <Card>
+            <form action={changePassword}>
+              <Flex direction="column" gap="3" p="2">
+                <Heading as="h2" size="3">
+                  Password
+                </Heading>
+
+                {password_saved && (
+                  <Callout.Root color="green">
+                    <Callout.Text>Password changed.</Callout.Text>
+                  </Callout.Root>
+                )}
+                {password_error && (
+                  <Callout.Root color="red">
+                    <Callout.Text>{password_error}</Callout.Text>
+                  </Callout.Root>
+                )}
+
+                <label>
+                  <Text as="div" size="2" mb="1" weight="medium">
+                    Current password
+                  </Text>
+                  {/* size 3 is 16px: anything smaller makes iOS Safari zoom
+                      in when the field is focused. */}
+                  <TextField.Root
+                    name="current_password"
+                    type="password"
+                    autoComplete="current-password"
+                    size="3"
+                    required
+                  />
+                </label>
+                <label>
+                  <Text as="div" size="2" mb="1" weight="medium">
+                    New password
+                  </Text>
+                  <TextField.Root
+                    name="new_password"
+                    type="password"
+                    autoComplete="new-password"
+                    size="3"
+                    required
+                  />
+                </label>
+
+                <Flex mt="1">
+                  <Button type="submit">Change password</Button>
                 </Flex>
               </Flex>
             </form>

@@ -40,7 +40,7 @@
                 <table role="presentation" cellpadding="0" cellspacing="0">
                   <tr>
                     <td class="btn" style="background-color:#ffc53d;border-radius:8px;">
-                      <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/app" style="display:inline-block;color:#21201c;font-size:15px;font-weight:600;text-decoration:none;padding:10px 20px;">Reset your password</a>
+                      <a href="{{ .SiteURL }}/auth/reset-password?token_hash={{ .TokenHash }}" style="display:inline-block;color:#21201c;font-size:15px;font-weight:600;text-decoration:none;padding:10px 20px;">Reset your password</a>
                     </td>
                   </tr>
                 </table>
@@ -49,7 +49,7 @@
             <tr>
               <td class="muted rule" style="font-size:12px;line-height:1.6;color:#82827c;border-top:1px solid #e9e8e6;padding-top:16px;">
                 If the button does not work, copy this link into your browser:<br>
-                <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/app" style="color:#82827c;word-break:break-all;">{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/app</a><br><br>
+                <a href="{{ .SiteURL }}/auth/reset-password?token_hash={{ .TokenHash }}" style="color:#82827c;word-break:break-all;">{{ .SiteURL }}/auth/reset-password?token_hash={{ .TokenHash }}</a><br><br>
                 You are receiving this because of an account action on
                 <a href="{{ .SiteURL }}" style="color:#82827c;text-decoration:none;">stubs.tv</a>.
                 If this was not you, you can ignore this email.

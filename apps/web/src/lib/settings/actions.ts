@@ -51,3 +51,57 @@ export async function updateSettings(formData: FormData) {
   revalidatePath("/", "layout");
   redirect("/app/settings?saved=1");
 }
+
+/** Mirrors minimum_password_length in supabase/config.toml. */
+const MIN_PASSWORD_LENGTH = 6;
+
+function failPassword(message: string): never {
+  redirect(`/app/settings?password_error=${encodeURIComponent(message)}`);
+}
+
+/**
+ * Changes the password of the signed-in user.
+ *
+ * The current password is checked by signing in with it rather than trusted
+ * from the session: a session on its own is not proof the person at the
+ * keyboard is the owner, and a password change is what locks the real owner
+ * out. Supabase's own secure_password_change setting only asks for a recent
+ * login, which a stolen session satisfies, so it is not a substitute for
+ * this. The reset flow refuses sessions entirely for the same reason — see
+ * app/auth/reset-password/actions.ts.
+ */
+export async function changePassword(formData: FormData) {
+  const supabase = await createClient();
+
+  const current = (formData.get("current_password") as string) ?? "";
+  const next = (formData.get("new_password") as string) ?? "";
+
+  if (next.length < MIN_PASSWORD_LENGTH) {
+    failPassword(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user?.email) {
+    failPassword("Could not read your account. Sign in again and retry.");
+  }
+
+  const { error: reauth } = await supabase.auth.signInWithPassword({
+    email: user.email,
+    password: current,
+  });
+
+  if (reauth) {
+    failPassword("Current password is incorrect.");
+  }
+
+  const { error } = await supabase.auth.updateUser({ password: next });
+  if (error) {
+    failPassword(error.message);
+  }
+
+  revalidatePath("/", "layout");
+  redirect("/app/settings?password_saved=1");
+}
