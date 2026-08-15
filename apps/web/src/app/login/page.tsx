@@ -71,6 +71,12 @@ export default async function LoginPage({
         </Card>
 
         <Text size="2" color="gray">
+          <RadixLink asChild>
+            <Link href="/forgot-password">Forgot your password?</Link>
+          </RadixLink>
+        </Text>
+
+        <Text size="2" color="gray">
           New here?{" "}
           <RadixLink asChild>
             <Link href="/signup">Create an account</Link>
