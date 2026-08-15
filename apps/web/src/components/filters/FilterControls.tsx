@@ -114,9 +114,14 @@ function TriState({
  * what made these overflow into sideways scrolling on narrow screens). The
  * columns are 1fr each, so a squeeze is shared evenly; below `xs` the
  * smaller size buys the labels back the room the squeeze costs.
+ *
+ * Squeezed far enough, a label would rather wrap than shorten, which pushes
+ * the text out of the control entirely — `.segmented-fit` in globals.css is
+ * what makes it shorten instead.
  */
 const SEGMENTED_FIT = {
   size: { initial: "1", xs: "2" },
+  className: "segmented-fit",
   style: { width: "100%", minWidth: 0 },
 } as const;
 

@@ -151,6 +151,27 @@ body:has([data-pending]) footer {
   }
 }
 
+/*
+ * Segmented control labels shorten rather than wrap.
+ *
+ * Radix gives the root a fixed height for its size but leaves the labels
+ * wrapping, and the root does not clip. A label too wide for its share of the
+ * track therefore takes a second line, the grid row grows past the root, and
+ * every label in that control is pushed below where the pills are drawn. The
+ * filter panel hits it between 768px and 800px, where the panel has gone to
+ * two columns but "Not following" no longer fits on one line.
+ *
+ * Truncating is what the rest of the sizing already asks for: these controls
+ * are deliberately allowed to compress below their widest label rather than
+ * push the panel sideways (see SEGMENTED_FIT in components/filters/
+ * FilterControls.tsx).
+ */
+.segmented-fit :is(.rt-SegmentedControlItemLabel, .rt-SegmentedControlItemLabelActive, .rt-SegmentedControlItemLabelInactive) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Keeps long episode synopses to a couple of lines in dense listings. */
 .clamp-2-lines {
   display: -webkit-box;
