@@ -7,6 +7,12 @@ initOpenNextCloudflareForDev();
 const nextConfig: NextConfig = {
   // Workspace packages ship as TypeScript source.
   transpilePackages: ["@stubs/metadata", "@stubs/db"],
+  // Lets `next dev` be reached through `tailscale serve` for testing on a
+  // phone (dev-only: the option only affects the dev server's origin checks
+  // on /_next/* assets and HMR). Next's `*` matches a single dot-separated
+  // label, and a tailnet hostname is machine.tailnet.ts.net — two labels —
+  // so it must be `**`, which matches any depth.
+  allowedDevOrigins: ["**.ts.net"],
   experimental: {
     staleTimes: {
       // Every page here is dynamic (they read the session cookie), and Next 16
