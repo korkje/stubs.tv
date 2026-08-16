@@ -74,11 +74,11 @@ export async function ShowsList({
   // error boundary turns the throw into a visible failure.
   if (error) throw new Error(`Could not load the shows: ${error.message}`);
 
-  const rows =
-    !shows || shows.length === 0
-      ? // The empty state rides the same list as the rows, so narrowing to
-        // nothing collapses the last rows while the message expands in,
-        // instead of the whole thing being swapped mid-animation.
+  const empty = !shows || shows.length === 0;
+  const rows = empty
+      ? // The empty state is a pseudo-row in the same list as the shows, but
+        // crossing between it and results remounts the list (see remountOn
+        // below): diffing against a message is churn, not continuity.
         [
           {
             id: "empty",
@@ -135,10 +135,13 @@ export async function ShowsList({
           difference — dropped rows collapse away, survivors keep their
           place, returning rows expand back in. The single-choice facets go
           in remountOn instead: only a change touching "All" produces
-          overlapping lists worth diffing. */}
+          overlapping lists worth diffing. Emptiness rides along for the
+          same reason — results and the empty-state card are disjoint, so
+          narrowing to nothing (or back out of it) swaps cleanly instead of
+          collapsing rows around an expanding message. */}
       <AnimatedRows
         key={`shows:${sort.key}:${sort.ascending}`}
-        remountOn={[filters.status, filters.following, filters.behind]}
+        remountOn={[filters.status, filters.following, filters.behind, empty]}
         rows={rows}
       />
     </Flex>

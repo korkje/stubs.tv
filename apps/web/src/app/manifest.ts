@@ -6,7 +6,7 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "stubs.tv",
-    short_name: "stubs",
+    short_name: "stubs.tv",
     description:
       "Keep track of the movies and TV shows you watch, episode by episode.",
     start_url: "/",

@@ -172,6 +172,23 @@ body:has([data-pending]) footer {
   text-overflow: ellipsis;
 }
 
+/*
+ * A detail page's overview, on phones only: some shows ship a whole essay of
+ * synopsis, which pushes the actions and stats several screens down on a
+ * narrow column. Clamped in CSS so the server already renders phones their
+ * collapsed layout — no reflow at hydration. The Show more toggle lives in
+ * components/Overview.tsx; screens from 768px up always get the full text.
+ */
+@media (max-width: 767px) {
+  .clamp-overview {
+    display: -webkit-box;
+    -webkit-line-clamp: 6;
+    line-clamp: 6;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
 /* Keeps long episode synopses to a couple of lines in dense listings. */
 .clamp-2-lines {
   display: -webkit-box;

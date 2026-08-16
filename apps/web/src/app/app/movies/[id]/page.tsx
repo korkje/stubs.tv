@@ -4,6 +4,7 @@ import { ensureMovieIngested } from "@/lib/metadata/ingest";
 import { createClient } from "@/lib/supabase/server";
 import { Backdrop } from "@/components/Backdrop";
 import { FadeIn } from "@/components/FadeIn";
+import { Overview } from "@/components/Overview";
 import { Poster } from "@/components/Poster";
 import { RatingSelect } from "@/components/tracking/RatingSelect";
 import { SeenToggleButton } from "@/components/tracking/SeenToggleButton";
@@ -65,11 +66,7 @@ export default async function MoviePage({ params }: { params: Promise<{ id: stri
             </Flex>
           </Box>
 
-          {movie.overview && (
-            <Text size="3" style={{ lineHeight: 1.6 }}>
-              {movie.overview}
-            </Text>
-          )}
+          {movie.overview && <Overview text={movie.overview} />}
 
           <Flex gap="3" align="center" wrap="wrap">
             <SeenToggleButton entityId={movieId} seen={watch !== null} revalidate={path} />

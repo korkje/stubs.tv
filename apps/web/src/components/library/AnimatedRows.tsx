@@ -32,15 +32,16 @@ export interface AnimatedRow {
  * It is a client component receiving server-rendered rows: AnimatePresence
  * keeps a departed child around just long enough to play the exit.
  *
- * The diff animation is for lists that overlap. `remountOn` takes the values
- * of the surface's single-choice facets; when one switches between two
- * non-null values ("Ended" → "Ongoing", Following → Not following) the old
- * and new lists are disjoint by construction, and watching every row
- * collapse while a whole other list expands is churn, not continuity — so
- * the list remounts and plays its entrance instead. Null at either end means
- * "All" was involved: one list contains the other, and the diff is the
- * point. The host can only say what the facets are NOW, so the previous
- * values are remembered here.
+ * The diff animation is for lists that overlap. `remountOn` takes values
+ * whose change means the old and new lists are disjoint by construction:
+ * the surface's single-choice facets ("Ended" → "Ongoing", Following → Not
+ * following), and whether the list is showing results or its empty-state
+ * card. Watching every row collapse while a whole other list expands is
+ * churn, not continuity — so on such a change the list remounts and plays
+ * its entrance instead. Null at either end of a facet change means "All"
+ * was involved: one list contains the other, and the diff is the point.
+ * The host can only say what the values are NOW, so the previous values
+ * are remembered here.
  */
 export function AnimatedRows({
   rows,
