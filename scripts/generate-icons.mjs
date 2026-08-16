@@ -1,4 +1,4 @@
-// Regenerates every raster favicon/app icon from the canonical brand mark,
+// Regenerates every derived favicon/app-icon asset from the canonical brand mark,
 // assets/brand/stubs-mark-favicon.svg. Run from the repo root after
 // `npm install` (sharp ships with Next.js):
 //
@@ -14,6 +14,10 @@
 //   apps/web/public/icon-maskable-512.png  (full-bleed, star inside the 80%
 //                                          safe zone so any platform mask
 //                                          shape leaves it intact)
+//   apps/web/public/bimi.svg               BIMI logo for email (SVG Tiny 1.2
+//                                          Portable/Secure profile; inboxes
+//                                          crop it to a circle, so full-bleed
+//                                          with the same safe-zone padding)
 //
 // apps/web/src/app/favicon.ico and icon.svg are maintained by hand; this
 // script does not touch them.
@@ -65,6 +69,22 @@ async function render(svg, size, outPath) {
   console.log(`${outPath} (${size}×${size}, ${png.length} bytes)`);
 }
 
+// BIMI requires the SVG Tiny 1.2 Portable/Secure profile: version and
+// baseProfile pinned, a <title>, and only a restricted element set — no
+// <symbol>/<use> indirection, so the star path is inlined with a transform.
+// Same geometry as the full-bleed mark above.
+function bimiSvg(starWidth) {
+  const round = (n) => String(Math.round(n * 1000) / 1000);
+  const x = round((32 - starWidth) / 2);
+  const y = round((32 - starWidth) / 2 + (0.5 * starWidth) / 24);
+  const scale = round(starWidth / 15);
+  return `<svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny-ps" viewBox="0 0 32 32">
+  <title>stubs.tv</title>
+  <rect width="32" height="32" fill="${background}"/>
+  <path transform="translate(${x} ${y}) scale(${scale})" d="${starPath}" fill="${foreground}"/>
+</svg>`;
+}
+
 // Home-screen icons read better with a bit more padding than the browser-tab
 // mark; 20/32 keeps the star clear of the maskable safe zone (a centered
 // circle of radius 12.8 units — the star's points reach ~9.4 at this width).
@@ -75,3 +95,6 @@ await render(canonical, 192, "apps/web/public/icon-192.png");
 await render(canonical, 512, "apps/web/public/icon-512.png");
 await render(fullBleed, 192, "apps/web/public/icon-maskable-192.png");
 await render(fullBleed, 512, "apps/web/public/icon-maskable-512.png");
+
+await writeFile(join(root, "apps/web/public/bimi.svg"), bimiSvg(20));
+console.log("apps/web/public/bimi.svg");
