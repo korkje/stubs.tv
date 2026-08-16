@@ -59,10 +59,11 @@ export async function MoviesList({
   // and "nothing matches" must never be how a failure looks.
   if (error) throw new Error(`Could not load the movies: ${error.message}`);
 
-  const rows =
-    !movies || movies.length === 0
-      ? // The empty state rides the same list as the rows, so narrowing to
-        // nothing collapses the last rows while the message expands in.
+  const empty = !movies || movies.length === 0;
+  const rows = empty
+      ? // The empty state is a pseudo-row in the same list as the movies, but
+        // crossing between it and results remounts the list (see remountOn
+        // below): diffing against a message is churn, not continuity.
         [
           {
             id: "empty",
@@ -96,8 +97,14 @@ export async function MoviesList({
       {/* Same keying rules as the shows list: the tab in the key stops
           cross-animating between the two lists, the sort in it makes a
           reorder a fresh entrance, and the filters deliberately absent from
-          it let a filter change animate the difference. */}
-      <AnimatedRows key={`movies:${sort.key}:${sort.ascending}`} rows={rows} />
+          it let a filter change animate the difference. Emptiness remounts
+          for the same reason as the shows list: results and the empty-state
+          card are disjoint, so there is no difference worth animating. */}
+      <AnimatedRows
+        key={`movies:${sort.key}:${sort.ascending}`}
+        remountOn={[empty]}
+        rows={rows}
+      />
     </Flex>
   );
 }
