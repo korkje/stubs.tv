@@ -6,15 +6,14 @@ import {
   Container,
   Flex,
   Heading,
-  Separator,
   Text,
 } from "@radix-ui/themes";
 import { ensureSeriesIngested } from "@/lib/metadata/ingest";
 import { createClient } from "@/lib/supabase/server";
 import { Backdrop } from "@/components/Backdrop";
-import { Collapse } from "@/components/Collapse";
 import { FadeIn } from "@/components/FadeIn";
-import { SeasonHeader } from "@/components/tracking/SeasonHeader";
+import { Overview } from "@/components/Overview";
+import { SeasonTabs } from "@/components/tracking/SeasonTabs";
 import { StaggerIn } from "@/components/StaggerIn";
 import { Poster } from "@/components/Poster";
 import { Stat } from "@/components/Stat";
@@ -25,13 +24,17 @@ import { RatingSelect } from "@/components/tracking/RatingSelect";
 import { formatRuntime } from "@/lib/format";
 
 /**
- * Seasons are collapsed by default and only the open one has its episodes
- * fetched and rendered. Workers allow 10ms of CPU per request on the free
- * plan, and rendering all 875 episodes of a long-running show blew straight
- * past it — including on the re-render that every "mark as seen" triggers.
+ * Seasons render one at a time behind a tab row (the same pattern as the
+ * library's Shows/Movies tabs). Workers allow 10ms of CPU per request on the
+ * free plan, and rendering all 875 episodes of a long-running show blew
+ * straight past it — including on the re-render that every "mark as seen"
+ * triggers. The tabs make that constraint the interface: exactly one
+ * season's episodes are fetched and rendered per request.
  *
- * The open season lives in the URL so it survives those re-renders, is
- * shareable, and works with the back button.
+ * The active season lives in the URL so it survives those re-renders, is
+ * shareable, and works with the back button. Links from the accordion era
+ * carried a comma list (?season=1,3); the first entry naming a real season
+ * wins, so old links still land on a sensible tab.
  */
 export default async function SeriesPage({
   params,
@@ -122,30 +125,29 @@ export default async function SeriesPage({
     seen: sum(sweepSeasons, (s) => s.seen_count),
   };
 
-  // Any number of seasons can be open at once; the set lives in the URL as
-  // a comma list. A single-season show has nothing to choose between, so it
-  // opens by default — but ONLY when the URL says nothing about seasons.
-  // "?season=" means "the user closed everything": without that distinction
-  // a one-season show would reopen the moment it was closed, since closing
-  // the last season would drop back to the bare path.
-  const openSeasons = new Set(
-    (season ?? "")
-      .split(",")
-      .filter((part) => part !== "")
-      .map(Number)
-      .filter(Number.isInteger)
+  // The requested season only counts if it names a season the show has (and
+  // that the specials setting shows); anything else falls back to the first
+  // tab rather than a dead page.
+  const requested = (season ?? "")
+    .split(",")
+    .filter((part) => part !== "")
+    .map(Number)
+    .find((n) => orderedSeasons.some((row) => (row.season_number ?? 0) === n));
+  const defaultNumber = orderedSeasons[0]?.season_number ?? 0;
+  const activeNumber = requested ?? defaultNumber;
+  const activeSeason = orderedSeasons.find(
+    (row) => (row.season_number ?? 0) === activeNumber
   );
-  if (season === undefined && orderedSeasons.length === 1) {
-    openSeasons.add(orderedSeasons[0].season_number ?? 0);
-  }
 
-  // Toggling a season adds or removes it from the list.
-  const seasonHref = (number: number) => {
-    const next = new Set(openSeasons);
-    if (next.has(number)) next.delete(number);
-    else next.add(number);
-    return `${path}?season=${[...next].sort((a, b) => a - b).join(",")}`;
-  };
+  // The default tab links to the bare path so the canonical URL stays clean.
+  const tabs = orderedSeasons.map((row) => {
+    const number = row.season_number ?? 0;
+    return {
+      number,
+      label: number === 0 ? "Specials" : `Season ${number}`,
+      href: number === defaultNumber ? path : `${path}?season=${number}`,
+    };
+  });
 
   return (
     <FadeIn>
@@ -179,11 +181,7 @@ export default async function SeriesPage({
               </Flex>
             </Box>
 
-            {series.overview && (
-              <Text size="3" style={{ lineHeight: 1.6 }}>
-                {series.overview}
-              </Text>
-            )}
+            {series.overview && <Overview text={series.overview} />}
 
             <Flex gap="3" align="center" wrap="wrap">
               <FollowButton
@@ -216,51 +214,41 @@ export default async function SeriesPage({
           </Flex>
         </Flex>
 
-        <Separator size="4" />
-
-        {orderedSeasons.length === 0 ? (
+        {activeSeason === undefined ? (
           <Text color="gray">No episodes listed yet.</Text>
         ) : (
           <Flex direction="column" gap="3">
-            {orderedSeasons.map((seasonRow) => {
-              const number = seasonRow.season_number ?? 0;
-              const open = openSeasons.has(number);
+            <SeasonTabs tabs={tabs} active={activeNumber} />
 
-              return (
-                <Flex key={number} direction="column" gap="2">
-                  <Flex align="center" justify="between" gap="3" wrap="wrap">
-                    <SeasonHeader
-                      href={seasonHref(number)}
-                      open={open}
-                      title={number === 0 ? "Specials" : `Season ${number}`}
-                      subtitle={`${seasonRow.seen_count ?? 0} of ${seasonRow.episode_count ?? 0} seen`}
-                    />
-                    {(seasonRow.aired_count ?? 0) > 0 && (
-                      <BulkMarkButtons
-                        seriesId={seriesId}
-                        seasonNumber={number}
-                        revalidate={path}
-                        allSeen={(seasonRow.seen_count ?? 0) >= (seasonRow.aired_count ?? 0)}
-                        label={number === 0 ? "specials" : "season"}
-                      />
-                    )}
-                  </Flex>
+            <Flex align="center" justify="between" gap="3" wrap="wrap">
+              <Text size="2" color="gray">
+                {activeSeason.seen_count ?? 0} of {activeSeason.episode_count ?? 0} seen
+              </Text>
+              {(activeSeason.aired_count ?? 0) > 0 && (
+                <BulkMarkButtons
+                  seriesId={seriesId}
+                  seasonNumber={activeNumber}
+                  revalidate={path}
+                  allSeen={(activeSeason.seen_count ?? 0) >= (activeSeason.aired_count ?? 0)}
+                  label={activeNumber === 0 ? "specials" : "season"}
+                />
+              )}
+            </Flex>
 
-                  <Collapse>
-                    {open && (
-                      <SeasonEpisodes
-                        seriesId={seriesId}
-                        seasonNumber={number}
-                        revalidate={path}
-                        synopsisMode={settings.synopsisMode}
-                      />
-                    )}
-                  </Collapse>
-                </Flex>
-              );
-            })}
+            {/* Keyed by season so a switch mounts the list fresh and the
+                stagger entrance replays — the library gets the same remount
+                for free from its tabs being two different components. A
+                revalidation (marking episodes) keeps the key, so it swaps
+                in place without re-animating. */}
+            <SeasonEpisodes
+              key={activeNumber}
+              seriesId={seriesId}
+              seasonNumber={activeNumber}
+              revalidate={path}
+              synopsisMode={settings.synopsisMode}
+            />
           </Flex>
-          )}
+        )}
         </Flex>
       </Container>
     </FadeIn>
