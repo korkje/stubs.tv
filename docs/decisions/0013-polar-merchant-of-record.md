@@ -27,8 +27,9 @@ Use Polar (polar.sh) as merchant of record, integrated with
 - `apps/web/src/lib/polar.ts` — one lazily-constructed SDK client;
   `POLAR_SERVER` picks sandbox vs production, never hardcoded.
 - `GET /checkout?products=<id>` — creates a Polar checkout and redirects
-  to the Polar-hosted page. No success URL: Polar shows its own
-  confirmation.
+  to the Polar-hosted page. Polar shows its own confirmation, then its
+  success URL returns the customer to `/app` (origin-derived, so it works
+  self-hosted too).
 - `POST /api/webhook/polar` — signature-verified (Standard Webhooks)
   ingest of `order.paid` and `customer.state_changed`; this is the only
   path by which payment state enters the app.
