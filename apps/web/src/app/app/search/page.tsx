@@ -63,7 +63,9 @@ export default async function SearchPage({
 async function Results({ query }: { query: string }) {
   let results;
   try {
-    results = await getMetadataProvider().search(query, { limit: 24 });
+    // 12 per kind — up to 24 rows, the same page weight as the old single
+    // mixed call, but with every slot spent on something we track.
+    results = await getMetadataProvider().search(query, { limit: 12 });
   } catch {
     return (
       <Callout.Root color="red">
@@ -127,7 +129,10 @@ async function Results({ query }: { query: string }) {
     .map((entry) => entry.result);
 
   // The same row component as the Shows and Movies lists, so search results
-  // cannot drift apart from them in shape, spacing or type sizes.
+  // cannot drift apart from them in shape, spacing or type sizes. The whole
+  // set renders at once, deliberately unpaged: the provider returns one
+  // bounded, popularity-ranked page (paging it would re-rank per page), and
+  // lazily revealing rows that are already fetched would be pacing theatre.
   return (
     <Flex direction="column">
       {/* Keyed on the query so a new result set mounts fresh and staggers

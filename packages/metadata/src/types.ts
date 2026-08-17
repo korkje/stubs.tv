@@ -71,6 +71,12 @@ export interface MovieDetail {
 export interface MetadataProvider {
   /** Stable identifier, matching the `metadata_provider` enum in the database. */
   readonly name: "tvdb";
+  /**
+   * `limit` caps each kind separately (up to `limit` series plus `limit`
+   * movies), not the total: the kinds are fetched independently so that
+   * hits we track never compete for result slots with kinds we do not —
+   * people, mostly. Order is not meaningful across kinds; callers rank.
+   */
   search(query: string, options?: { limit?: number }): Promise<SearchResult[]>;
   getSeries(id: ProviderId): Promise<SeriesDetail | null>;
   getEpisodes(id: ProviderId): Promise<EpisodeDetail[]>;
