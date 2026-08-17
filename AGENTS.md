@@ -62,8 +62,9 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
   Bun-specific files.
 - **`packages/metadata`** holds the provider abstraction and TheTVDB client
   and must never import Supabase; **`packages/db`** holds generated schema
-  types. Ingestion (the only code using the service-role key) lives in
-  `apps/web/src/lib/metadata/`.
+  types. The service-role key is used only by ingestion
+  (`apps/web/src/lib/metadata/`) and the Polar billing webhook
+  (`apps/web/src/app/api/webhook/polar/`).
 
 ## Conventions
 

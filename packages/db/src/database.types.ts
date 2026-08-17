@@ -55,6 +55,33 @@ export type Database = {
         }
         Relationships: []
       }
+      billing: {
+        Row: {
+          current_period_end: string | null
+          lifetime: boolean
+          polar_customer_id: string
+          subscription_status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          current_period_end?: string | null
+          lifetime?: boolean
+          polar_customer_id: string
+          subscription_status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          current_period_end?: string | null
+          lifetime?: boolean
+          polar_customer_id?: string
+          subscription_status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       credits: {
         Row: {
           character: string | null
@@ -647,7 +674,7 @@ export type Database = {
       credit_role: "actor" | "director" | "creator" | "writer"
       entity_type: "series" | "season" | "episode" | "movie" | "person"
       metadata_provider: "tvdb"
-      plan: "comp" | "basic" | "pro"
+      plan: "comp" | "free" | "paid"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -781,7 +808,7 @@ export const Constants = {
       credit_role: ["actor", "director", "creator", "writer"],
       entity_type: ["series", "season", "episode", "movie", "person"],
       metadata_provider: ["tvdb"],
-      plan: ["comp", "basic", "pro"],
+      plan: ["comp", "free", "paid"],
     },
   },
 } as const
