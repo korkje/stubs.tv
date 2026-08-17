@@ -17,6 +17,14 @@ export interface AnimatedRow {
   /** Stable and data-derived (an internal id), unique within the list. */
   id: string;
   node: React.ReactNode;
+  /**
+   * False: the row appears in place with no entrance at all — for rows
+   * paged in by lazy loading, which arrive below the fold before the user
+   * scrolls to them; watching fifty of them expand into place would be
+   * churn announcing nothing. Exits are unaffected: a paged-in row that
+   * later leaves (unfollowed, filtered out) still collapses away.
+   */
+  entrance?: boolean;
 }
 
 /**
@@ -94,12 +102,15 @@ function RowList({ rows }: { rows: AnimatedRow[] }) {
       <AnimatePresence>
         {rows.map((row, index) => {
           const atMount = atMountIds.has(row.id);
+          // Both layers must skip their initial or the row half-animates:
+          // instant height with fading content, or the reverse.
+          const instant = row.entrance === false && !atMount;
 
           return (
             <motion.div
               key={row.id}
               style={{ overflow: "hidden" }}
-              initial={atMount ? false : { height: 0 }}
+              initial={atMount || instant ? false : { height: 0 }}
               animate={{ height: "auto" }}
               exit={{
                 height: 0,
@@ -110,7 +121,11 @@ function RowList({ rows }: { rows: AnimatedRow[] }) {
                 layout
                 style={{ paddingBottom: "var(--space-3)" }}
                 initial={
-                  atMount ? { opacity: 0, y: 10 } : { opacity: 0, scale: 0.97 }
+                  instant
+                    ? false
+                    : atMount
+                      ? { opacity: 0, y: 10 }
+                      : { opacity: 0, scale: 0.97 }
                 }
                 animate={{
                   opacity: 1,

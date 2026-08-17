@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Box, Spinner, TabNav } from "@radix-ui/themes";
 import { MotionConfig, motion } from "motion/react";
+import { useLibraryCounts } from "./LibraryCounts";
 
 /**
  * The Shows/Movies tabs. Switching is a server round trip (the lists render
@@ -20,16 +21,12 @@ import { MotionConfig, motion } from "motion/react";
  * fields the other tab does not have or leave dead parameters in the URL, so
  * a tab switch is a clean slate. When Movies grows facets of its own, the
  * shared ones should start travelling with the link.
+ *
+ * The counts come from LibraryCounts rather than props, so a toggle that
+ * changes membership moves them without a server round trip.
  */
-export function LibraryTabs({
-  movies,
-  showCount,
-  movieCount,
-}: {
-  movies: boolean;
-  showCount: number;
-  movieCount: number;
-}) {
+export function LibraryTabs({ movies }: { movies: boolean }) {
+  const { shows: showCount, movies: movieCount } = useLibraryCounts();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 

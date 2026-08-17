@@ -32,11 +32,17 @@ function fail(context: string, error: { message: string } | null): void {
  * A film can be marked straight from the search results, whose row is still
  * a stub — see the note on ensureSeriesIngested's call in setFollowing for
  * why that has to be filled in here.
+ *
+ * `revalidate` is optional here and on unmarkSeen/setFollowing: a surface
+ * whose rows live in client state (the feed, the library lists) must never
+ * revalidate its own path — a revalidatePath from an action re-renders the
+ * viewed route immediately, yanking the server tree out from under the
+ * client-held rows. Such callers pass another affected path, or nothing.
  */
 export async function markSeen(
   entityType: WatchableType,
   entityId: number,
-  revalidate: string
+  revalidate?: string
 ) {
   const { supabase, userId } = await requireUser();
 
@@ -56,13 +62,13 @@ export async function markSeen(
   // one means the work is already done.
   if (entityType === "movie") await ensureMovieIngested(entityId);
 
-  revalidatePath(revalidate);
+  if (revalidate) revalidatePath(revalidate);
 }
 
 export async function unmarkSeen(
   entityType: WatchableType,
   entityId: number,
-  revalidate: string
+  revalidate?: string
 ) {
   const { supabase, userId } = await requireUser();
 
@@ -74,7 +80,7 @@ export async function unmarkSeen(
     .eq("entity_id", entityId);
 
   fail("unmark", error);
-  revalidatePath(revalidate);
+  if (revalidate) revalidatePath(revalidate);
 }
 
 /**
@@ -141,7 +147,7 @@ export async function unmarkEpisodesSeen(
 export async function setFollowing(
   seriesId: number,
   following: boolean,
-  revalidate: string
+  revalidate?: string
 ) {
   const { supabase, userId } = await requireUser();
 
@@ -162,7 +168,7 @@ export async function setFollowing(
     fail("unfollow", error);
   }
 
-  revalidatePath(revalidate);
+  if (revalidate) revalidatePath(revalidate);
 }
 
 /** Sets or clears a 1–10 score. Ratings are independent of watch state. */

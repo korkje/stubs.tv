@@ -2,10 +2,9 @@ import { Container, Heading, VisuallyHidden } from "@radix-ui/themes";
 import { createClient } from "@/lib/supabase/server";
 import { fetchUpNext } from "@/lib/up-next/actions";
 import { FEED_FACETS, parseFilters, restrict, serializeFilters } from "@/lib/filters";
+import { FEED_SEED } from "@/lib/paging";
 import { FeedConfigButton } from "@/components/filters/FeedConfigButton";
 import { UpNextFeed } from "@/components/up-next/UpNextFeed";
-
-const PAGE = 20;
 
 /**
  * Home: unwatched episodes of followed shows, in release order, centered on
@@ -38,8 +37,8 @@ export default async function HomePage({
   }).format(new Date());
 
   const [past, future] = await Promise.all([
-    fetchUpNext(true, today, 0, PAGE, filters),
-    fetchUpNext(false, today, 0, PAGE, filters),
+    fetchUpNext(true, today, 0, FEED_SEED, filters),
+    fetchUpNext(false, today, 0, FEED_SEED, filters),
   ]);
 
   return (

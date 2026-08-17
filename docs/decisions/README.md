@@ -29,3 +29,4 @@ Template:
 | [0009](0009-mailjet-then-cloudflare-email.md) | Mailjet for email now, Cloudflare Email Service later |
 | [0010](0010-cron-cloudflare-not-supabase.md) | Scheduled jobs run where their code lives |
 | [0011](0011-recovery-token-spent-on-submit.md) | Recovery links land on a form; token spent on submit |
+| [0012](0012-library-lazy-loading.md) | Library lists lazy-load through client-held pages |
