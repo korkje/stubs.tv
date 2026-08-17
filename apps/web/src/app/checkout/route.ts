@@ -7,8 +7,10 @@ import { createClient } from "@/lib/supabase/server";
  * Login is required so the checkout carries the app's user id as Polar's
  * external customer id — that id coming back on webhook events is the whole
  * user↔customer mapping (ADR-0013).
- * No successUrl is set on purpose: Polar shows its own hosted confirmation
- * page after payment, so the app needs no confirmation route.
+ * successUrl brings the customer back to the app after Polar's confirmation
+ * — derived from the request origin so it works self-hosted and locally.
+ * The read-only banner can linger for the seconds until the webhook lands;
+ * the /app layout comment documents that transient.
  */
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -40,6 +42,7 @@ export async function GET(request: Request) {
     const checkout = await polar.checkouts.create({
       products,
       externalCustomerId: user.id,
+      successUrl: `${url.origin}/app`,
     });
     checkoutUrl = checkout.url;
   } catch (error) {
