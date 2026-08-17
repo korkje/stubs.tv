@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   Button,
   Callout,
@@ -11,6 +12,7 @@ import {
 } from "@radix-ui/themes";
 import { TextField } from "@radix-ui/themes";
 import { safeNext } from "@/lib/redirects";
+import { createClient } from "@/lib/supabase/server";
 import { login } from "./actions";
 
 export default async function LoginPage({
@@ -21,6 +23,14 @@ export default async function LoginPage({
   const params = await searchParams;
   const error = params.error;
   const next = safeNext(params.next);
+
+  // Already signed in? The form would be a dead end — carry on to wherever
+  // the visitor was headed.
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user) redirect(next ?? "/app");
 
   return (
     <Container size="1" px="4">
