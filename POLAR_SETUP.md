@@ -23,9 +23,10 @@ Dashboard: https://polar.sh/dashboard/stubs-tv
 
 | Key | Purpose |
 |---|---|
-| `POLAR_ACCESS_TOKEN` | Org access token (products, checkouts, webhooks — read/write) |
+| `POLAR_ACCESS_TOKEN` | Org access token (products, checkouts, webhooks, discounts — read/write) |
 | `POLAR_WEBHOOK_SECRET` | Signing secret of the webhook endpoint below |
 | `POLAR_SERVER` | `production` in prod; `sandbox` for local experiments |
+| `POLAR_PRODUCT_MONTHLY` / `_ANNUAL` / `_LIFETIME` | Product ids for the pricing section — per environment, not secret (production values in `wrangler.jsonc` `vars`) |
 
 ## Provisioned Polar resources (production)
 

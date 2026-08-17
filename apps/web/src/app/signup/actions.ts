@@ -3,47 +3,36 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { safeNext } from "@/lib/redirects";
 
-/** Error redirects keep the invite code, so the field survives a retry. */
-function fail(message: string, inviteCode: string): never {
+/** Error redirects keep the destination, so a retry still lands right. */
+function fail(message: string, next: string | null): never {
   const params = new URLSearchParams({ error: message });
-  if (inviteCode) params.set("invite", inviteCode);
+  if (next) params.set("next", next);
   redirect(`/signup?${params}`);
 }
 
 export async function signup(formData: FormData) {
   const supabase = await createClient();
-  const inviteCode = ((formData.get("invite") as string) ?? "").trim();
-
-  // The auth.users trigger is the real gate, but its exception surfaces from
-  // GoTrue as an unhelpful "Database error saving new user" — ask first so
-  // the form can show a real message. A race between this check and the
-  // signup is still caught by the trigger.
-  const { data: gate } = await supabase.rpc("signup_gate", { p_code: inviteCode });
-  if (gate === "closed") {
-    fail("Signups are invite-only right now — enter an invite code to join.", inviteCode);
-  }
-  if (gate === "invalid") {
-    fail("That invite is invalid or has already been used.", inviteCode);
-  }
+  const next = safeNext(formData.get("next"));
 
   const { data, error } = await supabase.auth.signUp({
     email: formData.get("email") as string,
     password: formData.get("password") as string,
-    // Carried in the user metadata so the signup trigger can redeem it.
-    options: inviteCode ? { data: { invite_code: inviteCode } } : undefined,
   });
 
   if (error) {
-    fail(error.message, inviteCode);
+    fail(error.message, next);
   }
 
   // With email confirmation enabled (hosted default) there is no session
-  // yet — the user must click the link we just sent them.
+  // yet — the user must click the link we just sent them. The destination
+  // does not survive the email round-trip; a fresh account lands on /app,
+  // where the read-only banner points at the plans page anyway.
   if (!data.session) {
     redirect("/check-email");
   }
 
   revalidatePath("/", "layout");
-  redirect("/app");
+  redirect(next ?? "/app");
 }

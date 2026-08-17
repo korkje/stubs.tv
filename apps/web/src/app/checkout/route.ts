@@ -25,7 +25,10 @@ export async function GET(request: Request) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.redirect(new URL("/login", url.origin));
+    // Preserve the destination so a pricing click made while logged out
+    // arrives back here (and on to Polar) after signing in.
+    const next = encodeURIComponent(url.pathname + url.search);
+    return NextResponse.redirect(new URL(`/login?next=${next}`, url.origin));
   }
 
   const polar = getPolarClient();

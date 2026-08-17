@@ -98,3 +98,37 @@ await render(fullBleed, 512, "apps/web/public/icon-maskable-512.png");
 
 await writeFile(join(root, "apps/web/public/bimi.svg"), bimiSvg(20));
 console.log("apps/web/public/bimi.svg");
+
+// Social preview (Open Graph) image: the full ticket mark at its usual tilt
+// over the wordmark, on the mark's own ink color. 1200×630 is the OG
+// standard; the PNG is committed, so it only has to render correctly on the
+// machine running this script (the wordmark uses a system font).
+{
+  const ticket = await readFile(join(root, "assets/brand/stubs-mark.svg"));
+  const ink = foreground; // the mark's ink doubles as the card background
+  const mark = await sharp(ticket, { density: 300 })
+    .resize(430, null)
+    .rotate(-6, { background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .png()
+    .toBuffer();
+  const markMeta = await sharp(mark).metadata();
+  const text = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630">
+  <text x="600" y="520" text-anchor="middle" font-family="Helvetica, Arial, sans-serif"
+    font-size="88" font-weight="bold" fill="#F5F1E8">stubs.tv</text>
+</svg>`;
+  const og = await sharp({
+    create: { width: 1200, height: 630, channels: 4, background: ink },
+  })
+    .composite([
+      {
+        input: mark,
+        left: Math.round((1200 - markMeta.width) / 2),
+        top: 90,
+      },
+      { input: Buffer.from(text), left: 0, top: 0 },
+    ])
+    .png()
+    .toBuffer();
+  await writeFile(join(root, "apps/web/public/og.png"), og);
+  console.log(`apps/web/public/og.png (1200×630, ${og.length} bytes)`);
+}

@@ -2,16 +2,18 @@ import Link from "next/link";
 import { Box, Container, Flex } from "@radix-ui/themes";
 import { createClient } from "@/lib/supabase/server";
 import { NavLinks } from "@/components/NavLinks";
+import { ReadOnlyBanner } from "@/components/ReadOnlyBanner";
 import { SiteFooter } from "@/components/SiteFooter";
 import { StubsMark } from "@/components/StubsMark";
 import { UserMenu } from "@/components/UserMenu";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   // The avatar wants a letter; the display name is the honest source and the
-  // email the fallback.
+  // email the fallback. plan rides along for the read-only banner — same
+  // query, no extra round-trip.
   const supabase = await createClient();
   const [{ data: profile }, { data: userData }] = await Promise.all([
-    supabase.from("profiles").select("display_name").maybeSingle(),
+    supabase.from("profiles").select("display_name, plan").maybeSingle(),
     supabase.auth.getUser(),
   ]);
   const initial = (
@@ -80,6 +82,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </Container>
         </header>
       </Flex>
+      {/* Layout-level so it shows on every /app page and survives page error
+          boundaries. Reflects plan at render time: right after paying it can
+          linger one visit until the Polar webhook lands. */}
+      {profile?.plan === "free" && <ReadOnlyBanner />}
       <Box py="5" flexGrow="1">
         {children}
       </Box>

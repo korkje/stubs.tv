@@ -98,10 +98,9 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
   printed URL/anon key into `apps/web/.env.local` (see `apps/web/.env.example`)
 - `npx supabase db reset` — reapply all migrations from scratch, then run
   `supabase/seed.sql`, which mints the local dev account
-  (dev@stubs.local / password). Invite-only signup leaves a fresh database
-  with no way in — no user means no invite, no invite means no user — so
-  that seed is how you get signed in locally. Local only: never
-  `db reset --linked`.
+  (dev@stubs.local / password) with `plan = 'comp'` — public signups start
+  read-only (`free`, ADR-0014), so the comp grant is what keeps every
+  write path testable locally. Local only: never `db reset --linked`.
 - `npm run db:types` — regenerate `@stubs/db` types after a migration
   (requires local Supabase running); commit the result
 

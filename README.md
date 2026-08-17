@@ -4,7 +4,7 @@ Keep track of the movies and TV shows you watch, episode by episode: search, fol
 
 > The name refers to movie ticket stubs: this is like keeping a box of them, but for everything — TV included.
 
-**Domain:** [stubs.tv](https://stubs.tv) · **Status:** planning / pre-code
+**Domain:** [stubs.tv](https://stubs.tv) · **Status:** live
 
 ## Why
 
@@ -64,10 +64,10 @@ npx supabase db reset     # applies migrations and seeds a dev account
 npm run dev               # http://localhost:3000
 ```
 
-Sign in as **dev@stubs.local** / **password**. Signups are invite-only, and an
-invite needs an existing user to create it, so a fresh database has no way in
-— `supabase/seed.sql` mints that first account. It is an admin, so it can
-issue invites from `/app/invites` for any further test accounts.
+Sign in as **dev@stubs.local** / **password** — `supabase/seed.sql` mints
+that account with full access. Signups are public, but new accounts start
+read-only until they pick a paid plan (or you comp them from the Supabase
+dashboard), so the seeded account is the convenient way in locally.
 
 Self-hosting is a first-class, documented path and will stay that way.
 

@@ -92,12 +92,14 @@ path, and the CPU budget is 10ms.
 - [ ] Most-watched actors / directors / genres
 - [ ] Data export (JSON download) — doubles as the GDPR export
 
-## Phase 3 — Invite (friends & family)
+## Phase 3 — Open signups (was: invites)
 
-- [ ] Invitation flow (comp plan)
-- [ ] Account deletion self-serve (GDPR)
-- [ ] Privacy policy + terms pages
-- [ ] Marketing landing page with real content
+- [x] ~~Invitation flow (comp plan)~~ Built, then removed with ADR-0014:
+      signups are public, new accounts start read-only and pick a plan
+- [ ] Account deletion self-serve (GDPR — privacy page promises email
+      handling until this ships)
+- [x] Privacy policy + terms pages
+- [x] Marketing landing page with real content
 - [ ] Metadata cache lifecycle — see ARCHITECTURE.md "Cache lifecycle":
       evict unused titles (minding the polymorphic-reference hazard), refresh
       what is used via `/updates?since=`, and make search local-first with a

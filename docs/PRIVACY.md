@@ -29,15 +29,15 @@ product's philosophy makes this easy: watch history is *the user's* data.
 | Supabase (EU) | Database, auth | email, user data |
 | Cloudflare | Hosting, CDN, DNS | request metadata (IPs in transit) |
 | Mailjet (EU) | Transactional email (verification, password reset) | email address |
-| Stripe (Phase 5) | Payments | billing details (never stored by us) |
+| Polar | Payments (merchant of record) | billing details (never stored by us) |
 
 TheTVDB receives no user data — metadata requests are server-side and carry
 no user identifiers.
 
 ## To do before friends & family (Phase 3)
 
-- [ ] Privacy policy page (plain language, list processors above)
-- [ ] Terms of service page
+- [x] Privacy policy page (`/privacy` — keep in lockstep with this doc)
+- [x] Terms of service page (`/terms`)
 - [ ] Account deletion flow tested end-to-end
 - [ ] Cookie situation: aim for "strictly necessary only" (auth session) —
       then no cookie banner is required
