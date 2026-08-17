@@ -10,38 +10,22 @@ import {
   Link as RadixLink,
   TextField,
 } from "@radix-ui/themes";
-import { createClient } from "@/lib/supabase/server";
+import { safeNext } from "@/lib/redirects";
 import { signup } from "./actions";
 
 export default async function SignupPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; invite?: string }>;
+  searchParams: Promise<{ error?: string; next?: string }>;
 }) {
-  const { error, invite } = await searchParams;
-
-  // While signups are invite-only the form carries an invite code field —
-  // prefilled when the visitor arrived through an invite link.
-  const supabase = await createClient();
-  const { data: settings } = await supabase
-    .from("app_settings")
-    .select("open_signups")
-    .maybeSingle();
-  const inviteOnly = !settings?.open_signups;
+  const params = await searchParams;
+  const error = params.error;
+  const next = safeNext(params.next);
 
   return (
     <Container size="1" px="4">
       <Flex direction="column" gap="4" py="9">
         <Heading size="6">Create your stubs.tv account</Heading>
-
-        {inviteOnly && !invite && !error && (
-          <Callout.Root color="amber">
-            <Callout.Text>
-              Signups are invite-only right now — you need an invite code from
-              a member to join.
-            </Callout.Text>
-          </Callout.Root>
-        )}
 
         {error && (
           <Callout.Root color="red">
@@ -51,6 +35,7 @@ export default async function SignupPage({
 
         <Card>
           <form>
+            {next && <input type="hidden" name="next" value={next} />}
             <Flex direction="column" gap="3">
               <label>
                 <Text as="div" size="2" mb="1" weight="medium">
@@ -78,20 +63,6 @@ export default async function SignupPage({
                   required
                 />
               </label>
-              {inviteOnly && (
-                <label>
-                  <Text as="div" size="2" mb="1" weight="medium">
-                    Invite code
-                  </Text>
-                  <TextField.Root
-                    name="invite"
-                    defaultValue={invite ?? ""}
-                    autoComplete="off"
-                    size="3"
-                    required
-                  />
-                </label>
-              )}
               <Flex mt="2">
                 <Button formAction={signup}>Create account</Button>
               </Flex>
@@ -100,9 +71,16 @@ export default async function SignupPage({
         </Card>
 
         <Text size="2" color="gray">
+          Accounts start read-only — pick a plan to start tracking. The annual
+          plan&apos;s first month is free.
+        </Text>
+
+        <Text size="2" color="gray">
           Already have an account?{" "}
           <RadixLink asChild>
-            <Link href="/login">Sign in</Link>
+            <Link href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"}>
+              Sign in
+            </Link>
           </RadixLink>
         </Text>
       </Flex>

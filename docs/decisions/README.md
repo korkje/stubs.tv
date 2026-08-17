@@ -31,3 +31,4 @@ Template:
 | [0011](0011-recovery-token-spent-on-submit.md) | Recovery links land on a form; token spent on submit |
 | [0012](0012-library-lazy-loading.md) | Library lists lazy-load through client-held pages |
 | [0013](0013-polar-merchant-of-record.md) | Polar as merchant of record for payments |
+| [0014](0014-open-signups-paywalled-writes.md) | Open public signups; free accounts are read-only |

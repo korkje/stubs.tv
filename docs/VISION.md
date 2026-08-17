@@ -60,8 +60,10 @@ exists to fix all three failures:
 
 1. **Phase 1: the owner.** Built for personal daily use. If it isn't good
    enough to replace nothing (the current state), it isn't good enough.
-2. **Phase 2: friends & family**, free, by invitation.
-3. **Phase 3: paid public plans**, only if phases 1–2 prove the product.
+2. **Phase 2: friends & family**, free, by invitation. (Done — their
+   accounts stay comped.)
+3. **Phase 3: paid public plans** — live: signups are open, new accounts
+   start read-only and pick a plan (ADR-0014).
 
 ## Monetization plan
 
@@ -74,14 +76,15 @@ One paid tier, sold three ways through Polar as merchant of record
 | Annual | $24.95 | €24.95 | 249 kr | 1-month free trial; the plan to steer people to |
 | Lifetime | $149.95 | €149.95 | 1 499 kr | One-time, ~6× annual |
 
-The restricted **free** tier (feature split TBD — candidates: no calendar
-integration, no import; lapsed subscribers keep read access to their data)
-is not public yet and has no Polar product: it is simply an account with no
-paid entitlement. Going public with it later is the `open_signups` toggle.
+The **free** tier is read-only: what a new signup has before picking a
+plan and what a lapsed subscriber drops to — history stays visible and
+exportable, writing needs a plan. It has no Polar product; it is simply an
+account with no paid entitlement. (If a writable free tier ever ships, the
+gate candidates remain no calendar integration and no import.)
 
-Friends & family keep free full-featured accounts (`plan = 'comp'`, the
-invite-signup default — never touched by billing). Self-hosting is always
-free (FSL license permits it; it forbids competing commercial offerings).
+Friends & family keep free full-featured accounts (`plan = 'comp'`, granted
+by hand, never touched by billing). Self-hosting is always free (FSL
+license permits it; it forbids competing commercial offerings).
 
 Cost floor to beat: Cloudflare Workers paid ($5/mo) + Supabase Pro ($25/mo
 once free tier is outgrown) + TVDB key (free under $50k/yr revenue) ≈ $30/mo,

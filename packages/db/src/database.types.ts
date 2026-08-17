@@ -34,27 +34,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      app_settings: {
-        Row: {
-          invite_allowance: number
-          open_signups: boolean
-          single_row: boolean
-          updated_at: string
-        }
-        Insert: {
-          invite_allowance?: number
-          open_signups?: boolean
-          single_row?: boolean
-          updated_at?: string
-        }
-        Update: {
-          invite_allowance?: number
-          open_signups?: boolean
-          single_row?: boolean
-          updated_at?: string
-        }
-        Relationships: []
-      }
       billing: {
         Row: {
           current_period_end: string | null
@@ -241,30 +220,6 @@ export type Database = {
           entity_id?: number
           entity_type?: Database["public"]["Enums"]["entity_type"]
           user_id?: string
-        }
-        Relationships: []
-      }
-      invites: {
-        Row: {
-          code: string
-          created_at: string
-          created_by: string
-          redeemed_at: string | null
-          redeemed_by: string | null
-        }
-        Insert: {
-          code?: string
-          created_at?: string
-          created_by: string
-          redeemed_at?: string | null
-          redeemed_by?: string | null
-        }
-        Update: {
-          code?: string
-          created_at?: string
-          created_by?: string
-          redeemed_at?: string | null
-          redeemed_by?: string | null
         }
         Relationships: []
       }
@@ -615,7 +570,6 @@ export type Database = {
       }
     }
     Functions: {
-      create_invite: { Args: never; Returns: string }
       mark_episodes_seen: {
         Args: { p_season_number?: number; p_series_id: number }
         Returns: undefined
@@ -637,7 +591,6 @@ export type Database = {
         Returns: number
       }
       set_title_scores: { Args: { p_scores: Json }; Returns: undefined }
-      signup_gate: { Args: { p_code: string }; Returns: string }
       unmark_episodes_seen: {
         Args: { p_season_number?: number; p_series_id: number }
         Returns: undefined

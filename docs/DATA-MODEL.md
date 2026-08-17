@@ -128,29 +128,17 @@ ratings                          -- deliberately separate from watches
   created_at    timestamptz
   updated_at    timestamptz
   PK (user_id, entity_type, entity_id)
-
-invites                          -- signup gating (see below)
-  code          uuid PK
-  created_by    uuid FK → auth.users
-  created_at    timestamptz
-  redeemed_by   uuid FK nullable
-  redeemed_at   timestamptz nullable
 ```
 
 ## Signup policy
 
-`app_settings` is a single-row table (`open_signups` boolean,
-`invite_allowance` int) edited from the Supabase dashboard — the admin UI
-for now. While `open_signups` is false, a trigger on `auth.users` rejects
-any signup that does not carry a valid unredeemed invite code in its user
-metadata; redemption happens atomically in the same trigger. Users mint
-invites with the `create_invite()` function (spends one of the allowance,
-admins uncapped); `signup_gate()` gives the signup form a friendly verdict
-first, since GoTrue flattens trigger errors into a generic message.
-
-Invited accounts default to `plan = 'comp'`, so people invited by the owner
-stay free even after payments launch — flipping `open_signups` on is the
-switch for paid public signup.
+Signups are public (ADR-0014). New accounts default to `plan = 'free'`,
+which is read-only — the write guard in `apps/web/src/lib/plan.ts` sends
+free accounts to the plans page, and the Polar webhook flips them to
+`paid` after checkout. `comp` is granted by hand from the Supabase
+dashboard (friends & family; the seeded dev account). The invite system
+that gated signups before payments existed (invites table, app_settings,
+signup trigger) was removed by the same ADR.
 
 **Why ratings are not a column on `watches`.** A rating belongs to the *thing*,
 not to a particular viewing of it: people want to rate a whole show without
@@ -200,7 +188,7 @@ refreshed on write or on cron. Not needed for MVP.
 
 ## GDPR touchpoints
 
-- Export = dump of the user's `profiles`, `follows`, `watches`, `ratings`,
-  `invites` (JSON).
+- Export = dump of the user's `profiles`, `billing`, `follows`, `watches`,
+  `ratings` (JSON).
 - Delete = cascade delete from `auth.users` through all user tables.
 - Metadata tables contain no personal data.

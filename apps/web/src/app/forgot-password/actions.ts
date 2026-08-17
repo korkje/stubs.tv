@@ -5,9 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 
 /**
  * Sends the recovery email. The reply is deliberately the same whether or not
- * the address has an account: an endpoint that answers differently is a way to
- * find out who has one, and signups being invite-only makes that list more
- * interesting than usual. Supabase already treats an unknown address as a
+ * the address has an account: an endpoint that answers differently is a way
+ * to enumerate who has one. Supabase already treats an unknown address as a
  * success, so there is nothing to suppress — only errors to swallow.
  */
 export async function requestPasswordReset(formData: FormData) {

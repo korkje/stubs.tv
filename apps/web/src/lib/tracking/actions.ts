@@ -1,26 +1,19 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { requireWriteAccess } from "@/lib/plan";
 import { ensureMovieIngested, ensureSeriesIngested } from "@/lib/metadata/ingest";
 
 type WatchableType = "episode" | "movie";
 type RateableType = "series" | "season" | "episode" | "movie";
 
-/**
+/*
  * Every action below relies on row level security rather than checking
  * ownership itself: the policies only permit rows whose user_id matches the
  * caller, so a forged id in a form cannot touch someone else's history.
+ * requireWriteAccess adds the plan gate on top — read-only accounts are
+ * redirected to the plans page instead of writing.
  */
-async function requireUser() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) throw new Error("Not signed in");
-  return { supabase, userId: user.id };
-}
 
 function fail(context: string, error: { message: string } | null): void {
   if (error) throw new Error(`Could not ${context}: ${error.message}`);
@@ -44,7 +37,7 @@ export async function markSeen(
   entityId: number,
   revalidate?: string
 ) {
-  const { supabase, userId } = await requireUser();
+  const { supabase, userId } = await requireWriteAccess();
 
   const { error } = await supabase.from("watches").upsert(
     {
@@ -70,7 +63,7 @@ export async function unmarkSeen(
   entityId: number,
   revalidate?: string
 ) {
-  const { supabase, userId } = await requireUser();
+  const { supabase, userId } = await requireWriteAccess();
 
   const { error } = await supabase
     .from("watches")
@@ -98,7 +91,7 @@ export async function markEpisodesSeen(
   seasonNumber: number | null,
   revalidate: string
 ) {
-  const { supabase } = await requireUser();
+  const { supabase } = await requireWriteAccess();
 
   // The parameter defaults to null in SQL (meaning "the whole show"), which
   // the generated types express as optional rather than nullable.
@@ -116,7 +109,7 @@ export async function unmarkEpisodesSeen(
   seasonNumber: number | null,
   revalidate: string
 ) {
-  const { supabase } = await requireUser();
+  const { supabase } = await requireWriteAccess();
 
   const { error } = await supabase.rpc("unmark_episodes_seen", {
     p_series_id: seriesId,
@@ -149,7 +142,7 @@ export async function setFollowing(
   following: boolean,
   revalidate?: string
 ) {
-  const { supabase, userId } = await requireUser();
+  const { supabase, userId } = await requireWriteAccess();
 
   if (following) {
     const { error } = await supabase.from("follows").upsert(
@@ -178,7 +171,7 @@ export async function setRating(
   score: number | null,
   revalidate: string
 ) {
-  const { supabase, userId } = await requireUser();
+  const { supabase, userId } = await requireWriteAccess();
 
   if (score === null) {
     const { error } = await supabase

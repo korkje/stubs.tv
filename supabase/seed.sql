@@ -2,17 +2,15 @@
 -- (wired up by [db.seed] in config.toml). Never run this against a hosted
 -- project — `supabase db reset --linked` would seed it too.
 --
--- Its only job is to make a fresh local stack signable-in. Signups are
--- invite-only (see 20260811080000_signup_policy.sql), and an invite needs a
--- creator, so an empty database has no way in: no user means no invite, and
--- no invite means no user. The seed breaks that circle by minting the first
--- account directly.
+-- Its only job is to make a fresh local stack signable-in without clicking
+-- through the signup form after every reset:
 --
 --     dev@stubs.local / password
 --
--- The account is an admin, which lifts the invite allowance — so further test
--- accounts can go through the real signup form and redeem a real code from
--- /app/invites, exercising the path users actually take.
+-- Signups are public (ADR-0014) and new accounts start read-only
+-- (plan = 'free'), so the seed grants this account 'comp' — full features,
+-- no billing — keeping every write path testable locally. Further test
+-- accounts can go through the real signup form.
 
 do $$
 declare
@@ -26,13 +24,6 @@ begin
   if exists (select 1 from auth.users where id = v_user_id) then
     return;
   end if;
-
-  -- enforce_signup_policy() is an AFTER INSERT trigger on auth.users, so it
-  -- guards every path into the table — this insert and the dashboard's "Add
-  -- user" alike, not just the signup form. Opening signups for the length of
-  -- the insert is narrower than disabling the trigger: the policy still runs,
-  -- it just takes its open-signups branch.
-  update public.app_settings set open_signups = true;
 
   insert into auth.users (
     instance_id,
@@ -95,11 +86,10 @@ begin
     now()
   );
 
-  -- Back to the production default, so the local stack keeps enforcing the
-  -- same gate the real one does.
-  update public.app_settings set open_signups = false;
-
   -- The profile row already exists — handle_new_user() made it on the insert
-  -- above. Admin is what removes the invite cap.
-  update public.profiles set is_admin = true where user_id = v_user_id;
+  -- above. 'comp' keeps the account writable (new accounts default to the
+  -- read-only 'free'); admin is for future admin surfaces.
+  update public.profiles
+     set is_admin = true, plan = 'comp'
+   where user_id = v_user_id;
 end $$;

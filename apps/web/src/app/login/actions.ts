@@ -3,9 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { safeNext } from "@/lib/redirects";
 
 export async function login(formData: FormData) {
   const supabase = await createClient();
+  const next = safeNext(formData.get("next"));
 
   const { error } = await supabase.auth.signInWithPassword({
     email: formData.get("email") as string,
@@ -13,11 +15,13 @@ export async function login(formData: FormData) {
   });
 
   if (error) {
-    redirect(`/login?error=${encodeURIComponent(error.message)}`);
+    const params = new URLSearchParams({ error: error.message });
+    if (next) params.set("next", next);
+    redirect(`/login?${params}`);
   }
 
   revalidatePath("/", "layout");
-  redirect("/app");
+  redirect(next ?? "/app");
 }
 
 export async function signout() {

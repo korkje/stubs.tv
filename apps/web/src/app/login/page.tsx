@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import {
   Button,
   Callout,
@@ -11,17 +10,17 @@ import {
   Link as RadixLink,
 } from "@radix-ui/themes";
 import { TextField } from "@radix-ui/themes";
+import { safeNext } from "@/lib/redirects";
 import { login } from "./actions";
 
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; invite?: string }>;
+  searchParams: Promise<{ error?: string; next?: string }>;
 }) {
-  const { error, invite } = await searchParams;
-
-  // Old invite links pointed here; the signup page is where they belong.
-  if (invite) redirect(`/signup?invite=${encodeURIComponent(invite)}`);
+  const params = await searchParams;
+  const error = params.error;
+  const next = safeNext(params.next);
 
   return (
     <Container size="1" px="4">
@@ -36,6 +35,7 @@ export default async function LoginPage({
 
         <Card>
           <form>
+            {next && <input type="hidden" name="next" value={next} />}
             <Flex direction="column" gap="3">
               <label>
                 <Text as="div" size="2" mb="1" weight="medium">
@@ -79,7 +79,9 @@ export default async function LoginPage({
         <Text size="2" color="gray">
           New here?{" "}
           <RadixLink asChild>
-            <Link href="/signup">Create an account</Link>
+            <Link href={next ? `/signup?next=${encodeURIComponent(next)}` : "/signup"}>
+              Create an account
+            </Link>
           </RadixLink>
         </Text>
       </Flex>

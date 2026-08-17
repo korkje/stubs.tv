@@ -13,8 +13,12 @@
   },
   // Polar runs against the live environment in production; the token and
   // webhook secret are Worker secrets (see POLAR_SETUP.md), never vars.
+  // Product ids are per-environment (sandbox ids differ) and not secret.
   "vars": {
-    "POLAR_SERVER": "production"
+    "POLAR_SERVER": "production",
+    "POLAR_PRODUCT_MONTHLY": "363dbfa0-1d8b-4dbb-aecb-f3d07b5369a1",
+    "POLAR_PRODUCT_ANNUAL": "e75b25c4-ee85-4702-821f-51eeddf721c4",
+    "POLAR_PRODUCT_LIFETIME": "57b4806e-10ad-42bc-ba75-b523662f0523"
   },
   // Hourly metadata refresh: the scheduled handler in custom-worker.ts
   // invokes /api/refresh, which sweeps the stalest followed series.
