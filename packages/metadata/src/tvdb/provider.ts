@@ -37,15 +37,22 @@ export function createTvdbProvider(apiKey: string): MetadataProvider {
       const trimmed = query.trim();
       if (!trimmed) return [];
 
-      const params = new URLSearchParams({
-        query: trimmed,
-        limit: String(options?.limit ?? 20),
-      });
+      // One type-scoped call per kind we track, never the mixed search:
+      // /search fills its result slots with every entity type, and a query
+      // matching many people ("Conan") starves the shows and films we are
+      // actually after down to a hit or two.
+      const [series, movies] = await Promise.all(
+        (["series", "movie"] as const).map((type) => {
+          const params = new URLSearchParams({
+            query: trimmed,
+            type,
+            limit: String(options?.limit ?? 20),
+          });
+          return client.get<TvdbSearchResult[]>(`/search?${params}`);
+        })
+      );
 
-      const body = await client.get<TvdbSearchResult[]>(`/search?${params}`);
-
-      // One mixed-type call, filtered down to the kinds we track.
-      return (body?.data ?? [])
+      return [...(series?.data ?? []), ...(movies?.data ?? [])]
         .map(mapSearchResult)
         .filter((r): r is SearchResult => r !== null);
     },

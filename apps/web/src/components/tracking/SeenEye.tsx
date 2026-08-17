@@ -10,6 +10,9 @@ import { markSeen, unmarkSeen } from "@/lib/tracking/actions";
  * crowd the line: amber open eye = seen, matching SeenToggleButton and the
  * episode toggles.
  *
+ * Same two modes as FollowStar: uncontrolled against a server prop with a
+ * revalidate, or controlled by a parent whose rows live in client state.
+ *
  * Lives inside a row that is itself a link; the click must not bubble into a
  * navigation.
  */
@@ -17,24 +20,34 @@ export function SeenEye({
   movieId,
   seen,
   revalidate,
+  onToggle,
 }: {
   movieId: number;
   seen: boolean;
-  revalidate: string;
+  /** Uncontrolled mode: the path the action revalidates. */
+  revalidate?: string;
+  /** Controlled mode: the parent flips the state and calls the server. */
+  onToggle?: (next: boolean) => void;
 }) {
   const [optimisticSeen, setOptimisticSeen] = useOptimistic(seen);
   const [, startTransition] = useTransition();
 
+  const shown = onToggle ? seen : optimisticSeen;
+
   return (
     <IconButton
       variant="ghost"
-      color={optimisticSeen ? "amber" : "gray"}
-      aria-label={optimisticSeen ? "Mark as not seen" : "Mark as seen"}
-      aria-pressed={optimisticSeen}
+      color={shown ? "amber" : "gray"}
+      aria-label={shown ? "Mark as not seen" : "Mark as seen"}
+      aria-pressed={shown}
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        const next = !optimisticSeen;
+        const next = !shown;
+        if (onToggle) {
+          onToggle(next);
+          return;
+        }
         startTransition(async () => {
           setOptimisticSeen(next);
           if (next) await markSeen("movie", movieId, revalidate);
@@ -42,7 +55,7 @@ export function SeenEye({
         });
       }}
     >
-      {optimisticSeen ? <EyeOpenIcon /> : <EyeNoneIcon />}
+      {shown ? <EyeOpenIcon /> : <EyeNoneIcon />}
     </IconButton>
   );
 }

@@ -8,9 +8,8 @@ import { FadeIn } from "@/components/FadeIn";
 import { formatDate } from "@/lib/format";
 import { fetchUpNext, type UpNextEpisode } from "@/lib/up-next/actions";
 import { type Filters } from "@/lib/filters";
+import { FEED_SEED, PAGE_STEP } from "@/lib/paging";
 import { DateLine, UpNextRow } from "./UpNextRow";
-
-const PAGE = 20;
 
 /**
  * The bidirectional feed: the unwatched past grows upwards, the scheduled
@@ -52,8 +51,8 @@ export function UpNextFeed({
   // downwards. future is soonest-first and renders as-is.
   const [past, setPast] = useState(initialPast);
   const [future, setFuture] = useState(initialFuture);
-  const [hasMorePast, setHasMorePast] = useState(initialPast.length === PAGE);
-  const [hasMoreFuture, setHasMoreFuture] = useState(initialFuture.length === PAGE);
+  const [hasMorePast, setHasMorePast] = useState(initialPast.length === FEED_SEED);
+  const [hasMoreFuture, setHasMoreFuture] = useState(initialFuture.length === FEED_SEED);
   const [loadingPast, setLoadingPast] = useState(false);
   const [loadingFuture, setLoadingFuture] = useState(false);
 
@@ -89,7 +88,7 @@ export function UpNextFeed({
     try {
       const cursor = past[past.length - 1];
       const page = cursor
-        ? await fetchUpNext(true, cursor.aired, cursor.episode_id, PAGE, filters)
+        ? await fetchUpNext(true, cursor.aired, cursor.episode_id, PAGE_STEP, filters)
         : [];
       // Remember how tall the list is now: the layout effect below restores
       // the viewport by however much the prepended rows add, so the rows on
@@ -98,7 +97,7 @@ export function UpNextFeed({
       // viewport is at a standstill.
       pendingScrollFix.current = containerRef.current?.offsetHeight ?? null;
       setPast((rows) => [...rows, ...page]);
-      setHasMorePast(page.length === PAGE);
+      setHasMorePast(page.length === PAGE_STEP);
     } finally {
       setLoadingPast(false);
       busy.current = false;
@@ -112,10 +111,10 @@ export function UpNextFeed({
     try {
       const cursor = future[future.length - 1];
       const page = cursor
-        ? await fetchUpNext(false, cursor.aired, cursor.episode_id + 1, PAGE, filters)
+        ? await fetchUpNext(false, cursor.aired, cursor.episode_id + 1, PAGE_STEP, filters)
         : [];
       setFuture((rows) => [...rows, ...page]);
-      setHasMoreFuture(page.length === PAGE);
+      setHasMoreFuture(page.length === PAGE_STEP);
     } finally {
       setLoadingFuture(false);
       busy.current = false;

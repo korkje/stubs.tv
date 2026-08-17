@@ -21,6 +21,7 @@ import {
 import { FadeIn } from "@/components/FadeIn";
 import { LibraryToolbar } from "@/components/filters/LibraryToolbar";
 import { TimeStat } from "@/components/TimeStat";
+import { LibraryCountsProvider } from "@/components/library/LibraryCounts";
 import { LibraryTabs } from "@/components/library/LibraryTabs";
 import { ShowsList } from "@/components/library/ShowsList";
 import { MoviesList } from "@/components/library/MoviesList";
@@ -92,11 +93,10 @@ export default async function LibraryPage({
           </Grid>
         )}
 
-        <LibraryTabs
-          movies={movies}
-          showCount={showCount ?? 0}
-          movieCount={movieCount}
-        />
+        {/* The provider spans the tabs and the lists: the lists report
+            membership changes, the tabs show the moving counts. */}
+        <LibraryCountsProvider shows={showCount ?? 0} movies={movieCount}>
+        <LibraryTabs movies={movies} />
 
         {/* Below the tabs, not above them: that scopes the controls to the
             active tab, which is what lets the two tabs offer different
@@ -135,6 +135,7 @@ export default async function LibraryPage({
             <ShowsList filters={filters} sort={sort} />
           )}
         </Suspense>
+        </LibraryCountsProvider>
       </Flex>
       </FadeIn>
     </Container>
