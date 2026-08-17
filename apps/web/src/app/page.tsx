@@ -80,8 +80,11 @@ export default function Home() {
             <Button size="3" asChild>
               <Link href="/signup">Create account</Link>
             </Button>
+            {/* Deliberately /app, not /login: the middleware sends signed-out
+                visitors to the login page, and signed-in ones go straight in —
+                without this page (static) having to know who's asking. */}
             <Button size="3" variant="soft" asChild>
-              <Link href="/login">Sign in</Link>
+              <Link href="/app">Sign in</Link>
             </Button>
           </Flex>
           <Text size="2" color="gray" align="center">
