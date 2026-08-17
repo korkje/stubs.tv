@@ -30,3 +30,4 @@ Template:
 | [0010](0010-cron-cloudflare-not-supabase.md) | Scheduled jobs run where their code lives |
 | [0011](0011-recovery-token-spent-on-submit.md) | Recovery links land on a form; token spent on submit |
 | [0012](0012-library-lazy-loading.md) | Library lists lazy-load through client-held pages |
+| [0013](0013-polar-merchant-of-record.md) | Polar as merchant of record for payments |

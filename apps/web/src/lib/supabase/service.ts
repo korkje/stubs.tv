@@ -8,8 +8,9 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
  *
  * This bypasses row level security entirely, so it must never be imported
  * into a client component — the "server-only" import above turns any such
- * attempt into a build error. Use it solely for metadata ingestion; all
- * user-scoped access goes through the cookie-based clients in ./server.ts.
+ * attempt into a build error. Use it solely for metadata ingestion and the
+ * Polar webhook handler (billing sync, ADR-0013); all user-scoped access
+ * goes through the cookie-based clients in ./server.ts.
  */
 export function createServiceClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

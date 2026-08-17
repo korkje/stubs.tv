@@ -11,6 +11,11 @@
   "observability": {
     "enabled": true
   },
+  // Polar runs against the live environment in production; the token and
+  // webhook secret are Worker secrets (see POLAR_SETUP.md), never vars.
+  "vars": {
+    "POLAR_SERVER": "production"
+  },
   // Hourly metadata refresh: the scheduled handler in custom-worker.ts
   // invokes /api/refresh, which sweeps the stalest followed series.
   "triggers": {

@@ -81,13 +81,28 @@ Rules:
 profiles
   user_id       uuid PK → auth.users
   display_name  text
-  plan          enum: comp | basic | pro   -- comp = friends & family
+  plan          enum: comp | free | paid   -- comp = friends & family, full
+                                           -- features; free = restricted
+                                           -- (lapsed/public); paid = via Polar
   is_admin      boolean default false
   timezone      text                       -- IANA; where "Today" falls (null = UTC)
   specials      text: hidden|uncounted|counted  -- see Settings in the app
   bulk_mark_specials boolean default true  -- "Mark show" touches specials
   synopsis_mode text: show|scramble|hide   -- spoiler protection, unwatched only
   created_at    timestamptz
+
+billing                          -- one row per user who ever checked out in
+                                 -- Polar (ADR-0013); comp users have none.
+                                 -- Written only by the webhook handler
+                                 -- (service role), which recomputes
+                                 -- profiles.plan from it: lifetime or an
+                                 -- active subscription -> paid, else free
+  user_id       uuid PK → auth.users
+  polar_customer_id text unique
+  lifetime      boolean default false      -- survives subscription lapses
+  subscription_status text                 -- active | trialing | null
+  current_period_end timestamptz
+  updated_at    timestamptz
 
 follows
   user_id       uuid FK
