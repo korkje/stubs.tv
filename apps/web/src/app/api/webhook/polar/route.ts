@@ -100,15 +100,22 @@ export async function POST(request: Request) {
         .select("lifetime")
         .single();
       if (billingError) {
+        // 23503: the user id no longer exists (account deleted, cascade took
+        // the billing row). Polar can keep sending events for the orphaned
+        // customer; acknowledging beats a 500 retry loop.
+        if (billingError.code === "23503") break;
         throw new Error(`billing upsert failed: ${billingError.message}`);
       }
 
-      // A lapsed subscription must not revoke a lifetime pass.
+      // A lapsed subscription must not revoke a lifetime pass — and a
+      // downgrade must never touch comp: comp is granted by hand and any
+      // Polar activity without an active subscription (say, a one-time
+      // order) would otherwise stomp it to free. Upgrades may apply to
+      // anyone; they only ever fire for a paying customer.
       const plan = billing.lifetime || sub ? "paid" : "free";
-      const { error: planError } = await supabase
-        .from("profiles")
-        .update({ plan })
-        .eq("user_id", userId);
+      let query = supabase.from("profiles").update({ plan }).eq("user_id", userId);
+      if (plan === "free") query = query.neq("plan", "comp");
+      const { error: planError } = await query;
       if (planError) {
         throw new Error(`plan update failed: ${planError.message}`);
       }

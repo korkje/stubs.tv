@@ -40,8 +40,10 @@ table plus `profiles.plan`, see DATA-MODEL.md), so the app reads access
 rights from its own database, never from Polar in the request path. The
 checkout route requires login and sets Polar's `external_customer_id` to
 the app's user id; webhook events carry it back, and that is the entire
-user↔customer mapping. `plan = 'comp'` accounts have no billing row and
-are never touched by the sync.
+user↔customer mapping. `plan = 'comp'` accounts are never downgraded by
+the sync — a comp account that checks out gains a billing row (any Polar
+activity does), but only upgrades apply to it; comp is granted and
+revoked by hand alone.
 
 ## Consequences
 
