@@ -51,7 +51,7 @@ export function PricingSection() {
       price: "$24.95",
       local: "€24.95 · 249 kr",
       cadence: "per year",
-      note: "Full access, over three months cheaper than monthly.",
+      note: "Full access, about 30% cheaper than monthly.",
       cta: "Start your free month",
       badge: "First month free",
       productId: annual,
