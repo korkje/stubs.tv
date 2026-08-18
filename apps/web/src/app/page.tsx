@@ -169,7 +169,7 @@ export default function Home() {
             <RadixLink
               size="2"
               color="gray"
-              href="https://github.com/korkje/stubs"
+              href="https://github.com/korkje/stubs.tv"
               target="_blank"
               rel="noreferrer"
             >
