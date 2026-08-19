@@ -20,10 +20,12 @@
     "POLAR_PRODUCT_ANNUAL": "e75b25c4-ee85-4702-821f-51eeddf721c4",
     "POLAR_PRODUCT_LIFETIME": "57b4806e-10ad-42bc-ba75-b523662f0523"
   },
-  // Hourly metadata refresh: the scheduled handler in custom-worker.ts
-  // invokes /api/refresh, which sweeps the stalest followed series.
+  // Scheduled work (dispatched by cron expression in custom-worker.ts):
+  // hourly metadata refresh via /api/refresh, and a 5-minute sweep of open
+  // import jobs via /api/import/run — the resume mechanism for imports; a
+  // fresh commit also nudges the route directly so it starts immediately.
   "triggers": {
-    "crons": ["0 * * * *"]
+    "crons": ["0 * * * *", "*/5 * * * *"]
   },
   "routes": [{ "pattern": "stubs.tv", "custom_domain": true }]
 }

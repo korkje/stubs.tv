@@ -1,9 +1,19 @@
 # Plan: import from TV Time exports
 
-Status: **not started — researched 2026-08-19**. Written to be picked up
-cold. The research half (what the format actually is, where samples come
-from) is settled and recorded below; the design half is opinionated but
-the two decisions marked **owner's call** are not mine to make.
+Status: **shipped 2026-08-19** (same day the plan settled — see ADR-0015
+for the client-side-parsing rule and ADR-0016 for Workers Paid, which
+resolved §4a; §9 was decided as recorded below). This document stays as the
+format reference: the column semantics under "What the export actually is"
+are the source of truth the parser and its fixtures were built from, and
+they cannot be re-derived — no new export can ever be generated.
+
+What shipped: `packages/tvtime-import` (pure parser + fixtures + tests),
+the `/import/tv-time` public preview and `/app/import` flow, phase-1
+commit (`apps/web/src/lib/import/actions.ts`), the phase-2 worker
+(`/api/import/run` on a 5-minute cron), the reconciliation report, the
+manual film resolver, and 429 backoff in TvdbClient. Still open from the
+launch-prerequisites list: data export, self-serve deletion, and getting
+one real redacted export to validate against before any launch post.
 
 ## Why this is worth doing
 

@@ -40,6 +40,10 @@ const faq = [
     a: "The annual plan's first month is free. You add a card at checkout and can cancel any time during the month — cancel before it ends and you pay nothing.",
   },
   {
+    q: "Can I bring my TV Time history?",
+    a: "Yes — and better than anywhere else. TV Time's export is keyed by TheTVDB ids, the catalogue stubs.tv runs on, so shows and episodes import exactly rather than being fuzzy-matched. The preview is free and runs in your browser.",
+  },
+  {
     q: "How do I cancel?",
     a: "Through the customer portal — every receipt email links to it. Your plan runs to the end of what you paid for.",
   },
@@ -160,6 +164,9 @@ export default function Home() {
             .
           </Text>
           <Flex gap="4">
+            <RadixLink asChild size="2" color="gray">
+              <Link href="/import/tv-time">TV Time import</Link>
+            </RadixLink>
             <RadixLink asChild size="2" color="gray">
               <Link href="/privacy">Privacy</Link>
             </RadixLink>

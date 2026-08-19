@@ -32,22 +32,19 @@ They stay in one app until a concrete need splits them (would require an ADR).
 ## Hosting: Cloudflare Workers
 
 - Deployed with `@opennextjs/cloudflare` (OpenNext adapter, 1.0 GA).
-- Currently on the Workers **free** plan, which caps the worker bundle at
-  **3 MiB gzipped** (paid raises it to 10 MiB). Check bundle impact before
-  adding dependencies — this is the binding constraint today. Measure with
-  `npx wrangler deploy --dry-run` from `apps/web`; it was 1.38 MiB gzipped
-  as of Phase 1 slice 1.
-- **10ms of CPU per request** on free (paid: 30s) is the tightest constraint
-  in the whole stack, and it bites in production only — local development has
-  no such limit. Rendering counts as CPU, so pages must not render unbounded
-  lists: the series page collapses seasons and renders one at a time, and
-  per-season counts come from the `season_progress` SQL view rather than from
-  reducing over every episode in the worker. Exceeding it returns HTTP 1102.
-- Upgrading to Workers Paid ($5/mo) is the trigger for three things at once:
-  the larger bundle limit, a 3000× larger CPU budget, and moving auth email to
-  Cloudflare Email Service (ADR-0009).
-- Cloudflare Cron Triggers drive scheduled jobs (metadata refresh) by hitting
-  internal routes.
+- On the Workers **paid** plan (ADR-0016): 30s CPU and 10,000 subrequests
+  per invocation, 10 MiB gzipped bundle. Still measure bundle impact before
+  adding dependencies (`npx wrangler deploy --dry-run` from `apps/web`).
+- Request-path rendering stays small as policy even though the 10ms free
+  cap no longer applies: pages must not render unbounded lists — the series
+  page collapses seasons and renders one at a time, and per-season counts
+  come from the `season_progress` SQL view rather than from reducing over
+  every episode in the worker. The paid CPU budget is spent on background
+  work (imports, refresh), not heavier pages.
+- Cloudflare Cron Triggers drive scheduled jobs by hitting internal guarded
+  routes (dispatched on the cron expression in custom-worker.ts): hourly
+  metadata refresh (`/api/refresh`), and a 5-minute sweep of open import
+  jobs (`/api/import/run`).
 - `next/image` needs a custom loader (Cloudflare Images) or `unoptimized` —
   decide at scaffold time; do not ship the default Vercel loader.
 

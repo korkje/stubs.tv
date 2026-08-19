@@ -13,6 +13,7 @@
     "build": "npm run build -w web",
     "lint": "npm run lint -w web",
     "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
     "db:types": "npm run generate -w @stubs/db",
     "preview": "npm run preview -w web",
     "deploy": "npm run deploy -w web"

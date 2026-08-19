@@ -1,6 +1,7 @@
 # ADR-0002: Host on Cloudflare Workers via OpenNext
 
-- Status: accepted
+- Status: accepted; the stay-on-free clause is superseded by ADR-0016
+  (the account now runs Workers Paid)
 - Date: 2026-08-10
 
 ## Context

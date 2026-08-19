@@ -1,0 +1,66 @@
+[
+  {
+    "uuid": "0f0f0f0f",
+    "id": {
+      "tvdb": 366529,
+      "imdb": "tt10574236"
+    },
+    "title": "Station Eleven",
+    "status": "stopped",
+    "rating": 8,
+    "seasons": [
+      {
+        "number": 1,
+        "episodes": [
+          {
+            "id": {
+              "tvdb": 8815687,
+              "imdb": "tt10579918"
+            },
+            "number": 1,
+            "special": false,
+            "is_watched": true,
+            "watched_at": "2022-01-05T21:00:00Z",
+            "rating": null
+          },
+          {
+            "id": {
+              "tvdb": 8815688
+            },
+            "number": 2,
+            "special": false,
+            "is_watched": false,
+            "watched_at": null,
+            "rating": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "uuid": "1a1a1a1a",
+    "id": {
+      "tvdb": 121361
+    },
+    "title": "Game of Thrones",
+    "status": "watching",
+    "rating": null,
+    "seasons": [
+      {
+        "number": 1,
+        "episodes": [
+          {
+            "id": {
+              "tvdb": 3254641
+            },
+            "number": 1,
+            "special": false,
+            "is_watched": true,
+            "watched_at": "2019-01-01T10:00:00Z",
+            "rating": 9
+          }
+        ]
+      }
+    ]
+  }
+]

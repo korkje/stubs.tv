@@ -23,8 +23,13 @@ interface Ctx {
 const worker = {
   fetch: (request: Request, env: Env, ctx: Ctx) => handler.fetch(request, env, ctx),
 
-  scheduled(_controller: unknown, env: Env, ctx: Ctx) {
-    const request = new Request("https://stubs.tv/api/refresh", {
+  scheduled(controller: { cron?: string }, env: Env, ctx: Ctx) {
+    // Two schedules share this handler; the cron expression says which
+    // fired. The 5-minute one sweeps open import jobs (a no-op query when
+    // there are none); the hourly one refreshes followed-show metadata.
+    const path =
+      controller?.cron === "*/5 * * * *" ? "/api/import/run" : "/api/refresh";
+    const request = new Request(`https://stubs.tv${path}`, {
       headers: { "x-cron-key": env.CRON_SECRET ?? "" },
     });
     ctx.waitUntil(handler.fetch(request, env, ctx));
