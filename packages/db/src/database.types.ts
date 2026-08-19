@@ -763,6 +763,7 @@ export type Database = {
       }
     }
     Functions: {
+      export_user_data: { Args: never; Returns: Json }
       import_materialise_series: {
         Args: { p_job_id: number; p_series_id: number }
         Returns: Json

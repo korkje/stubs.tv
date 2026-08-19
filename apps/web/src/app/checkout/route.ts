@@ -36,14 +36,26 @@ export async function GET(request: Request) {
   const polar = getPolarClient();
   let checkoutUrl: string;
   try {
-    // No customerEmail: Polar hard-rejects undeliverable domains (which all
-    // seeded test accounts have) and collects the email on the checkout page
-    // anyway — externalCustomerId alone carries the user mapping.
-    const checkout = await polar.checkouts.create({
+    const base = {
       products,
       externalCustomerId: user.id,
       successUrl: `${url.origin}/app`,
-    });
+    };
+    let checkout;
+    try {
+      // customerEmail prefills the checkout page — one field fewer for a
+      // real customer to type. The mapping never depends on it:
+      // externalCustomerId alone ties webhook events back to the user.
+      checkout = await polar.checkouts.create({
+        ...base,
+        customerEmail: user.email,
+      });
+    } catch {
+      // Polar hard-rejects undeliverable domains at create time, which all
+      // seeded test accounts have (@stubs.local, @example.com). Retry
+      // without the prefill; Polar collects the email on the page instead.
+      checkout = await polar.checkouts.create(base);
+    }
     checkoutUrl = checkout.url;
   } catch (error) {
     // Never rethrow SDK errors: they embed the raw request, Authorization

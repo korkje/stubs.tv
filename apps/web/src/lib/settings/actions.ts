@@ -2,7 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { ResourceNotFound } from "@polar-sh/sdk/models/errors/resourcenotfound.js";
+import { getPolarClient } from "@/lib/polar";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 
 const SPECIALS = new Set(["hidden", "uncounted", "counted"]);
 const SYNOPSES = new Set(["show", "scramble", "hide"]);
@@ -140,4 +143,100 @@ export async function changePassword(formData: FormData) {
 
   revalidatePath("/", "layout");
   redirect("/app/settings?tab=account&password_saved=1");
+}
+
+function failDelete(message: string): never {
+  redirect(
+    `/app/settings?tab=account&delete_error=${encodeURIComponent(message)}`
+  );
+}
+
+/**
+ * Deletes the signed-in user's account — the GDPR right to erasure
+ * (docs/PRIVACY.md, ADR-0017). Every user table cascades from auth.users,
+ * so one admin delete removes everything; there is no soft-delete.
+ *
+ * The password check mirrors changePassword: a session alone is not proof
+ * the person at the keyboard is the owner, and deletion is the most
+ * destructive thing an account can do.
+ *
+ * Order matters and must never be reversed: Polar first, then the auth
+ * user. Deleting the account while an active subscription survives would
+ * keep charging someone who can no longer reach their billing portal
+ * through us. Polar's customer delete cancels active subscriptions
+ * immediately, and anonymize hashes the PII they retain for tax/order
+ * records (they are merchant of record, ADR-0013).
+ */
+export async function deleteAccount(formData: FormData) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user?.email) {
+    failDelete("Could not read your account. Sign in again and retry.");
+  }
+
+  const { error: reauth } = await supabase.auth.signInWithPassword({
+    email: user.email,
+    password: (formData.get("current_password") as string) ?? "",
+  });
+
+  if (reauth) {
+    failDelete("Password is incorrect.");
+  }
+
+  const { data: billing, error: billingError } = await supabase
+    .from("billing")
+    .select("polar_customer_id, subscription_status")
+    .maybeSingle();
+
+  if (billingError) {
+    failDelete(`Could not read billing state: ${billingError.message}`);
+  }
+
+  if (billing?.polar_customer_id) {
+    const live =
+      billing.subscription_status === "active" ||
+      billing.subscription_status === "trialing";
+
+    try {
+      await getPolarClient().customers.delete({
+        id: billing.polar_customer_id,
+        anonymize: true,
+      });
+    } catch (err) {
+      // Already gone on Polar's side — nothing left to cancel.
+      if (!(err instanceof ResourceNotFound)) {
+        // With a live subscription this MUST abort: proceeding would delete
+        // the account and keep the charges. Without one (lapsed, lifetime,
+        // or Polar not configured — local dev, self-hosted) erasure must
+        // not be blocked by an unreachable payment provider.
+        if (live) {
+          failDelete(
+            "We could not cancel your subscription. Nothing was deleted — " +
+              "try again, or cancel it in the billing portal first."
+          );
+        }
+        // One string: the worker's log drain serializes extra args poorly.
+        console.error(
+          `Polar customer delete failed during account deletion of ${user.id}: ` +
+            (err instanceof Error ? err.message : String(err))
+        );
+      }
+    }
+  }
+
+  const { error: deleteError } =
+    await createServiceClient().auth.admin.deleteUser(user.id);
+
+  if (deleteError) {
+    failDelete(`Deletion failed: ${deleteError.message}. Nothing was deleted.`);
+  }
+
+  // The auth user is gone; local scope just clears this browser's cookies
+  // (global would try to revoke tokens that no longer exist).
+  await supabase.auth.signOut({ scope: "local" });
+  redirect("/login?deleted=1");
 }

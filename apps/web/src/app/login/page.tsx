@@ -18,10 +18,11 @@ import { login } from "./actions";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; next?: string }>;
+  searchParams: Promise<{ error?: string; next?: string; deleted?: string }>;
 }) {
   const params = await searchParams;
   const error = params.error;
+  const deleted = params.deleted === "1";
   const next = safeNext(params.next);
 
   // Already signed in? The form would be a dead end — carry on to wherever
@@ -40,6 +41,15 @@ export default async function LoginPage({
         {error && (
           <Callout.Root color="red">
             <Callout.Text>{error}</Callout.Text>
+          </Callout.Root>
+        )}
+
+        {deleted && (
+          <Callout.Root color="green">
+            <Callout.Text>
+              Your account and all its data have been deleted. Thanks for
+              giving stubs.tv a try.
+            </Callout.Text>
           </Callout.Root>
         )}
 

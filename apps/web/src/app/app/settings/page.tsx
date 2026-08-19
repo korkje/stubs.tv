@@ -15,7 +15,11 @@ import {
   TextField,
 } from "@radix-ui/themes";
 import { createClient } from "@/lib/supabase/server";
-import { changePassword, updateSettings } from "@/lib/settings/actions";
+import {
+  changePassword,
+  deleteAccount,
+  updateSettings,
+} from "@/lib/settings/actions";
 import { FadeIn } from "@/components/FadeIn";
 import { SpecialsField } from "@/components/settings/SpecialsField";
 import { TimezoneField } from "@/components/settings/TimezoneField";
@@ -30,8 +34,8 @@ const POLAR_PORTAL_URL = "https://polar.sh/stubs-tv/portal";
  * User settings, split by kind: watching (taste), account (identity),
  * billing (money). Every form posts only its own tab's fields and carries a
  * hidden tab input so the save round-trip lands back on the same tab. The
- * account-and-privacy section (data export, account deletion) joins the
- * account tab once those flows exist.
+ * account tab also holds the GDPR self-serve flows: data export and account
+ * deletion (docs/PRIVACY.md, ADR-0017).
  */
 export default async function SettingsPage({
   searchParams,
@@ -42,10 +46,11 @@ export default async function SettingsPage({
     error?: string;
     password_saved?: string;
     password_error?: string;
+    delete_error?: string;
   }>;
 }) {
   const params = await searchParams;
-  const { saved, error, password_saved, password_error } = params;
+  const { saved, error, password_saved, password_error, delete_error } = params;
   const tab = TABS.has(params.tab ?? "") ? params.tab! : "watching";
 
   const supabase = await createClient();
@@ -252,6 +257,70 @@ export default async function SettingsPage({
 
                         <Flex mt="1">
                           <Button type="submit">Change password</Button>
+                        </Flex>
+                      </Flex>
+                    </form>
+                  </Card>
+
+                  <Card>
+                    <Flex direction="column" gap="2" p="2" align="start">
+                      <Heading as="h2" size="3">
+                        Your data
+                      </Heading>
+                      <Text size="2" color="gray">
+                        Download everything stubs.tv knows about you — your
+                        profile, follows, watch history, ratings, and imports —
+                        as a single JSON file. It works on every plan, always.
+                      </Text>
+                      <Button asChild variant="soft" mt="1">
+                        <a href="/app/export" download>
+                          Download my data
+                        </a>
+                      </Button>
+                    </Flex>
+                  </Card>
+
+                  {/* Deletion asks for the password, not just a click: a
+                      session alone is not proof the person at the keyboard
+                      is the owner, same reasoning as changePassword. */}
+                  <Card>
+                    <form action={deleteAccount}>
+                      <Flex direction="column" gap="3" p="2">
+                        <Heading as="h2" size="3" color="red">
+                          Delete account
+                        </Heading>
+
+                        {delete_error && (
+                          <Callout.Root color="red">
+                            <Callout.Text>{delete_error}</Callout.Text>
+                          </Callout.Root>
+                        )}
+
+                        <Text size="2" color="gray">
+                          Permanently deletes your account and everything in
+                          it — watch history, follows, ratings, imports. There
+                          is no undo and no grace period; export your data
+                          first if you want to keep it. Any active
+                          subscription is cancelled as part of this.
+                        </Text>
+
+                        <label>
+                          <Text as="div" size="2" mb="1" weight="medium">
+                            Confirm with your password
+                          </Text>
+                          <TextField.Root
+                            name="current_password"
+                            type="password"
+                            autoComplete="current-password"
+                            size="3"
+                            required
+                          />
+                        </label>
+
+                        <Flex mt="1">
+                          <Button type="submit" color="red" variant="solid">
+                            Delete my account
+                          </Button>
                         </Flex>
                       </Flex>
                     </form>
