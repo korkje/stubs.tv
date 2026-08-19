@@ -40,6 +40,18 @@ than with being a TV Time replacement, of which there are now many.
 Nobody can generate a new export — the portal is gone. Only files people
 already have exist.
 
+Two corrections to the obvious go-to-market:
+
+- **A post is a spike; search traffic is the tail.** People still turn up
+  months later googling "import TV Time export". A durable public
+  `/import/tv-time` page carrying the free client-side preview is worth
+  more than the post, and because parsing happens in the browser it can
+  demo the whole thing to a logged-out stranger.
+- **r/selfhosted and r/DataHoarder convert to self-hosters, not
+  subscribers** — the FSL guarantees it, deliberately. Good for awareness
+  and contributions; don't count them toward the ~15 annual subscribers
+  that clear the cost floor.
+
 ## What the export actually is
 
 **Verified** against three independent open-source parsers, one of which
@@ -178,11 +190,13 @@ created any more**, but we do not need one to build this.
    plus: a show TheTVDB has since renumbered, a specials-only season, a
    title with a comma and one with a quote, an empty `episode_id`, and a
    movie with a `0001-01-01` date.
-4. **Then get one real redacted export.** This is a natural thing to ask
-   for in the same Reddit post — "building an importer, will anyone share
-   an export with the token/IP/user files deleted?" — and it doubles as
-   the launch's first conversation. Ask for it *before* claiming support,
-   and validate against `nb_episodes_seen` (work item 6) when it arrives.
+4. **Then get one real redacted export — before the launch, not during
+   it.** We cannot both claim "import works" and ask for the first real
+   sample in the same post. Sequence it: ask quietly first, in the existing
+   TV Time migration threads on Reddit and in the issue trackers of the
+   tools listed above ("building an importer, will anyone share an export
+   with the token/IP/user files deleted?"), validate against
+   `nb_episodes_seen` (work item 6), *then* launch.
 
 ## Design
 
@@ -303,7 +317,14 @@ a user closing the tab. Design:
   `/api/import/run` guarded the same way as `/api/refresh` is the obvious
   shape, invoked more often than hourly while a job is open.
 - Intents are the safety net: an episode TheTVDB has since renumbered
-  simply stays unresolved and is **reported**, instead of vanishing.
+  simply stays unresolved and is **reported**, instead of vanishing. Note
+  they roughly double the per-user row count while retained — immaterial in
+  storage terms (a `watches` row is ~200 B including its three index
+  entries), but don't quote per-user costs without counting them.
+- Any abuse bound on free imports (a row cap, one job at a time) has to
+  stay compatible with **re-running** an import: the design is idempotent
+  on purpose, and "one import per account, ever" would break the fix-it-and-
+  retry path that makes that idempotency worth having.
 
 Show the progress. A progress bar on `/app/import` reading job counts is
 worth more than shaving minutes off the run.
@@ -352,21 +373,74 @@ hundred episodes stamped to the same minute. Nothing to fix; worth one
 sentence in the import summary so the activity timeline in Phase 2 does not
 look broken.
 
-### 9. Paywall interaction — **owner's call**
+### 9. Paywall interaction — **owner's call, still open**
 
-ADR-0014 makes free accounts read-only, and import is a write, so as
-things stand an importer reached from a Reddit post walks straight into
-`/app/plans`. Sending someone who just lost their data to a paywall before
-showing them anything is the least sympathetic possible framing.
+ADR-0014 makes free accounts read-only, and import is a write, so as things
+stand an importer reached from a Reddit post walks into `/app/plans`.
 
-Recommendation: the **preview is free, the commit is paid.** Parsing is
-client-side and costs us nothing, so an unpaid visitor can drop their ZIP
-in and see "187 shows, 4,213 episodes, 62 films, going back to 2013" —
-then the plan gate. It demonstrates the value before asking, and the
-expensive half (phase 2 ingestion, which is where real money goes) only
-ever runs for someone who paid. Alternatives — import free and paywall
-everything after, or paywall the whole thing — are both defensible; this
-one needs deciding before the UI is built, not after.
+Three options, stated fairly because the choice is genuinely close:
+
+**(a) Preview free, commit behind the plan.** Parsing is client-side and
+costs nothing, so an unpaid visitor drops in their ZIP and sees "187 shows,
+4,213 episodes, 62 films, back to 2013" *before* any ask. Crucially, **the
+annual plan carries a 1-month free trial** — so for the plan we steer people
+to, "pay to import" is really "start a trial and your import runs now": the
+full rescue, today, for nothing. It converts the cohort's one emotional
+moment instead of spending it, and keeps every importer inside a support
+relationship that has revenue attached.
+
+**(b) Import free and permanent, writes paid.** The most generous framing
+and the best Reddit optics. But see the two traps below — it is not the
+cheap giveaway it looks like.
+
+**(c) Paywall the whole thing.** Defensible, worst optics, no reason to
+choose it over (a).
+
+Two things weigh against (b) that are easy to miss:
+
+- **It gives away the one moment this cohort converts on.** For someone
+  whose motivation is "my dead service's data needs a home", (b) satisfies
+  the job *completely* — import, view, and (per ADR-0014's promise) export.
+  There is no second conversion moment: a read-only archive has no return
+  trigger, and VISION.md's "calm — no engagement bait" rules out nagging
+  them back.
+- **Combined with data export, it is a free conversion service.** We are
+  the only tracker that can join a TV Time export exactly. Import + export
+  on a free tier means someone can launder their ZIP through us and carry
+  clean, TVDB-keyed output to Trakt. That is a genuinely useful public
+  service and a defensible thing to offer on purpose — but it should be a
+  decision, not a side effect.
+
+Whichever way this goes, **do not** ship (b) and then degrade or expire it
+later. A promised permanent archive that is later withdrawn inverts the
+goodwill violently.
+
+## Prerequisites that gate a public launch — regardless of §9
+
+These are not import work, but a Reddit launch makes public promises that
+the app cannot currently keep. Fix before inviting a wave, not after.
+
+1. **Data export does not exist** (ROADMAP Phase 2, unchecked). "Your data
+   is yours, always exportable" is load-bearing in VISION.md's product
+   principles and in any honest launch post — and r/DataHoarder and
+   r/selfhosted are precisely the audiences that will test it on day one.
+2. **Self-serve account deletion does not exist** (ROADMAP Phase 3,
+   unchecked; the privacy page currently promises email handling). A wave
+   of EU accounts holding years of personal watch history, deletable only
+   by hand, is real GDPR operational exposure on a solo operation. This is
+   the actual legal risk here — not the import.
+3. **`TvdbClient` has no 429 backoff.** It retries once on an expired
+   token and nothing else. A bulk import against a shared API key without
+   backoff is how the key gets throttled for *everyone*, paying users
+   included — and ingestion still runs in the request path, so their page
+   loads are what degrades.
+4. **Imported follows permanently enlarge the refresh working set.** Every
+   followed series from every import is refreshed hourly forever by the
+   ADR-0010 cron. The recurring cost of an import is not the one-time
+   ingest — it is this. It is a further reason to follow only what TV Time
+   had *actively* followed (§2) rather than everything with history, and
+   worth measuring before a wave rather than after.
+
 
 ## Work items
 
