@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import {
+  AlertDialog,
   Badge,
   Box,
   Button,
@@ -18,9 +20,11 @@ import { createClient } from "@/lib/supabase/server";
 import {
   changePassword,
   deleteAccount,
+  regenerateCalendarToken,
   updateSettings,
 } from "@/lib/settings/actions";
 import { FadeIn } from "@/components/FadeIn";
+import { CopyUrlField } from "@/components/settings/CopyUrlField";
 import { SpecialsField } from "@/components/settings/SpecialsField";
 import { TimezoneField } from "@/components/settings/TimezoneField";
 
@@ -47,10 +51,18 @@ export default async function SettingsPage({
     password_saved?: string;
     password_error?: string;
     delete_error?: string;
+    calendar_saved?: string;
   }>;
 }) {
   const params = await searchParams;
-  const { saved, error, password_saved, password_error, delete_error } = params;
+  const {
+    saved,
+    error,
+    password_saved,
+    password_error,
+    delete_error,
+    calendar_saved,
+  } = params;
   const tab = TABS.has(params.tab ?? "") ? params.tab! : "watching";
 
   const supabase = await createClient();
@@ -59,7 +71,7 @@ export default async function SettingsPage({
       supabase
         .from("profiles")
         .select(
-          "display_name, timezone, specials, bulk_mark_specials, synopsis_mode, plan"
+          "display_name, timezone, specials, bulk_mark_specials, synopsis_mode, plan, calendar_token"
         )
         .maybeSingle(),
       supabase
@@ -71,6 +83,18 @@ export default async function SettingsPage({
 
   const email = userData?.user?.email ?? "";
   const plan = profile?.plan ?? "free";
+
+  // The feed URL must be absolute (it gets pasted into a calendar app), so
+  // derive the origin from the request — works in production, locally, and
+  // self-hosted without configuration.
+  const requestHeaders = await headers();
+  const host =
+    requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
+  const proto = requestHeaders.get("x-forwarded-proto") ?? "https";
+  const calendarUrl =
+    profile?.calendar_token && host
+      ? `${proto}://${host}/api/calendar/${profile.calendar_token}.ics`
+      : null;
   const renewsAt = billing?.current_period_end
     ? new Intl.DateTimeFormat("en", { dateStyle: "long" }).format(
         new Date(billing.current_period_end)
@@ -162,6 +186,75 @@ export default async function SettingsPage({
                     </Flex>
                   </form>
                 </Card>
+
+                {calendarUrl && (
+                  <Card mt="4">
+                    <Flex direction="column" gap="2" p="2" align="start">
+                      <Heading as="h2" size="3">
+                        Calendar
+                      </Heading>
+
+                      {calendar_saved && (
+                        <Callout.Root color="green" style={{ width: "100%" }}>
+                          <Callout.Text>
+                            New link created. Anywhere the old one was added
+                            stopped updating — resubscribe with this one.
+                          </Callout.Text>
+                        </Callout.Root>
+                      )}
+
+                      <Text size="2" color="gray">
+                        Upcoming episodes of the shows you follow, as a
+                        calendar your phone or computer keeps updated by
+                        itself. Subscribe to the URL — don&apos;t import the
+                        file, an import is a one-time snapshot. In Apple
+                        Calendar: File → New Calendar Subscription. In Google
+                        Calendar: Other calendars → From URL.
+                      </Text>
+
+                      <CopyUrlField url={calendarUrl} />
+
+                      <Text size="1" color="gray">
+                        The link is private to you: anyone who has it can see
+                        your upcoming episodes. If it leaks, make a new one.
+                      </Text>
+
+                      {/* Regeneration invalidates every existing
+                          subscription, hence the confirmation. */}
+                      <AlertDialog.Root>
+                        <AlertDialog.Trigger>
+                          <Button variant="soft" color="red" type="button">
+                            Make a new link
+                          </Button>
+                        </AlertDialog.Trigger>
+                        <AlertDialog.Content maxWidth="420px">
+                          <AlertDialog.Title>
+                            Make a new calendar link?
+                          </AlertDialog.Title>
+                          <AlertDialog.Description size="2">
+                            The current link stops working immediately.
+                            Calendars subscribed to it will stop updating
+                            until you resubscribe with the new one.
+                          </AlertDialog.Description>
+                          <Flex gap="3" mt="4" justify="end">
+                            <AlertDialog.Cancel>
+                              <Button variant="soft" color="gray">
+                                Keep the current link
+                              </Button>
+                            </AlertDialog.Cancel>
+                            <form action={regenerateCalendarToken}>
+                              <AlertDialog.Action>
+                                <Button type="submit" color="red">
+                                  Make a new link
+                                </Button>
+                              </AlertDialog.Action>
+                            </form>
+                          </Flex>
+                        </AlertDialog.Content>
+                      </AlertDialog.Root>
+                    </Flex>
+                  </Card>
+                )}
               </Tabs.Content>
 
               <Tabs.Content value="account">

@@ -145,6 +145,27 @@ export async function changePassword(formData: FormData) {
   redirect("/app/settings?tab=account&password_saved=1");
 }
 
+/**
+ * Rotates the calendar feed token (ADR-0018). The URL is the credential,
+ * so this is the "it leaked" recovery: every previously shared feed URL
+ * stops working the moment this returns. The SQL function scopes the
+ * update to auth.uid() and mints the token server-side — users never get
+ * to choose their own.
+ */
+export async function regenerateCalendarToken() {
+  const supabase = await createClient();
+
+  const { error } = await supabase.rpc("regenerate_calendar_token");
+  if (error) {
+    redirect(
+      `/app/settings?tab=watching&error=${encodeURIComponent(error.message)}`
+    );
+  }
+
+  revalidatePath("/app/settings");
+  redirect("/app/settings?tab=watching&calendar_saved=1");
+}
+
 function failDelete(message: string): never {
   redirect(
     `/app/settings?tab=account&delete_error=${encodeURIComponent(message)}`

@@ -1,10 +1,12 @@
 # Plan: tokenized iCal feed
 
-Status: **not started**. Written up so it can be picked up cold — by a
-future session, a cloud agent, or a future self. Prerequisite (hourly
-metadata refresh, ADR-0010) is **done**: a subscribed calendar showing
-stale air dates would be worse than no calendar, which is why that came
-first.
+Status: **shipped 2026-08-20** (ADR-0018 records the decisions). Kept for
+the reasoning; the open decisions below were resolved as: future-only
+window (+12 months), synopses only for `synopsis_mode = 'show'` (scramble
+and hide both omit — scrambling in a calendar is absurd, exactly as
+predicted below), per-show calendars still not built. Implementation:
+`supabase/migrations/20260820120000_calendar_feed.sql`,
+`apps/web/src/lib/calendar/ics.ts`, `apps/web/src/app/api/calendar/`.
 
 ## What it is
 

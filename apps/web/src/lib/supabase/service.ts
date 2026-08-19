@@ -11,8 +11,9 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
  * attempt into a build error. Use it solely for metadata ingestion (which
  * includes the import machinery's resolve/ingest calls and its background
  * worker, ADR-0015), the Polar webhook handler (billing sync, ADR-0013),
- * and account deletion (the auth admin API, ADR-0017); all user-scoped
- * access goes through the cookie-based clients in ./server.ts.
+ * account deletion (the auth admin API, ADR-0017), and the calendar feed
+ * (token-authenticated, sessionless — ADR-0018); all user-scoped access
+ * goes through the cookie-based clients in ./server.ts.
  */
 export function createServiceClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
