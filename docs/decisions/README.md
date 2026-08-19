@@ -34,3 +34,4 @@ Template:
 | [0014](0014-open-signups-paywalled-writes.md) | Open public signups; free accounts are read-only |
 | [0015](0015-import-parsed-client-side.md) | Third-party imports parsed in the browser, never uploaded |
 | [0016](0016-workers-paid.md) | The worker runs on the Workers Paid plan |
+| [0017](0017-gdpr-self-serve.md) | GDPR export and deletion are self-serve, in SQL and hard-deleted |

@@ -77,11 +77,14 @@ export default function PrivacyPage() {
         <Heading size="4">Your rights</Heading>
         <Text size="3" color="gray">
           You can have a full copy of your data, or have your account and
-          everything in it permanently deleted, at any time — email{" "}
-          privacy@stubs.tv and it happens. Self-serve export and deletion are
-          on the roadmap; until they ship, email is the mechanism. Deletion is
-          real deletion: the account row cascades through everything you
-          created, with no retention copy.
+          everything in it permanently deleted, at any time — both are
+          self-serve in Settings → Account, on every plan. The export is one
+          JSON file with your profile, follows, watch history, ratings, and
+          imports. Deletion is real deletion: the account row cascades
+          through everything you created, with no retention copy. If you paid
+          through Polar, they keep anonymized order records they are legally
+          required to hold as merchant of record. Prefer email? privacy@stubs.tv
+          works too.
         </Text>
 
         <Heading size="4">Lawful basis and contact</Heading>
