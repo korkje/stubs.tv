@@ -632,6 +632,41 @@ export type Database = {
       }
     }
     Views: {
+      import_reconciliation: {
+        Row: {
+          job_id: number | null
+          matched: number | null
+          pending: number | null
+          series_id: number | null
+          series_name: string | null
+          tvdb_series_id: number | null
+          unmatched: number | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_watch_intents_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "import_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_watch_intents_series_id_fkey"
+            columns: ["series_id"]
+            isOneToOne: false
+            referencedRelation: "series"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_watch_intents_series_id_fkey"
+            columns: ["series_id"]
+            isOneToOne: false
+            referencedRelation: "series_progress"
+            referencedColumns: ["series_id"]
+          },
+        ]
+      }
       movies_seen: {
         Row: {
           movie_id: number | null
@@ -728,6 +763,17 @@ export type Database = {
       }
     }
     Functions: {
+      import_materialise_series: {
+        Args: { p_job_id: number; p_series_id: number }
+        Returns: Json
+      }
+      import_pending_series: {
+        Args: { p_job_id: number; p_limit: number }
+        Returns: {
+          followed: boolean
+          series_id: number
+        }[]
+      }
       mark_episodes_seen: {
         Args: { p_season_number?: number; p_series_id: number }
         Returns: undefined

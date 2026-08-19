@@ -115,3 +115,118 @@ $$;
 grant usage, select on sequence public.import_jobs_id_seq to authenticated, service_role;
 grant usage, select on sequence public.import_watch_intents_id_seq to authenticated, service_role;
 grant usage, select on sequence public.import_movie_intents_id_seq to authenticated, service_role;
+
+-- Per-show outcome of a job, for the reconciliation report: imported vs
+-- TV Time's own count (the jsonb on the job), worst shortfalls first —
+-- surfacing a 3% gap builds more trust than a silent 100% claim.
+-- security_invoker so the caller's RLS on the intents applies, same as the
+-- series_progress precedent.
+create view public.import_reconciliation
+  with (security_invoker = true) as
+select
+  i.job_id,
+  i.user_id,
+  i.series_id,
+  i.tvdb_series_id,
+  s.name as series_name,
+  count(*) filter (where i.status = 'matched') as matched,
+  count(*) filter (where i.status = 'unmatched') as unmatched,
+  count(*) filter (where i.status = 'pending') as pending
+from public.import_watch_intents i
+join public.series s on s.id = i.series_id
+group by i.job_id, i.user_id, i.series_id, i.tvdb_series_id, s.name;
+
+grant select on public.import_reconciliation to authenticated, service_role;
+
+-- The worker's queue: distinct series with pending intents for a job,
+-- followed shows first so the up-next feed — the daily driver — becomes
+-- useful within minutes of a big import rather than at the end of it.
+create function public.import_pending_series(p_job_id bigint, p_limit int)
+returns table (series_id bigint, followed boolean)
+language sql
+security definer
+set search_path = ''
+as $$
+  select
+    i.series_id,
+    exists (
+      select 1 from public.follows f
+      where f.user_id = i.user_id
+        and f.entity_type = 'series'
+        and f.entity_id = i.series_id
+    ) as followed
+  from public.import_watch_intents i
+  where i.job_id = p_job_id and i.status = 'pending'
+  group by i.series_id, i.user_id
+  order by followed desc, series_id
+  limit p_limit;
+$$;
+
+-- Worker-only (the cron route runs as service role). Revoke from PUBLIC,
+-- not just anon/authenticated — those roles inherit PUBLIC's EXECUTE.
+revoke execute on function public.import_pending_series from public;
+grant execute on function public.import_pending_series to service_role;
+
+-- Materialise one series' pending intents into watches, in SQL: the join is
+-- exact — episodes are unique on (series_id, season_number, number), which
+-- is precisely the triple the TV Time export carries — and doing it here
+-- keeps a 6,000-episode soap at one subrequest instead of dozens of chunked
+-- updates. Conflicting watches are left alone (same ignoreDuplicates
+-- semantics as markSeen: a row the user already has keeps its date), and
+-- intents whose episode does not exist under that numbering go to
+-- 'unmatched' to be reported, never silently dropped.
+create function public.import_materialise_series(
+  p_job_id bigint,
+  p_series_id bigint
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_matched int;
+  v_unmatched int;
+begin
+  insert into public.watches (user_id, entity_type, entity_id, watched_at)
+  select i.user_id, 'episode'::public.entity_type, e.id, i.watched_at
+  from public.import_watch_intents i
+  join public.episodes e
+    on e.series_id = i.series_id
+   and e.season_number = i.season_number
+   and e.number = i.episode_number
+  where i.job_id = p_job_id
+    and i.series_id = p_series_id
+    and i.status = 'pending'
+  on conflict (user_id, entity_type, entity_id) do nothing;
+
+  with done as (
+    update public.import_watch_intents i
+    set status = 'matched'
+    from public.episodes e
+    where e.series_id = i.series_id
+      and e.season_number = i.season_number
+      and e.number = i.episode_number
+      and i.job_id = p_job_id
+      and i.series_id = p_series_id
+      and i.status = 'pending'
+    returning i.id
+  )
+  select count(*) into v_matched from done;
+
+  with missing as (
+    update public.import_watch_intents i
+    set status = 'unmatched'
+    where i.job_id = p_job_id
+      and i.series_id = p_series_id
+      and i.status = 'pending'
+    returning i.id
+  )
+  select count(*) into v_unmatched from missing;
+
+  return jsonb_build_object('matched', v_matched, 'unmatched', v_unmatched);
+end;
+$$;
+
+revoke execute on function public.import_materialise_series from public;
+grant execute on function public.import_materialise_series to service_role;

@@ -51,7 +51,13 @@ export class TvdbClient {
     return this.#pendingLogin;
   }
 
-  /** GET a path relative to the API root, retrying once if the token expired. */
+  /**
+   * GET a path relative to the API root, retrying once if the token expired
+   * and backing off on 429s. The backoff matters most for bulk work (the
+   * import worker): the API key is shared by every user, and hammering
+   * through a rate limit would degrade paying users' page loads, since
+   * ingestion still runs in the request path.
+   */
   async get<T>(path: string): Promise<TvdbEnvelope<T> | null> {
     let token = this.#token ?? (await this.#login());
 
@@ -60,6 +66,19 @@ export class TvdbClient {
     if (response.status === 401) {
       this.#token = null;
       token = await this.#login();
+      response = await this.#request(path, token);
+    }
+
+    for (let attempt = 0; response.status === 429 && attempt < 3; attempt++) {
+      // Honour Retry-After when sane, else exponential from half a second.
+      // Waiting is wall-clock, not Workers CPU, but the import worker runs
+      // against a deadline — hence the 5s cap rather than open-ended trust.
+      const retryAfter = Number(response.headers.get("retry-after"));
+      const delayMs =
+        Number.isFinite(retryAfter) && retryAfter > 0
+          ? Math.min(retryAfter * 1000, 5000)
+          : 500 * 2 ** attempt;
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
       response = await this.#request(path, token);
     }
 
