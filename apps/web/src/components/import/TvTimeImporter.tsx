@@ -176,16 +176,20 @@ export function TvTimeImporter({ mode }: { mode: "public" | "app" }) {
               )}
             </Flex>
             <Text size="2" color="gray">
-              {summary.follows} shows will be followed (what TV Time had
-              actively followed — finished and archived shows import their
+              {plural(summary.follows, "show")} will be followed (what TV Time
+              had actively followed — finished and archived shows import their
               history without cluttering your feed)
-              {summary.ratings > 0 && `, and ${summary.ratings} show ratings come along`}
+              {summary.ratings > 0 &&
+                `, and ${plural(summary.ratings, "show rating")} ${
+                  summary.ratings === 1 ? "comes" : "come"
+                } along`}
               .
             </Text>
             {summary.watchlisted > 0 && (
               <Text size="2" color="gray">
-                {summary.watchlisted} films on your to-watch list are not
-                imported — there is no watchlist here yet.
+                {plural(summary.watchlisted, "film")} on your to-watch list{" "}
+                {summary.watchlisted === 1 ? "is" : "are"} not imported — there
+                is no watchlist here yet.
               </Text>
             )}
             {result.report.usedV1Fallback && (
@@ -196,7 +200,8 @@ export function TvTimeImporter({ mode }: { mode: "public" | "app" }) {
             )}
             {result.report.skipped.length > 0 && (
               <Text size="2" color="gray">
-                {result.report.skipped.length} rows could not be read and were
+                {plural(result.report.skipped.length, "row")} could not be read
+                and {result.report.skipped.length === 1 ? "was" : "were"}{" "}
                 skipped; the import summary will list them.
               </Text>
             )}
@@ -227,6 +232,10 @@ export function TvTimeImporter({ mode }: { mode: "public" | "app" }) {
       )}
     </Flex>
   );
+}
+
+function plural(n: number, noun: string): string {
+  return `${n} ${noun}${n === 1 ? "" : "s"}`;
 }
 
 function summarise(result: ParseResult) {

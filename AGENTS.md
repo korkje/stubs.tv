@@ -45,16 +45,17 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
   `<html>` for Radix's dark palette to key off — so the root `<Theme>` must
   keep its default `appearance="inherit"`. Setting `appearance` explicitly
   pins the app to one mode and silently breaks the switcher.
-- **Cloudflare Workers** hosting via `@opennextjs/cloudflare`, on the **free**
-  plan, which imposes two hard limits:
-  - **10ms of CPU per request** (paid: 30s). This is the tight one. Rendering
-    is CPU: a page that renders hundreds of rows will return HTTP 1102
-    "Worker exceeded CPU time limit" in production while working fine
-    locally. Keep per-request rendering small — paginate, collapse, or move
-    aggregation into SQL. Remember that every server action calling
-    `revalidatePath` re-renders the whole route.
-  - **3 MiB gzipped bundle** (paid: 10 MiB). Check impact before adding
-    dependencies; measure with `npx wrangler deploy --dry-run`.
+- **Cloudflare Workers** hosting via `@opennextjs/cloudflare`, on the
+  **paid** plan (ADR-0016): 30s CPU and 10,000 subrequests per invocation,
+  10 MiB gzipped bundle (measure with `npx wrangler deploy --dry-run`).
+  Two free-plan-era habits remain deliberate policy:
+  - **Keep request-path rendering small** — paginate, collapse, move
+    aggregation into SQL. The paid CPU budget is for background work
+    (imports, refresh), not heavier pages; interactive latency still pays
+    for every render, and every server action calling `revalidatePath`
+    re-renders the whole route.
+  - **Background jobs stay batched and resumable** rather than trusting one
+    invocation to finish (see /api/refresh and /api/import/run).
 - **Supabase** (EU region) for Postgres and Auth. Row Level Security on all
   user-data tables. Schema changes go through migrations in `supabase/`.
 - **TheTVDB v4** as the only metadata provider for now, behind an abstraction.
@@ -155,7 +156,9 @@ yet; read the note there before starting.
 
 Live at stubs.tv. Search, follows, ratings, and marking episodes, seasons,
 shows and movies as seen all work, on phone and desktop. Metadata comes from
-TheTVDB behind the provider abstraction, cached in Postgres.
+TheTVDB behind the provider abstraction, cached in Postgres. TV Time exports
+import end-to-end (ADR-0015): parsed in the browser, previewed free at
+/import/tv-time, committed as a background job with a reconciliation report.
 
 Known gaps, all recorded in [docs/ROADMAP.md](docs/ROADMAP.md): nothing
 refreshes cached metadata, ingestion runs inside the request path (large shows

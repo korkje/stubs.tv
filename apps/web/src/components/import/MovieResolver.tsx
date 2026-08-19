@@ -74,8 +74,11 @@ export function MovieResolver({ movies }: { movies: UnmatchedMovie[] }) {
       <Flex direction="column" gap="3" p="2">
         <Heading size="4">Films that need a look</Heading>
         <Text size="2" color="gray">
-          TV Time stored films by title only — these {remaining.length} had no
-          single exact match, so pick the right one or skip it. Nothing is
+          TV Time stored films by title only —{" "}
+          {remaining.length === 1
+            ? "this one had"
+            : `these ${remaining.length} had`}{" "}
+          no single exact match, so pick the right one or skip it. Nothing is
           guessed on your behalf.
         </Text>
         {error && (
