@@ -32,3 +32,4 @@ Template:
 | [0012](0012-library-lazy-loading.md) | Library lists lazy-load through client-held pages |
 | [0013](0013-polar-merchant-of-record.md) | Polar as merchant of record for payments |
 | [0014](0014-open-signups-paywalled-writes.md) | Open public signups; free accounts are read-only |
+| [0015](0015-import-parsed-client-side.md) | Third-party imports parsed in the browser, never uploaded |

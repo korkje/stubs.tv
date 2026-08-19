@@ -82,6 +82,18 @@ exportable, writing needs a plan. It has no Polar product; it is simply an
 account with no paid entitlement. (If a writable free tier ever ships, the
 gate candidates remain no calendar integration and no import.)
 
+**Importing is a write, so it needs a plan — but the preview is free to
+everyone** (ADR-0015). Because a TV Time or Trakt export is parsed in the
+visitor's own browser, a logged-out stranger can drop in their file and see
+what it holds — "187 shows, 4,213 episodes, back to 2013" — before being
+asked for anything, and it costs us nothing to show them. The annual plan's
+trial then makes the import itself free at the point of use. Considered and
+rejected: a free-forever imported archive. It reads generously, but it
+spends the one moment this audience converts on, and combined with data
+export it would make us a free TV Time-to-anywhere conversion service —
+possibly worth offering deliberately one day, not worth shipping by
+accident.
+
 Friends & family keep free full-featured accounts (`plan = 'comp'`, granted
 by hand, never touched by billing). Self-hosting is always free (FSL
 license permits it; it forbids competing commercial offerings).
