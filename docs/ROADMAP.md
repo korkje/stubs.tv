@@ -115,8 +115,8 @@ feed is still to come.
 - [x] Hourly metadata refresh for followed shows (ADR-0010) — the feed and
       any calendar are only as fresh as the ingested air dates
 - [ ] In-app "upcoming" view for followed shows/people
-- [ ] Tokenized per-user iCal feed — planned in detail in
-      [docs/plans/ical-feed.md](plans/ical-feed.md), ready to pick up
+- [x] Tokenized per-user iCal feed — shipped 2026-08-20 (ADR-0018);
+      subscribe from Settings → Watching → Calendar
 
 ## Phase 5 — Charge (public launch, only if 1–4 prove out)
 

@@ -456,6 +456,7 @@ export type Database = {
       profiles: {
         Row: {
           bulk_mark_specials: boolean
+          calendar_token: string
           created_at: string
           display_name: string | null
           is_admin: boolean
@@ -467,6 +468,7 @@ export type Database = {
         }
         Insert: {
           bulk_mark_specials?: boolean
+          calendar_token?: string
           created_at?: string
           display_name?: string | null
           is_admin?: boolean
@@ -478,6 +480,7 @@ export type Database = {
         }
         Update: {
           bulk_mark_specials?: boolean
+          calendar_token?: string
           created_at?: string
           display_name?: string | null
           is_admin?: boolean
@@ -763,6 +766,7 @@ export type Database = {
       }
     }
     Functions: {
+      calendar_feed: { Args: { p_token: string }; Returns: Json }
       export_user_data: { Args: never; Returns: Json }
       import_materialise_series: {
         Args: { p_job_id: number; p_series_id: number }
@@ -779,6 +783,7 @@ export type Database = {
         Args: { p_season_number?: number; p_series_id: number }
         Returns: undefined
       }
+      regenerate_calendar_token: { Args: never; Returns: string }
       resolve_entities: {
         Args: {
           p_entities: Json

@@ -35,3 +35,4 @@ Template:
 | [0015](0015-import-parsed-client-side.md) | Third-party imports parsed in the browser, never uploaded |
 | [0016](0016-workers-paid.md) | The worker runs on the Workers Paid plan |
 | [0017](0017-gdpr-self-serve.md) | GDPR export and deletion are self-serve, in SQL and hard-deleted |
+| [0018](0018-ical-url-as-credential.md) | The calendar feed authenticates by URL token |
