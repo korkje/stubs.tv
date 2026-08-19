@@ -160,7 +160,6 @@ TheTVDB behind the provider abstraction, cached in Postgres. TV Time exports
 import end-to-end (ADR-0015): parsed in the browser, previewed free at
 /import/tv-time, committed as a background job with a reconciliation report.
 
-Known gaps, all recorded in [docs/ROADMAP.md](docs/ROADMAP.md): nothing
-refreshes cached metadata, ingestion runs inside the request path (large shows
-risk the 10ms CPU ceiling in production), and a watched date is stored but
-surfaced nowhere.
+Known gaps, all recorded in [docs/ROADMAP.md](docs/ROADMAP.md): ingestion
+still runs inside the request path when a title is first opened, and a
+watched date is stored but surfaced nowhere.
