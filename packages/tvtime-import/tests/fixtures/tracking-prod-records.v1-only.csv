@@ -1,0 +1,10 @@
+series_id,user_id,type,updated_at,created_at,series_name,watch_count,uuid,type-uuid-n,watches,release_date_range_key,entity_type,follow_date_range_key,movie_name,release_date,alpha_range_key,runtime,rewatch_count,episode_id,series_uuid,watch_date,episode_number,season_number,total_movies_runtime,total_series_runtime,country,watch_date_range_key,unitarian,watched_episode_range_key,bulk_type
+,,watch,,2022-03-03 20:00:00,,,,,,,movie,,Inception,2010-07-15 00:00:00,,8880,,,,,,,,,,,,,
+,,watch,,2020-11-11 11:11:11,,,,,,,movie,,Inception,2010-07-15 00:00:00,,8880,,,,,,,,,,,,,
+,,towatch,,2023-01-01 00:00:00,,,,,,,movie,,Dune Part Three,0001-01-01 00:00:00,,,,,,,,,,,,,,,
+,,watch,,2021-08-08 20:30:00,,,,,,,movie,,"The Good, the Bad and the Ugly",1966-12-23 00:00:00,,10680,,,,,,,,,,,,,
+,,rewatch_count,,,,,,,,,movie,,Inception,,,,,,,,,,,,,,,,
+,,watch,,2021-01-01 10:00:00,,,,,,,movie,,,,,,,,,,,,,,,,,,
+121361,,watch,,2019-01-01 10:00:00,Game of Thrones,,,,,,episode,,,,,,,,,,1,1,,,,,,,
+121361,,watch,,2019-01-02 10:00:00,Game of Thrones,,,,,,episode,,,,,,,,,,2,1,,,,,,,
+121361,,follow,,2018-02-22 03:05:02,Game of Thrones,,,,,,series,,,,,,,,,,,,,,,,,,
