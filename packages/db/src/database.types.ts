@@ -223,6 +223,164 @@ export type Database = {
         }
         Relationships: []
       }
+      import_jobs: {
+        Row: {
+          counts: Json
+          created_at: string
+          finished_at: string | null
+          id: number
+          report: Json
+          reported: Json
+          source: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          counts?: Json
+          created_at?: string
+          finished_at?: string | null
+          id?: never
+          report?: Json
+          reported?: Json
+          source: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          counts?: Json
+          created_at?: string
+          finished_at?: string | null
+          id?: never
+          report?: Json
+          reported?: Json
+          source?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      import_movie_intents: {
+        Row: {
+          id: number
+          job_id: number
+          movie_id: number | null
+          name: string
+          runtime_min: number | null
+          status: string
+          tvdb_movie_id: number | null
+          user_id: string
+          watched_at: string | null
+          year: number | null
+        }
+        Insert: {
+          id?: never
+          job_id: number
+          movie_id?: number | null
+          name: string
+          runtime_min?: number | null
+          status?: string
+          tvdb_movie_id?: number | null
+          user_id: string
+          watched_at?: string | null
+          year?: number | null
+        }
+        Update: {
+          id?: never
+          job_id?: number
+          movie_id?: number | null
+          name?: string
+          runtime_min?: number | null
+          status?: string
+          tvdb_movie_id?: number | null
+          user_id?: string
+          watched_at?: string | null
+          year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_movie_intents_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "import_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_movie_intents_movie_id_fkey"
+            columns: ["movie_id"]
+            isOneToOne: false
+            referencedRelation: "movies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_movie_intents_movie_id_fkey"
+            columns: ["movie_id"]
+            isOneToOne: false
+            referencedRelation: "movies_seen"
+            referencedColumns: ["movie_id"]
+          },
+        ]
+      }
+      import_watch_intents: {
+        Row: {
+          episode_number: number
+          id: number
+          job_id: number
+          rewatch_count: number
+          season_number: number
+          series_id: number
+          status: string
+          tvdb_series_id: number
+          user_id: string
+          watched_at: string | null
+        }
+        Insert: {
+          episode_number: number
+          id?: never
+          job_id: number
+          rewatch_count?: number
+          season_number: number
+          series_id: number
+          status?: string
+          tvdb_series_id: number
+          user_id: string
+          watched_at?: string | null
+        }
+        Update: {
+          episode_number?: number
+          id?: never
+          job_id?: number
+          rewatch_count?: number
+          season_number?: number
+          series_id?: number
+          status?: string
+          tvdb_series_id?: number
+          user_id?: string
+          watched_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_watch_intents_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "import_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_watch_intents_series_id_fkey"
+            columns: ["series_id"]
+            isOneToOne: false
+            referencedRelation: "series"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_watch_intents_series_id_fkey"
+            columns: ["series_id"]
+            isOneToOne: false
+            referencedRelation: "series_progress"
+            referencedColumns: ["series_id"]
+          },
+        ]
+      }
       movies: {
         Row: {
           backdrop_url: string | null
