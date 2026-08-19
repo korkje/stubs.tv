@@ -151,3 +151,12 @@ feed is still to come.
 - Social features, public profiles
 - Import from Trakt/IMDb/CSV — worth considering earlier if any export of the
   owner's old watch history turns up
+
+- **Import from TV Time exports** — planned in detail in
+  [docs/plans/tvtime-import.md](plans/tvtime-import.md), ready to pick up.
+  TV Time shut down 2026-07-15 and its GDPR export is keyed by TheTVDB ids,
+  so shows and episodes import as an exact join rather than a fuzzy match —
+  something no other tracker can claim. Two decisions are the owner's before
+  anyone starts: whether to move to Workers Paid (the free plan's 50
+  subrequests per invocation make a 200-show import take ~100 hours), and
+  whether the import preview sits in front of or behind the paywall.
