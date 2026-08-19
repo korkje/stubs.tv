@@ -373,14 +373,17 @@ hundred episodes stamped to the same minute. Nothing to fix; worth one
 sentence in the import summary so the activity timeline in Phase 2 does not
 look broken.
 
-### 9. Paywall interaction — **owner's call, still open**
+### 9. Paywall interaction — **decided 2026-08-19**
 
 ADR-0014 makes free accounts read-only, and import is a write, so as things
 stand an importer reached from a Reddit post walks into `/app/plans`.
 
-Three options, stated fairly because the choice is genuinely close:
+**Decision: (a) below — preview free, commit behind the plan.** Recorded in
+ADR-0015 and VISION.md; ADR-0014 is untouched, because import is simply a
+write like any other. The alternatives are kept here so the reasoning
+survives rather than having to be rediscovered.
 
-**(a) Preview free, commit behind the plan.** Parsing is client-side and
+**(a) Preview free, commit behind the plan — chosen.** Parsing is client-side and
 costs nothing, so an unpaid visitor drops in their ZIP and sees "187 shows,
 4,213 episodes, 62 films, back to 2013" *before* any ask. Crucially, **the
 annual plan carries a 1-month free trial** — so for the plan we steer people
@@ -389,12 +392,24 @@ full rescue, today, for nothing. It converts the cohort's one emotional
 moment instead of spending it, and keeps every importer inside a support
 relationship that has revenue attached.
 
-**(b) Import free and permanent, writes paid.** The most generous framing
-and the best Reddit optics. But see the two traps below — it is not the
-cheap giveaway it looks like.
+**(b) Import free and permanent, writes paid — rejected.** The most
+generous framing and the best Reddit optics, and the *financial* risk really
+is near zero: TVDB calls cost nothing under $50k/yr revenue, and a `watches`
+row is ~200 B including its three index entries, so a thousand free
+importers is well inside Supabase Pro's included storage. It was rejected on
+funnel grounds, not cost — see the two traps below. Note ADR-0014 had
+already considered and rejected a free-forever tier for the same reason,
+and the annual plan's 1-month trial is what makes (a) humane rather than
+extractive.
 
-**(c) Paywall the whole thing.** Defensible, worst optics, no reason to
-choose it over (a).
+**(c) Paywall the whole thing — rejected.** Defensible, worst optics, no
+reason to choose it over (a).
+
+Also considered and dropped: giving paying users **queue priority** for
+metadata ingestion. Under (a) everyone importing is already a payer, so
+there is nothing to prioritise; under (b) it would mean deliberately slow
+free imports, which is self-sabotage for a launch whose entire pitch is
+import quality. The honest day-one reason to pay is writes.
 
 Two things weigh against (b) that are easy to miss:
 
