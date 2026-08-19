@@ -53,8 +53,11 @@ address": `/api/calendar/<uuid-token>.ics`, with the token stored on
   store the response.
 - Rotating the token breaks every existing subscription; the settings UI
   says so before doing it. That is the feature, not a bug.
-- The feed's "today" is UTC (`current_date`), so near midnight a CET
-  user's same-day episode can appear up to two hours later than their
-  wall clock suggests. All-day events plus clients polling a few times a
-  day make this invisible in practice; threading the profile timezone
-  into the window is not worth it. Known, accepted.
+- The feed's "today" honours the profile timezone setting (null = UTC,
+  the setting's documented semantics). This is about *inclusion*, not
+  placement: events are all-day and cannot move, but subscriptions
+  replace content wholesale on every poll — under a UTC-only boundary, a
+  user west of UTC would watch tonight's episode vanish from their
+  calendar the moment UTC rolls past midnight. A timezone value
+  Postgres's tzdata does not recognise degrades to UTC instead of
+  breaking the feed.
