@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { Avatar, DropdownMenu, Flex, IconButton } from "@radix-ui/themes";
-import { ExitIcon, GearIcon } from "@radix-ui/react-icons";
+import { DownloadIcon, ExitIcon, GearIcon } from "@radix-ui/react-icons";
 import { signout } from "@/app/login/actions";
 
 /**
@@ -32,6 +32,13 @@ export function UserMenu({ initial }: { initial: string }) {
         onCloseAutoFocus={(event) => event.preventDefault()}
       >
         {/* Icons trail on the right so the labels stay flush left. */}
+        <DropdownMenu.Item asChild>
+          <Link href="/app/import">
+            <Flex align="center" justify="between" gap="5" width="100%">
+              Import <DownloadIcon />
+            </Flex>
+          </Link>
+        </DropdownMenu.Item>
         <DropdownMenu.Item asChild>
           <Link href="/app/settings">
             <Flex align="center" justify="between" gap="5" width="100%">

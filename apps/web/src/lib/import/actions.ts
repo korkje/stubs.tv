@@ -21,7 +21,6 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { requireWriteAccess } from "@/lib/plan";
 import { kickImportWorker } from "./kick";
-import { normaliseTitle } from "./match";
 import type { ImportCounts, ImportStatus, MovieCandidate } from "./types";
 
 function fail(context: string, error: { message: string } | null): void {

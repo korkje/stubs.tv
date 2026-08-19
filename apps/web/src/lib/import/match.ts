@@ -1,7 +1,7 @@
-// Title matching for films, shared by the worker's auto-accept pass and
-// the manual-pick action: a wrong film in someone's history is worse than
-// a missing one, so auto-acceptance demands a single exact-title candidate
-// within a year — anything fuzzier goes to the manual pick UI.
+// Title matching for the import worker's film auto-accept pass: a wrong
+// film in someone's history is worse than a missing one, so auto-acceptance
+// demands a single exact-title candidate within a year — anything fuzzier
+// goes to the manual pick UI.
 
 /** Lowercase, strip diacritics and punctuation, collapse whitespace. */
 export function normaliseTitle(title: string): string {

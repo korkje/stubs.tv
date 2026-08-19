@@ -21,6 +21,7 @@
     "@stubs/metadata": "*",
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.49.0",
+    "@zip.js/zip.js": "^2.8.53",
     "motion": "^13.1.0",
     "next": "16.3.0",
     "next-themes": "^0.4.6",
