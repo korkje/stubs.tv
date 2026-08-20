@@ -223,6 +223,7 @@ body:has([data-pending]) footer {
   font-size: 0.75em;
 }
 
+
 /* Tabular figures for every animated number: NumberFlow measures real
    glyph widths, so with proportional digits a roll continuously changes
    the figure's width and drags its row-neighbours sideways. Equal-width

@@ -1,6 +1,6 @@
 "use client";
 
-import { Grid } from "@radix-ui/themes";
+import { Box, Grid } from "@radix-ui/themes";
 import { TimeStat } from "@/components/TimeStat";
 import { useLibraryCounts } from "./LibraryCounts";
 
@@ -18,11 +18,21 @@ export function LibraryTotals() {
     <Grid
       columns={{ initial: "1", xs: "3", md: "6" }}
       gapX="4"
-      gapY={{ initial: "2", xs: "4" }}
+      gapY={{ initial: "1", xs: "4" }}
     >
       <TimeStat label="Show time" minutes={episodeMinutes} />
       <TimeStat label="Movie time" minutes={movieMinutes} />
-      <TimeStat label="Total time" minutes={episodeMinutes + movieMinutes} />
+      {/* On phones the stats stack like a column of figures being added,
+          so the addends sit tight and the total stands slightly apart —
+          the sum line. From xs they are side by side and the offset would
+          only break the row's alignment. */}
+      <Box mt={{ initial: "2", xs: "0" }}>
+        <TimeStat
+          label="Total time"
+          minutes={episodeMinutes + movieMinutes}
+          highlight
+        />
+      </Box>
     </Grid>
   );
 }

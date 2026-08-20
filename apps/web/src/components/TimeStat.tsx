@@ -74,17 +74,33 @@ export function TimeFigure({
  * case. The figure itself never wraps; if space runs out it must be a layout
  * bug, not a ragged second line of stray minutes.
  */
-export function TimeStat({ label, minutes }: { label: string; minutes: number }) {
+export function TimeStat({
+  label,
+  minutes,
+  highlight = false,
+}: {
+  label: string;
+  minutes: number;
+  /** Highlight for the one aggregate the other stats add up to: bold label
+   * and digits, same palette as every other row. Colour variants (amber
+   * digits, amber label+units, amber-12 digits) and a slower roll were all
+   * tried and rejected — weight alone is what suits the calm design. */
+  highlight?: boolean;
+}) {
   return (
     <Flex
       direction={{ initial: "row", xs: "column" }}
       justify={{ initial: "between", xs: "start" }}
       align={{ initial: "baseline", xs: "stretch" }}
     >
-      <Text size="1" color="gray">
+      <Text size="1" color="gray" weight={highlight ? "bold" : undefined}>
         {label}
       </Text>
-      <Text size="4" weight="medium" style={{ whiteSpace: "nowrap" }}>
+      <Text
+        size="4"
+        weight={highlight ? "bold" : "medium"}
+        style={{ whiteSpace: "nowrap" }}
+      >
         <TimeFigure minutes={minutes} />
       </Text>
     </Flex>
