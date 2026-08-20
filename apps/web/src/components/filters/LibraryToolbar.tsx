@@ -176,7 +176,12 @@ export function LibraryToolbar({
   );
 
   return (
-    <Flex direction="column" gap="3">
+    // No gap on the column: the panel and the chips row come and go, and a
+    // parent gap around them would vanish in one frame the instant an exit
+    // finishes — a little jump right at the end of an otherwise smooth
+    // collapse. Each conditional block carries its own top padding inside
+    // its Collapse instead, so the spacing animates away with the height.
+    <Flex direction="column">
       <Flex gap="2" align="center">
         <TextField.Root
           // size 3 is 16px: anything smaller makes iOS Safari zoom in when
@@ -307,16 +312,19 @@ export function LibraryToolbar({
       {!compact && (
         <Collapse>
           {filtersOpen ? (
-            // The theme's translucent panels give the card a backdrop-filter,
-            // and WebKit does not paint text under one while an ancestor
-            // animates opacity — in Safari the whole panel opened blank and
-            // its text appeared only once the Collapse settled. Over the flat
-            // page background the blur changes nothing visible, so it is the
-            // right side to give up. (If Safari ever regresses again here,
-            // the other lever is dropping opacity from Collapse itself.)
-            <Card style={{ "--backdrop-filter-panel": "none" } as React.CSSProperties}>
-              <Box p="1">{filterPanel}</Box>
-            </Card>
+            <Box pt="3">
+              {/* The theme's translucent panels give the card a
+                  backdrop-filter, and WebKit does not paint text under one
+                  while an ancestor animates opacity — in Safari the whole
+                  panel opened blank and its text appeared only once the
+                  Collapse settled. Over the flat page background the blur
+                  changes nothing visible, so it is the right side to give
+                  up. (If Safari ever regresses again here, the other lever
+                  is dropping opacity from Collapse itself.) */}
+              <Card style={{ "--backdrop-filter-panel": "none" } as React.CSSProperties}>
+                <Box p="1">{filterPanel}</Box>
+              </Card>
+            </Box>
           ) : null}
         </Collapse>
       )}
@@ -325,67 +333,74 @@ export function LibraryToolbar({
           without reopening the panel. Open, the controls already show their
           own state and repeating it here would just be noise. The sort gets
           a chip too — it narrows nothing, but a non-default order is the
-          same kind of silent state, and this is its only one-tap way back. */}
-      {(compact || !filtersOpen) && (active > 0 || sorted) && (
-        <Flex gap="2" wrap="wrap" align="center">
-          {filters.status && (
-            <Chip
-              label={
-                STATUSES.find((s) => s.value === filters.status)?.label ??
-                filters.status
-              }
-              onClear={() => navigate({ ...filters, status: null })}
-            />
-          )}
-          {filters.following !== null && (
-            <Chip
-              label={filters.following ? "Following" : "Not following"}
-              onClear={() => navigate({ ...filters, following: null })}
-            />
-          )}
-          {filters.behind !== null && (
-            <Chip
-              label={filters.behind ? "Behind" : "Caught up"}
-              onClear={() => navigate({ ...filters, behind: null })}
-            />
-          )}
-          {filters.rating && (
-            <Chip
-              label={`Rated ${ratingLabel(filters.rating)}`}
-              onClear={() => navigate({ ...filters, rating: null })}
-            />
-          )}
-          {filters.runtime && (
-            <Chip
-              label={runtimeLabel(filters.runtime, runtime.max)}
-              onClear={() => navigate({ ...filters, runtime: null })}
-            />
-          )}
-          {sorted && (
-            <Chip
-              label={`Sort: ${
-                sortKeys.find((k) => k.value === sort.key)?.label ?? sort.key
-              } ${sort.ascending ? "↑" : "↓"}`}
-              onClear={() => navigate(filters, DEFAULT_SORT)}
-            />
-          )}
-          {active + (sorted ? 1 : 0) > 1 && (
-            <Button
-              size="1"
-              variant="ghost"
-              color="gray"
-              // The search text survives: it is not a filter, has no chip
-              // here, and wiping state this row never showed would make
-              // "clear all" mean more than what is on screen.
-              onClick={() =>
-                navigate({ ...NO_FILTERS, query: filters.query }, DEFAULT_SORT)
-              }
-            >
-              Clear all
-            </Button>
-          )}
-        </Flex>
-      )}
+          same kind of silent state, and this is its only one-tap way back.
+
+          The row lives in a Collapse of its own: it appears while the panel
+          is closing and vanishes on "Clear all" mid-list-animation, and in
+          both cases an instant mount/unmount yanked everything below it —
+          the height has to animate for the same reason the panel's does. */}
+      <Collapse>
+        {(compact || !filtersOpen) && (active > 0 || sorted) ? (
+          <Flex gap="2" wrap="wrap" align="center" pt="3">
+            {filters.status && (
+              <Chip
+                label={
+                  STATUSES.find((s) => s.value === filters.status)?.label ??
+                  filters.status
+                }
+                onClear={() => navigate({ ...filters, status: null })}
+              />
+            )}
+            {filters.following !== null && (
+              <Chip
+                label={filters.following ? "Following" : "Not following"}
+                onClear={() => navigate({ ...filters, following: null })}
+              />
+            )}
+            {filters.behind !== null && (
+              <Chip
+                label={filters.behind ? "Behind" : "Caught up"}
+                onClear={() => navigate({ ...filters, behind: null })}
+              />
+            )}
+            {filters.rating && (
+              <Chip
+                label={`Rated ${ratingLabel(filters.rating)}`}
+                onClear={() => navigate({ ...filters, rating: null })}
+              />
+            )}
+            {filters.runtime && (
+              <Chip
+                label={runtimeLabel(filters.runtime, runtime.max)}
+                onClear={() => navigate({ ...filters, runtime: null })}
+              />
+            )}
+            {sorted && (
+              <Chip
+                label={`Sort: ${
+                  sortKeys.find((k) => k.value === sort.key)?.label ?? sort.key
+                } ${sort.ascending ? "↑" : "↓"}`}
+                onClear={() => navigate(filters, DEFAULT_SORT)}
+              />
+            )}
+            {active + (sorted ? 1 : 0) > 1 && (
+              <Button
+                size="1"
+                variant="ghost"
+                color="gray"
+                // The search text survives: it is not a filter, has no chip
+                // here, and wiping state this row never showed would make
+                // "clear all" mean more than what is on screen.
+                onClick={() =>
+                  navigate({ ...NO_FILTERS, query: filters.query }, DEFAULT_SORT)
+                }
+              >
+                Clear all
+              </Button>
+            )}
+          </Flex>
+        ) : null}
+      </Collapse>
     </Flex>
   );
 }
