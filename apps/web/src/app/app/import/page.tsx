@@ -12,6 +12,7 @@ import { CheckCircledIcon } from "@radix-ui/react-icons";
 import type { ParseReport } from "@stubs/tvtime-import";
 import { createClient } from "@/lib/supabase/server";
 import { getImportStatus } from "@/lib/import/actions";
+import { FadeIn } from "@/components/FadeIn";
 import { ImportProgress } from "@/components/import/ImportProgress";
 import { MovieResolver } from "@/components/import/MovieResolver";
 import { TvTimeImporter } from "@/components/import/TvTimeImporter";
@@ -35,6 +36,7 @@ export default async function ImportPage() {
 
   return (
     <Container size="3" px="4">
+      <FadeIn>
       <Flex direction="column" gap="5">
         <Heading size="6">Import your watch history</Heading>
 
@@ -58,6 +60,7 @@ export default async function ImportPage() {
           </>
         )}
       </Flex>
+      </FadeIn>
     </Container>
   );
 }
