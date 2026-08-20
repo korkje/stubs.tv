@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Box, Spinner, TabNav } from "@radix-ui/themes";
 import { MotionConfig, motion } from "motion/react";
+import NumberFlow from "@number-flow/react";
 import { useLibraryCounts } from "./LibraryCounts";
 
 /**
@@ -40,14 +41,20 @@ export function LibraryTabs({ movies }: { movies: boolean }) {
   return (
     <Box position="relative">
       <TabNav.Root>
+        {/* The counts roll when a toggle changes membership; digits are
+            tabular globally, so the tab labels don't wobble mid-roll. */}
         <TabNav.Link asChild active={!movies}>
           <Link href="/app/library" onClick={navigate("/app/library")}>
-            Shows ({showCount})
+            <span>
+              Shows (<NumberFlow value={showCount} />)
+            </span>
           </Link>
         </TabNav.Link>
         <TabNav.Link asChild active={movies}>
           <Link href="/app/library?tab=movies" onClick={navigate("/app/library?tab=movies")}>
-            Movies ({movieCount})
+            <span>
+              Movies (<NumberFlow value={movieCount} />)
+            </span>
           </Link>
         </TabNav.Link>
       </TabNav.Root>

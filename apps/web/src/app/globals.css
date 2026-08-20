@@ -222,3 +222,12 @@ body:has([data-pending]) footer {
   color: var(--gray-a11);
   font-size: 0.75em;
 }
+
+/* Tabular figures for every animated number: NumberFlow measures real
+   glyph widths, so with proportional digits a roll continuously changes
+   the figure's width and drags its row-neighbours sideways. Equal-width
+   digits pin the layout; width now only moves when a digit is added or
+   dropped. (font-variant-numeric inherits into the shadow DOM.) */
+number-flow-react {
+  font-variant-numeric: tabular-nums;
+}

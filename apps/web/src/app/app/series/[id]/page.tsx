@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import NumberFlow from "@number-flow/react";
 import {
   Badge,
   Box,
@@ -207,7 +208,17 @@ export default async function SeriesPage({
             </Flex>
 
             <Flex gap="5" wrap="wrap">
-              <Stat label="Seen" value={`${totals.seen} / ${totals.episodes}`} />
+              {/* The seen count rolls with every mark; the total only moves
+                  with metadata. Digits are tabular globally, so the row
+                  doesn't wander mid-roll. */}
+              <Stat
+                label="Seen"
+                value={
+                  <span style={{ whiteSpace: "nowrap" }}>
+                    <NumberFlow value={totals.seen} /> / {totals.episodes}
+                  </span>
+                }
+              />
               {/* Animated, no arrival roll: every mark on this page
                   revalidates it, so the mounted figure receives the new
                   minutes and rolls from where it stands. */}
