@@ -84,9 +84,17 @@ export default async function LibraryPage({
 
         {/* The counts live in the tabs; the stats row keeps what the tabs
             cannot say — time. Six columns so the cells keep the same rhythm
-            they had when the count stats sat beside them. */}
+            they had when the count stats sat beside them — but only from md,
+            where the capped container makes the cell 133px: a six-column cell
+            at 768px is 109px, which cannot hold a three-unit figure (a
+            hundred-day one runs 114px). Below that, three columns down to xs,
+            and full-width rows on phones (see TimeStat). */}
         {hasHistory && (
-          <Grid columns={{ initial: "3", sm: "6" }} gapX="4" gapY="4">
+          <Grid
+            columns={{ initial: "1", xs: "3", md: "6" }}
+            gapX="4"
+            gapY={{ initial: "2", xs: "4" }}
+          >
             <TimeStat label="Show time" minutes={totals?.episode_minutes ?? 0} />
             <TimeStat label="Movie time" minutes={totals?.movie_minutes ?? 0} />
             <TimeStat label="Total time" minutes={totals?.minutes_watched ?? 0} />
