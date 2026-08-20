@@ -6,6 +6,7 @@ import {
   Card,
   Container,
   Flex,
+  Grid,
   Heading,
   Text,
 } from "@radix-ui/themes";
@@ -207,10 +208,15 @@ export default async function SeriesPage({
               )}
             </Flex>
 
-            <Flex gap="5" wrap="wrap">
+            {/* Equal grid cells, not a content-packed row: these figures
+                change width when digits or units come and go (a season mark
+                turns "47m" into "10h 25m"), and NumberFlow animates that
+                width — in a Flex the neighbours get dragged sideways for
+                the whole roll. Fixed cells absorb the growth; tabular
+                digits (globals.css) handle the within-cell wobble. */}
+            <Grid columns="3" gap="5">
               {/* The seen count rolls with every mark; the total only moves
-                  with metadata. Digits are tabular globally, so the row
-                  doesn't wander mid-roll. */}
+                  with metadata. */}
               <Stat
                 label="Seen"
                 value={
@@ -232,7 +238,7 @@ export default async function SeriesPage({
                 label="Total runtime"
                 value={<TimeFigure minutes={totals.runtime} arrive={false} />}
               />
-            </Flex>
+            </Grid>
           </Flex>
         </Flex>
 
