@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Container, Flex, Heading, Text } from "@radix-ui/themes";
+import { WordmarkLink } from "@/components/WordmarkLink";
 
 export const metadata: Metadata = {
   title: "Terms — stubs.tv",
@@ -10,6 +11,7 @@ export default function TermsPage() {
   return (
     <Container size="2" px="4">
       <Flex direction="column" gap="5" py="9">
+        <WordmarkLink />
         <Heading size="7">Terms</Heading>
         <Text size="3" color="gray">
           The short version: pay for a plan, track what you watch, your data

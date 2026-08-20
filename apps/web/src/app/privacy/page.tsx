@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Container, Flex, Heading, Table, Text } from "@radix-ui/themes";
+import { WordmarkLink } from "@/components/WordmarkLink";
 
 export const metadata: Metadata = {
   title: "Privacy — stubs.tv",
@@ -14,6 +15,7 @@ export default function PrivacyPage() {
   return (
     <Container size="2" px="4">
       <Flex direction="column" gap="5" py="9">
+        <WordmarkLink />
         <Heading size="7">Privacy</Heading>
         <Text size="3" color="gray">
           stubs.tv stores as little about you as it can get away with, keeps
