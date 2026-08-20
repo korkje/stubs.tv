@@ -11,6 +11,7 @@ import {
   Link as RadixLink,
 } from "@radix-ui/themes";
 import { TextField } from "@radix-ui/themes";
+import { AuthEmailField } from "@/components/auth/AuthEmailField";
 import { safeNext } from "@/lib/redirects";
 import { createClient } from "@/lib/supabase/server";
 import { login } from "./actions";
@@ -61,15 +62,9 @@ export default async function LoginPage({
                 <Text as="div" size="2" mb="1" weight="medium">
                   Email
                 </Text>
-                {/* size 3 is 16px: anything smaller makes iOS Safari zoom
-                    in when the field is focused. */}
-                <TextField.Root
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  size="3"
-                  required
-                />
+                {/* Shared with signup/forgot-password so a typed address
+                    survives hopping between them. */}
+                <AuthEmailField />
               </label>
               <label>
                 <Text as="div" size="2" mb="1" weight="medium">

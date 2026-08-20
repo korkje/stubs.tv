@@ -30,9 +30,11 @@ import { TimezoneField } from "@/components/settings/TimezoneField";
 
 const TABS = new Set(["watching", "account", "billing"]);
 
-/** Where subscribers manage payment, invoices, and cancellation. Polar hosts
- * it and authenticates by emailing a code — no app code involved. */
-const POLAR_PORTAL_URL = "https://polar.sh/stubs-tv/portal";
+/** Where subscribers manage payment, invoices, and cancellation: our
+ * /billing route creates an authenticated Polar portal session (signed in
+ * already, no emailed code) and falls back to Polar's code-based entrance
+ * if the session can't be created. */
+const BILLING_PORTAL_PATH = "/billing";
 
 /**
  * User settings, split by kind: watching (taste), account (identity),
@@ -486,10 +488,14 @@ export default async function SettingsPage({
                         <Button
                           asChild
                           variant="soft"
-                          // Polar (the merchant of record) hosts the portal
-                          // and signs the customer in with an emailed code.
+                          // Polar (the merchant of record) hosts the portal;
+                          // /billing signs the customer straight in.
                         >
-                          <a href={POLAR_PORTAL_URL} target="_blank" rel="noreferrer">
+                          <a
+                            href={BILLING_PORTAL_PATH}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
                             Manage billing on Polar
                           </a>
                         </Button>
@@ -499,8 +505,8 @@ export default async function SettingsPage({
                     {billing && (
                       <Text size="1" color="gray">
                         Payment details, invoices, and cancellation live in
-                        Polar&apos;s customer portal — it signs you in with a
-                        code sent to your email.
+                        Polar&apos;s customer portal — the button signs you in
+                        with your account here.
                       </Text>
                     )}
                   </Flex>
