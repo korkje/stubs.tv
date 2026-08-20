@@ -95,8 +95,12 @@ export function TvTimeImporter({ mode }: { mode: "public" | "app" }) {
     <Flex direction="column" gap="4">
       <Card>
         <Flex direction="column" gap="3" p="2">
-          <Flex align="center" gap="2">
-            <LockClosedIcon />
+          {/* The icon anchors to the first line rather than floating
+              centered beside the paragraph: on phones the text wraps to
+              four or five lines and a centered 15px default icon read as a
+              stray speck. 20px matches size-2 text's 20px line height. */}
+          <Flex align="start" gap="2">
+            <LockClosedIcon width={20} height={20} style={{ flexShrink: 0 }} />
             <Text size="2" color="gray">
               Everything on this page happens in your browser. The ZIP and its
               password never leave your machine — only show ids, episode
