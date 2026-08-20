@@ -25,8 +25,6 @@ jobs:
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npm ci
         if: steps.node-modules.outputs.cache-hit != 'true'
-        env:
-          MOTION_TOKEN: ${{ secrets.MOTION_TOKEN }}
       # The Next.js incremental build cache. The source hash makes pushes
       # save distinct entries; restore-keys falls back to the newest one.
       - uses: actions/cache@v6
@@ -123,8 +121,6 @@ jobs:
           key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npm ci
         if: steps.node-modules.outputs.cache-hit != 'true'
-        env:
-          MOTION_TOKEN: ${{ secrets.MOTION_TOKEN }}
       - uses: actions/cache@v6
         with:
           path: apps/web/.next/cache

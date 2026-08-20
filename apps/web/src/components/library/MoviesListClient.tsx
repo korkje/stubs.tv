@@ -73,9 +73,10 @@ export function MoviesListClient({
       setEye(id, !next);
       return;
     }
-    // Membership is "seen", so the confirmed action is the count change;
-    // a rapid unsee-then-resee nets to zero and keeps its row.
-    adjustMovies(next ? 1 : -1);
+    // Membership is "seen", so the confirmed action is the count change —
+    // and the totals row rolls by this movie's runtime at the same time.
+    // A rapid unsee-then-resee nets to zero and keeps its row.
+    adjustMovies(next ? 1 : -1, movie.runtime_min);
     if (!next && unseenRef.current.has(id)) removeRow(id);
   };
 

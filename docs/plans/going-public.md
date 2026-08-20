@@ -105,24 +105,14 @@ What was decided:
 
 ## Blocking — do before the flip
 
-1. **Fix the Motion+ install wall.** `@motionplus/core` installs from
-   `api.motion.dev`, which returns 400 without a paid `MOTION_TOKEN`
-   (verified 2026-08-19). A fresh clone cannot `npm install`, which
-   contradicts ground rule 4 (self-hosting) and the README's "Running
-   locally" section, and fork PRs will fail CI at `npm ci` on any
-   `package-lock.json` change (forks get no secrets). Owner's call
-   (2026-08-19): make it optional or replace it. Candidates:
-   - **replace `@motionplus/core`** (used for AnimateNumber) with
-     [NumberFlow](https://number-flow.barvian.me) (`@number-flow/react`,
-     MIT) — purpose-built animated numbers, no license wall. Cleanest;
-     preferred unless something else comes to depend on Motion+. Drop the
-     `@motionplus` entries from `.npmrc` and the `MOTION_TOKEN` secret from
-     CI in the same change;
-   - or make it optional (investigate `optionalDependencies` plus a dynamic
-     import fallback — needs a spike: npm's env-var registry auth fails hard
-     when the variable is unset, so the `.npmrc` entry itself is the wall,
-     not just the dependency). More moving parts than the swap is worth if
-     AnimateNumber is the only use.
+1. ~~**Fix the Motion+ install wall.**~~ **Done 2026-08-21**: replaced
+   `@motionplus/core` with [NumberFlow](https://number-flow.barvian.me)
+   (`@number-flow/react`, MIT) after a side-by-side comparison — the owner
+   judged the animations near-identical and NumberFlow needs no license
+   wall. `.npmrc` is gone, `MOTION_TOKEN` dropped from CI and
+   docs/DEPLOYMENT.md; the `MOTION_TOKEN` repo secret itself can be deleted
+   from GitHub whenever (nothing reads it). A fresh clone now installs from
+   plain npm.
 2. ~~Confirm the Polar access token was rotated.~~ **Done** — owner
    confirmed rotation (2026-08-19). Fix the stale "must be rotated" note
    when POLAR_SETUP.md lands in the private repo (next item).

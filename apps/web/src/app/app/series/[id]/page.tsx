@@ -1,10 +1,12 @@
 import { notFound } from "next/navigation";
+import NumberFlow from "@number-flow/react";
 import {
   Badge,
   Box,
   Card,
   Container,
   Flex,
+  Grid,
   Heading,
   Text,
 } from "@radix-ui/themes";
@@ -17,11 +19,11 @@ import { SeasonTabs } from "@/components/tracking/SeasonTabs";
 import { StaggerIn } from "@/components/StaggerIn";
 import { Poster } from "@/components/Poster";
 import { Stat } from "@/components/Stat";
+import { TimeFigure } from "@/components/TimeStat";
 import { BulkMarkButtons } from "@/components/tracking/BulkMarkButtons";
 import { EpisodeRow } from "@/components/tracking/EpisodeRow";
 import { FollowButton } from "@/components/tracking/FollowButton";
 import { RatingSelect } from "@/components/tracking/RatingSelect";
-import { formatRuntime } from "@/lib/format";
 
 /**
  * Seasons render one at a time behind a tab row (the same pattern as the
@@ -206,11 +208,37 @@ export default async function SeriesPage({
               )}
             </Flex>
 
-            <Flex gap="5" wrap="wrap">
-              <Stat label="Seen" value={`${totals.seen} / ${totals.episodes}`} />
-              <Stat label="Time watched" value={formatRuntime(totals.seenRuntime)} />
-              <Stat label="Total runtime" value={formatRuntime(totals.runtime)} />
-            </Flex>
+            {/* Equal grid cells, not a content-packed row: these figures
+                change width when digits or units come and go (a season mark
+                turns "47m" into "10h 25m"), and NumberFlow animates that
+                width — in a Flex the neighbours get dragged sideways for
+                the whole roll. Fixed cells absorb the growth; tabular
+                digits (globals.css) handle the within-cell wobble. */}
+            <Grid columns="3" gap="5">
+              {/* The seen count rolls with every mark; the total only moves
+                  with metadata. */}
+              <Stat
+                label="Seen"
+                value={
+                  <span style={{ whiteSpace: "nowrap" }}>
+                    <NumberFlow value={totals.seen} /> / {totals.episodes}
+                  </span>
+                }
+              />
+              {/* Animated, no arrival roll: every mark on this page
+                  revalidates it, so the mounted figure receives the new
+                  minutes and rolls from where it stands. */}
+              <Stat
+                label="Time watched"
+                value={<TimeFigure minutes={totals.seenRuntime} arrive={false} />}
+              />
+              {/* Same quiet-units styling as Time watched; it only changes
+                  when metadata does, but consistency is the point. */}
+              <Stat
+                label="Total runtime"
+                value={<TimeFigure minutes={totals.runtime} arrive={false} />}
+              />
+            </Grid>
           </Flex>
         </Flex>
 

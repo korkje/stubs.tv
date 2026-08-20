@@ -91,7 +91,6 @@ gh secret set CLOUDFLARE_ACCOUNT_ID       # from step 2
 gh secret set SUPABASE_ACCESS_TOKEN       # from step 3
 gh secret set SUPABASE_PROJECT_ID         # project ref from step 1
 gh secret set SUPABASE_DB_PASSWORD        # from step 1
-gh secret set MOTION_TOKEN                # Motion+ token (motion.dev/dashboard/tokens)
 
 gh variable set NEXT_PUBLIC_SUPABASE_URL       # https://<ref>.supabase.co
 gh variable set NEXT_PUBLIC_SUPABASE_ANON_KEY  # anon key (public by design)
@@ -104,11 +103,6 @@ so CI stays green during initial setup.
 
 The Supabase URL and anon key are repo *variables*, not secrets — the anon
 key ships to every browser anyway; RLS is the security boundary.
-
-`MOTION_TOKEN` authenticates against Motion+'s private npm registry (see
-`.npmrc`); `npm ci` needs it in CI and locally (`apps/web/.env.local` holds
-it for development — export it before installing, e.g.
-`export $(grep MOTION_TOKEN apps/web/.env.local)`).
 
 ### 5. First deploy
 
