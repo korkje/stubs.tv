@@ -17,11 +17,11 @@ import { SeasonTabs } from "@/components/tracking/SeasonTabs";
 import { StaggerIn } from "@/components/StaggerIn";
 import { Poster } from "@/components/Poster";
 import { Stat } from "@/components/Stat";
+import { TimeFigure } from "@/components/TimeStat";
 import { BulkMarkButtons } from "@/components/tracking/BulkMarkButtons";
 import { EpisodeRow } from "@/components/tracking/EpisodeRow";
 import { FollowButton } from "@/components/tracking/FollowButton";
 import { RatingSelect } from "@/components/tracking/RatingSelect";
-import { formatRuntime } from "@/lib/format";
 
 /**
  * Seasons render one at a time behind a tab row (the same pattern as the
@@ -208,8 +208,19 @@ export default async function SeriesPage({
 
             <Flex gap="5" wrap="wrap">
               <Stat label="Seen" value={`${totals.seen} / ${totals.episodes}`} />
-              <Stat label="Time watched" value={formatRuntime(totals.seenRuntime)} />
-              <Stat label="Total runtime" value={formatRuntime(totals.runtime)} />
+              {/* Animated, no arrival roll: every mark on this page
+                  revalidates it, so the mounted figure receives the new
+                  minutes and rolls from where it stands. */}
+              <Stat
+                label="Time watched"
+                value={<TimeFigure minutes={totals.seenRuntime} arrive={false} />}
+              />
+              {/* Same quiet-units styling as Time watched; it only changes
+                  when metadata does, but consistency is the point. */}
+              <Stat
+                label="Total runtime"
+                value={<TimeFigure minutes={totals.runtime} arrive={false} />}
+              />
             </Flex>
           </Flex>
         </Flex>

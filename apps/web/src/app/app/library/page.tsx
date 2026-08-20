@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import {
   Container,
   Flex,
-  Grid,
   Heading,
   VisuallyHidden,
 } from "@radix-ui/themes";
@@ -20,8 +19,8 @@ import {
 } from "@/lib/filters";
 import { FadeIn } from "@/components/FadeIn";
 import { LibraryToolbar } from "@/components/filters/LibraryToolbar";
-import { TimeStat } from "@/components/TimeStat";
 import { LibraryCountsProvider } from "@/components/library/LibraryCounts";
+import { LibraryTotals } from "@/components/library/LibraryTotals";
 import { LibraryTabs } from "@/components/library/LibraryTabs";
 import { ShowsList } from "@/components/library/ShowsList";
 import { MoviesList } from "@/components/library/MoviesList";
@@ -82,28 +81,19 @@ export default async function LibraryPage({
           <Heading as="h1">Library</Heading>
         </VisuallyHidden>
 
+        {/* The provider spans the totals, the tabs and the lists: the lists
+            report changes, the tabs show the moving counts, and the totals
+            row rolls its minutes when a movie is un/marked below. */}
+        <LibraryCountsProvider
+          shows={showCount ?? 0}
+          movies={movieCount}
+          episodeMinutes={totals?.episode_minutes ?? 0}
+          movieMinutes={totals?.movie_minutes ?? 0}
+        >
         {/* The counts live in the tabs; the stats row keeps what the tabs
-            cannot say — time. Six columns so the cells keep the same rhythm
-            they had when the count stats sat beside them — but only from md,
-            where the capped container makes the cell 133px: a six-column cell
-            at 768px is 109px, which cannot hold a three-unit figure (a
-            hundred-day one runs 114px). Below that, three columns down to xs,
-            and full-width rows on phones (see TimeStat). */}
-        {hasHistory && (
-          <Grid
-            columns={{ initial: "1", xs: "3", md: "6" }}
-            gapX="4"
-            gapY={{ initial: "2", xs: "4" }}
-          >
-            <TimeStat label="Show time" minutes={totals?.episode_minutes ?? 0} />
-            <TimeStat label="Movie time" minutes={totals?.movie_minutes ?? 0} />
-            <TimeStat label="Total time" minutes={totals?.minutes_watched ?? 0} />
-          </Grid>
-        )}
+            cannot say — time. */}
+        {hasHistory && <LibraryTotals />}
 
-        {/* The provider spans the tabs and the lists: the lists report
-            membership changes, the tabs show the moving counts. */}
-        <LibraryCountsProvider shows={showCount ?? 0} movies={movieCount}>
         <LibraryTabs movies={movies} />
 
         {/* Below the tabs, not above them: that scopes the controls to the

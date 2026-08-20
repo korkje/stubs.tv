@@ -214,3 +214,11 @@ body:has([data-pending]) footer {
 :is(.dark, .dark-theme) .theme-icon-dark {
   display: inline;
 }
+
+/* The unit letters in watch-time figures (TimeStat) sit quieter than the
+   digits. NumberFlow renders the suffix inside its custom element — where
+   it rides the width animation — so styling reaches it through the part. */
+.time-stat number-flow-react::part(suffix) {
+  color: var(--gray-a11);
+  font-size: 0.75em;
+}
