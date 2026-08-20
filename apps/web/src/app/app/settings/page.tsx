@@ -24,11 +24,13 @@ import {
   updateSettings,
 } from "@/lib/settings/actions";
 import { FadeIn } from "@/components/FadeIn";
+import { ImportSection } from "@/components/import/ImportSection";
+import { SettingsTabs } from "@/components/SettingsTabs";
 import { CopyUrlField } from "@/components/settings/CopyUrlField";
 import { SpecialsField } from "@/components/settings/SpecialsField";
 import { TimezoneField } from "@/components/settings/TimezoneField";
 
-const TABS = new Set(["watching", "account", "billing"]);
+const TABS = new Set(["watching", "account", "billing", "import"]);
 
 /** Where subscribers manage payment, invoices, and cancellation: our
  * /billing route creates an authenticated Polar portal session (signed in
@@ -38,10 +40,12 @@ const BILLING_PORTAL_PATH = "/billing";
 
 /**
  * User settings, split by kind: watching (taste), account (identity),
- * billing (money). Every form posts only its own tab's fields and carries a
- * hidden tab input so the save round-trip lands back on the same tab. The
- * account tab also holds the GDPR self-serve flows: data export and account
- * deletion (docs/PRIVACY.md, ADR-0017).
+ * billing (money), import (bringing history in). Every form posts only its
+ * own tab's fields and carries a hidden tab input so the save round-trip
+ * lands back on the same tab; plain tab clicks persist through
+ * SettingsTabs, which writes ?tab= without a round-trip. The account tab
+ * also holds the GDPR self-serve flows: data export and account deletion
+ * (docs/PRIVACY.md, ADR-0017).
  */
 export default async function SettingsPage({
   searchParams,
@@ -104,7 +108,9 @@ export default async function SettingsPage({
     : null;
 
   return (
-    <Container size="2" px="4">
+    // size 3 like every other page — settings being the one narrow page
+    // read as a glitch rather than a choice.
+    <Container size="3" px="4">
       <FadeIn>
         <Flex direction="column" gap="4">
           <Heading size="6">Settings</Heading>
@@ -120,11 +126,12 @@ export default async function SettingsPage({
             </Callout.Root>
           )}
 
-          <Tabs.Root defaultValue={tab}>
+          <SettingsTabs defaultValue={tab}>
             <Tabs.List>
               <Tabs.Trigger value="watching">Watching</Tabs.Trigger>
               <Tabs.Trigger value="account">Account</Tabs.Trigger>
               <Tabs.Trigger value="billing">Billing</Tabs.Trigger>
+              <Tabs.Trigger value="import">Import</Tabs.Trigger>
             </Tabs.List>
 
             <Box pt="4">
@@ -512,8 +519,12 @@ export default async function SettingsPage({
                   </Flex>
                 </Card>
               </Tabs.Content>
+
+              <Tabs.Content value="import">
+                <ImportSection />
+              </Tabs.Content>
             </Box>
-          </Tabs.Root>
+          </SettingsTabs>
         </Flex>
       </FadeIn>
     </Container>
