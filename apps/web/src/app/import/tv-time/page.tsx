@@ -1,14 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  Box,
   Container,
   Flex,
   Heading,
   Link as RadixLink,
   Text,
 } from "@radix-ui/themes";
-import { StubsMark } from "@/components/StubsMark";
+import { WordmarkLink } from "@/components/WordmarkLink";
 import { TvTimeImporter } from "@/components/import/TvTimeImporter";
 
 export const metadata: Metadata = {
@@ -27,29 +26,7 @@ export default function TvTimeImportPage() {
   return (
     <Container size="2" px="4">
       <Flex direction="column" gap="5" py="9">
-        {/* The mark must sit outside any color="gray" Radix component:
-            that prop remaps the --accent-* scale for its whole subtree, and
-            the ticket body is painted with var(--accent-9) — inside a gray
-            link the brand mark silently turns gray. Gray goes on the Text
-            alone; the plain next/link matches the app header's pattern. */}
-        <Link
-          href="/"
-          aria-label="stubs.tv home"
-          style={{ textDecoration: "none" }}
-        >
-          <Flex align="center" gap="2">
-            <Box
-              width="28px"
-              flexShrink="0"
-              style={{ transform: "rotate(-6deg)", display: "flex" }}
-            >
-              <StubsMark width="100%" />
-            </Box>
-            <Text size="2" color="gray">
-              stubs.tv
-            </Text>
-          </Flex>
-        </Link>
+        <WordmarkLink />
 
         <Heading size="7">Bring your TV Time history home</Heading>
         <Text size="3" color="gray">
