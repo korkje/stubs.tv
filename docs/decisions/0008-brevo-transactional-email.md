@@ -25,7 +25,7 @@ not a code change.
 ## Consequences
 
 - Sender domain `stubs.tv` authenticated via DKIM/DMARC records in
-  Cloudflare DNS; sender address `no-reply@stubs.tv`.
+  Cloudflare DNS; sender address `noreply@stubs.tv`.
 - Supabase email rate limits become configurable (default 30/hr with
   custom SMTP).
 - Brevo listed as a processor in docs/PRIVACY.md and, later, the privacy
