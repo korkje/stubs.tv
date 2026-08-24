@@ -68,6 +68,31 @@ export interface MovieDetail {
   score: number | null;
 }
 
+/** One record from a provider's change feed. */
+export interface ProviderChange {
+  entityType: "series" | "movie" | "episode";
+  providerId: ProviderId;
+  method: "create" | "update" | "delete";
+  /**
+   * When a delete is really a duplicate merge, the provider id of the
+   * surviving record (same entity type unless the provider says otherwise —
+   * cross-type merges are surfaced as-is for the caller to refuse).
+   */
+  mergeToId: ProviderId | null;
+  /** For episodes: the parent series' provider id. TVDB omits it on a
+   *  sizeable minority of episode records, so callers need a fallback. */
+  seriesProviderId: ProviderId | null;
+}
+
+export interface ChangedSinceResult {
+  changes: ProviderChange[];
+  /**
+   * False when a page budget stopped the read early — the caller must treat
+   * the window as unreliable rather than assume it saw everything.
+   */
+  complete: boolean;
+}
+
 export interface MetadataProvider {
   /** Stable identifier, matching the `metadata_provider` enum in the database. */
   readonly name: "tvdb";
@@ -86,4 +111,14 @@ export interface MetadataProvider {
    * full detail, for backfilling scores on search hits.
    */
   getScore(kind: TitleKind, id: ProviderId): Promise<number | null>;
+  /**
+   * Every series, episode and movie change in the provider's feed since the
+   * given moment — the whole catalogue's changes, not just titles we hold;
+   * intersecting with our own rows is the caller's job. Deletes are
+   * included. `maxPagesPerType` bounds one invocation's reads.
+   */
+  changedSince(
+    since: Date,
+    options?: { maxPagesPerType?: number }
+  ): Promise<ChangedSinceResult>;
 }

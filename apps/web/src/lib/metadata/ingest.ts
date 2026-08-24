@@ -148,7 +148,9 @@ export async function searchScores(
 
 /**
  * Ensures a series and its episodes are present and reasonably fresh.
- * Safe to call on every page view: it no-ops when the cache is warm.
+ * Safe to call on every page view: it no-ops when the cache is warm. (The
+ * /updates sync needs no bypass here: it nulls fetched_at, which this
+ * function already treats as stale.)
  */
 export async function ensureSeriesIngested(seriesId: number): Promise<void> {
   const supabase = createServiceClient();
@@ -171,7 +173,19 @@ export async function ensureSeriesIngested(seriesId: number): Promise<void> {
     provider.getEpisodes(providerId),
   ]);
 
-  if (!detail) return;
+  if (!detail) {
+    // Gone at the provider (deleted or merged away). Stamp fetched_at
+    // anyway: a vanished row that stays eternally stalest would occupy a
+    // sweep slot every hour forever. The data we hold keeps rendering.
+    if (existing) {
+      const { error } = await supabase
+        .from("series")
+        .update({ fetched_at: new Date().toISOString() })
+        .eq("id", seriesId);
+      check("stamp vanished series", error);
+    }
+    return;
+  }
 
   const { error: updateError } = await supabase
     .from("series")
@@ -259,15 +273,36 @@ export async function ensureSeriesIngested(seriesId: number): Promise<void> {
     .filter((m): m is NonNullable<typeof m> => m !== null);
 
   if (mappings.length > 0) {
-    const { error: mappingError } = await supabase
-      .from("external_ids")
-      .upsert(mappings, { onConflict: "provider,entity_type,provider_id" });
+    // Delete-then-insert rather than upsert: external_ids carries TWO unique
+    // constraints (the provider-id PK and one per entity), and an upsert can
+    // only resolve one. When TVDB reissues an episode under a new id — which
+    // the /updates feed shows happens routinely — the old mapping collides on
+    // the entity-side constraint and would poison every future refresh of the
+    // series. Clearing both sides first makes the write idempotent.
+    const episodeIds = mappings.map((m) => m.entity_id);
+    const providerIds = mappings.map((m) => m.provider_id);
+    for (let i = 0; i < episodeIds.length; i += 200) {
+      const { error } = await supabase
+        .from("external_ids")
+        .delete()
+        .eq("provider", PROVIDER)
+        .eq("entity_type", "episode")
+        .or(
+          `entity_id.in.(${episodeIds.slice(i, i + 200).join(",")}),provider_id.in.(${providerIds
+            .slice(i, i + 200)
+            .map((id) => `"${id}"`)
+            .join(",")})`
+        );
+      check("clear stale episode mappings", error);
+    }
 
+    const { error: mappingError } = await supabase.from("external_ids").insert(mappings);
     check("map episode provider IDs", mappingError);
   }
 }
 
-/** Ensures a movie is present and reasonably fresh. */
+/** Ensures a movie is present and reasonably fresh. See ensureSeriesIngested
+ *  for the vanished-record semantics, which are identical. */
 export async function ensureMovieIngested(movieId: number): Promise<void> {
   const supabase = createServiceClient();
 
@@ -284,7 +319,16 @@ export async function ensureMovieIngested(movieId: number): Promise<void> {
   if (!providerId) return;
 
   const detail = await getMetadataProvider().getMovie(providerId);
-  if (!detail) return;
+  if (!detail) {
+    if (existing) {
+      const { error } = await supabase
+        .from("movies")
+        .update({ fetched_at: new Date().toISOString() })
+        .eq("id", movieId);
+      check("stamp vanished movie", error);
+    }
+    return;
+  }
 
   const { error: updateError } = await supabase
     .from("movies")

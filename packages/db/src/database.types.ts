@@ -606,6 +606,24 @@ export type Database = {
         }
         Relationships: []
       }
+      sync_state: {
+        Row: {
+          cursor_at: string
+          provider: Database["public"]["Enums"]["metadata_provider"]
+          updated_at: string
+        }
+        Insert: {
+          cursor_at: string
+          provider: Database["public"]["Enums"]["metadata_provider"]
+          updated_at?: string
+        }
+        Update: {
+          cursor_at?: string
+          provider?: Database["public"]["Enums"]["metadata_provider"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       watches: {
         Row: {
           created_at: string

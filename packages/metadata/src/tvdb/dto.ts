@@ -123,3 +123,20 @@ export interface TvdbMovieExtended {
   artworks?: TvdbArtwork[];
   score?: number;
 }
+
+/**
+ * One record from /updates. Verified against the live endpoint 2026-08-24:
+ * `entityType` is the type filter's spelling ("series" | "movies" |
+ * "episodes" | many others we ignore), `method` is create | update | delete,
+ * `seriesId` accompanies only *some* episode records (~70% observed), and
+ * merge fields appear only on duplicate-merge deletes.
+ */
+export interface TvdbUpdateRecord {
+  recordId?: number;
+  entityType?: string;
+  method?: string;
+  timeStamp?: number;
+  seriesId?: number;
+  mergeToId?: number;
+  mergeToEntityType?: string;
+}

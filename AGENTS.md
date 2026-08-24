@@ -151,10 +151,9 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
 
 ## Next up
 
-Delta-driven metadata refresh via TVDB's /updates endpoint — the plan is
-[docs/plans/metadata-updates.md](docs/plans/metadata-updates.md); read the
-delete/merge hazard section before coding. For the wider picture, the
-header of [docs/ROADMAP.md](docs/ROADMAP.md) names the current gaps.
+Nothing is claimed — the header of [docs/ROADMAP.md](docs/ROADMAP.md) names
+the open gaps (people, analytics, the rest of the cache lifecycle); ask the
+owner before picking one up.
 
 ## Current status
 

@@ -1,9 +1,24 @@
 # Plan: delta-driven metadata refresh via TVDB /updates
 
-Status: **not started**. Written 2026-08-24 to be picked up cold. This is
-the `/updates?since=` refinement that ARCHITECTURE.md "Cache lifecycle —
-Freshness" has promised since day one, and the biggest freshness gap left
-after the hourly sweep shipped (ADR-0010).
+Status: **shipped 2026-08-24**, same day as the plan. Kept for the endpoint
+notes and the merge/delete reasoning. What was built deviates from the
+design below in one load-bearing way: the sync **only invalidates**
+(`fetched_at = null`) instead of refetching — the existing sweep
+(nulls-first, same invocation) and the on-open path do all refetching, so
+the sync stays cheap no matter how noisy the feed is, and no `force`
+plumbing was needed. Other deviations: cursor advances to run-start even on
+a page-budget miss, with a blanket invalidation of followed series as the
+remedy (a never-advancing cursor could death-spiral; a too-eager one just
+degrades to the pre-sync 12h window); deletes stamp `fetched_at = now` so a
+vanished title cannot jam the sweep (that bug existed in
+`ensureSeriesIngested` and is fixed); both-sides-held merges are logged for
+a human, not automated. Implementation: `changedSince` in
+`packages/metadata`, `apps/web/src/lib/metadata/sync.ts`, the `sync_state`
+migration, and the delete-then-insert episode-mapping fix in `ingest.ts`
+(the two-unique-constraint poison described below in "The trap").
+Live-probed 2026-08-24: type spellings series/movies/episodes, 500/page,
+`seriesId` on ~70% of episode records, deletes present without an `action`
+filter, 30-day lookback accepted.
 
 ## Why
 

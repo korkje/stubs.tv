@@ -1,7 +1,9 @@
 import type {
+  ChangedSinceResult,
   EpisodeDetail,
   MetadataProvider,
   MovieDetail,
+  ProviderChange,
   ProviderId,
   SearchResult,
   SeriesDetail,
@@ -14,6 +16,7 @@ import type {
   TvdbMovieExtended,
   TvdbSearchResult,
   TvdbSeriesExtended,
+  TvdbUpdateRecord,
 } from "./dto";
 import {
   SERIES_BACKGROUND,
@@ -26,6 +29,44 @@ import {
 
 /** Guard against a malformed `links.next` chain looping forever. */
 const MAX_EPISODE_PAGES = 20;
+
+/**
+ * /updates serves 500 records per page and the whole catalogue's hourly
+ * churn is one or two pages per type, so this is ~an order of magnitude of
+ * headroom, not a limit anyone should meet. Callers can lower it.
+ */
+const MAX_UPDATE_PAGES = 20;
+
+/** /updates entityType values → our entity types. Everything else (artwork,
+ *  people, translations, …) is churn we don't store. */
+const UPDATE_ENTITY_TYPES = {
+  series: "series",
+  movies: "movie",
+  episodes: "episode",
+} as const;
+
+function mapUpdateRecord(
+  raw: TvdbUpdateRecord,
+  entityType: ProviderChange["entityType"]
+): ProviderChange | null {
+  if (raw.recordId == null) return null;
+  const method = raw.method;
+  if (method !== "create" && method !== "update" && method !== "delete") return null;
+
+  return {
+    entityType,
+    providerId: String(raw.recordId),
+    method,
+    // A cross-type merge target is not representable as "same entity, new
+    // id" — surface no merge so the caller treats it as a plain delete.
+    mergeToId:
+      raw.mergeToId != null &&
+      (raw.mergeToEntityType == null || UPDATE_ENTITY_TYPES[raw.mergeToEntityType as keyof typeof UPDATE_ENTITY_TYPES] === entityType)
+        ? String(raw.mergeToId)
+        : null,
+    seriesProviderId: raw.seriesId != null ? String(raw.seriesId) : null,
+  };
+}
 
 export function createTvdbProvider(apiKey: string): MetadataProvider {
   const client = new TvdbClient(apiKey);
@@ -111,6 +152,36 @@ export function createTvdbProvider(apiKey: string): MetadataProvider {
         `/${kind === "series" ? "series" : "movies"}/${id}`
       );
       return typeof body?.data?.score === "number" ? body.data.score : null;
+    },
+
+    async changedSince(since, options): Promise<ChangedSinceResult> {
+      const sinceUnix = Math.floor(since.getTime() / 1000);
+      const maxPages = options?.maxPagesPerType ?? MAX_UPDATE_PAGES;
+      const changes: ProviderChange[] = [];
+      let complete = true;
+
+      // One filtered stream per type we store, rather than the unfiltered
+      // feed: two thirds of the raw feed is artwork/translation/people churn
+      // that would only be paged through and thrown away.
+      for (const [tvdbType, entityType] of Object.entries(UPDATE_ENTITY_TYPES)) {
+        let page = 0;
+        for (; page < maxPages; page++) {
+          const body = await client.get<TvdbUpdateRecord[]>(
+            `/updates?since=${sinceUnix}&type=${tvdbType}&page=${page}`
+          );
+          if (!body) break;
+
+          for (const raw of body.data ?? []) {
+            const mapped = mapUpdateRecord(raw, entityType);
+            if (mapped) changes.push(mapped);
+          }
+
+          if (!body.links?.next) break;
+          if (page === maxPages - 1) complete = false;
+        }
+      }
+
+      return { changes, complete };
     },
   };
 }
