@@ -70,8 +70,9 @@ and it is the list tvchecker was actually used for.
       than a signpost to the series page.
 - [x] Freshness: the hourly cron (`/api/refresh`, ADR-0010) sweeps followed
       shows stalest-first, so new episodes appear without anyone opening the
-      series page. The `/updates?since=`-driven refinement remains open —
-      planned in [plans/metadata-updates.md](plans/metadata-updates.md).
+      series page. Since 2026-08-24 it is `/updates?since=`-driven — every
+      held title invalidates the hour it changes at TVDB
+      ([plans/metadata-updates.md](plans/metadata-updates.md)).
 
 **Slice 4 — people**
 

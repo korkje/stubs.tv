@@ -107,13 +107,16 @@ pieces are planned.
 > silently destroys watch history, which is the one thing this app exists to
 > protect.
 
-**Freshness.** Partially built: the hourly cron (`/api/refresh`, ADR-0010)
-sweeps followed series stalest-first, which is what keeps the up-next feed
-and the calendar honest without anyone opening a page. Still planned: driving
-it from TVDB's `/updates?since=` endpoint, comparing against the
-`provider_updated_at` we already store so only genuinely changed records are
-refetched — and widening beyond followed titles. Planned in detail in
-[plans/metadata-updates.md](plans/metadata-updates.md).
+**Freshness.** Built (2026-08-24, see
+[plans/metadata-updates.md](plans/metadata-updates.md)): the hourly cron
+(`/api/refresh`, ADR-0010) first reads TVDB's `/updates` feed and
+*invalidates* every held title that changed (`fetched_at = null`), then
+sweeps followed series stalest-first — invalidated rows sort first, so a
+followed show that changed is refetched the same hour. Invalidated movies
+and unfollowed series heal on next open. Provider-side deletes stamp the
+row fresh (never refetched, never dropped — watch history outlives the
+provider's catalogue); duplicate merges repoint `external_ids` when we hold
+only one side, and are logged for a human when we hold both.
 
 **Local-first search.** Query our own tables first and render immediately,
 then merge TVDB's results in — falling back to a visible notice, rather than

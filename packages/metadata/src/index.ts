@@ -1,7 +1,9 @@
 export type {
+  ChangedSinceResult,
   EpisodeDetail,
   MetadataProvider,
   MovieDetail,
+  ProviderChange,
   ProviderId,
   SearchResult,
   SeasonSummary,
