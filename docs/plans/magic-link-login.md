@@ -3,7 +3,10 @@
 Status: **not started**. Written up so it can be picked up cold — by a
 future session, a cloud agent, or a future self. Investigated 2026-08-20;
 the surprising finding is that the backend already exists end-to-end, so
-this is a front-door feature, not an auth project.
+this is a front-door feature, not an auth project. Sibling of
+[oauth-login.md](oauth-login.md) (Apple/Google sign-in) — they share the
+passwordless wrinkle below and the login-page redesign; consider shipping
+together.
 
 ## What it is
 
