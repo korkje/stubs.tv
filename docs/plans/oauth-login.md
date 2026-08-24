@@ -65,11 +65,14 @@ creates profiles for any auth method, so signup-side plumbing is zero.
 
 1. **The client secret is a JWT that expires every 6 months**, derived from
    the long-lived `.p8` signing key. Unautomated, this is a production
-   outage on a timer. Automate it: the repo already drives the Supabase
-   Management API from CI (`scripts/push-email-templates.sh` pattern), and
-   the same API can PATCH the Apple provider secret. A scheduled workflow
-   in the **private ops repo** (every ~5 months; `.p8`, team id, key id as
-   repo secrets) mints the JWT and pushes it. Ops runbook lives there too.
+   outage on a timer. **Solved (2026-08-24)**: the owner built
+   [korkje/supabase-apple-secret-rotate](https://github.com/korkje/supabase-apple-secret-rotate)
+   (v0.1.0) — a reusable action that mints a fresh max-lifetime secret and
+   PATCHes it through the Supabase Management API, stateless, designed for
+   a blind monthly cron. When Apple setup happens, the consuming scheduled
+   workflow goes in the **private ops repo** (`.p8`, team id, key id,
+   Supabase PAT as its secrets) — nothing in this repo depends on it. Ops
+   runbook lives there too.
 2. **Relay email deliverability**: to *send* mail (Mailjet) to
    `@privaterelay.appleid.com` addresses, the sending domain must be
    registered under "Certificates → Services → Sign in with Apple for
