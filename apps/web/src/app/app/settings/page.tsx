@@ -17,6 +17,7 @@ import {
   TextField,
 } from "@radix-ui/themes";
 import { createClient } from "@/lib/supabase/server";
+import { isSelfHosted } from "@/lib/self-hosted";
 import {
   changePassword,
   deleteAccount,
@@ -31,6 +32,10 @@ import { SpecialsField } from "@/components/settings/SpecialsField";
 import { TimezoneField } from "@/components/settings/TimezoneField";
 
 const TABS = new Set(["watching", "account", "billing", "import"]);
+
+// Self-hosted instances have no billing to manage (ADR-0019); the tab —
+// and a ?tab=billing deep link — falls away with it.
+const SELF_HOSTED_TABS = new Set(["watching", "account", "import"]);
 
 /** Where subscribers manage payment, invoices, and cancellation: our
  * /billing route creates an authenticated Polar portal session (signed in
@@ -69,7 +74,9 @@ export default async function SettingsPage({
     delete_error,
     calendar_saved,
   } = params;
-  const tab = TABS.has(params.tab ?? "") ? params.tab! : "watching";
+  const selfHosted = isSelfHosted();
+  const tabs = selfHosted ? SELF_HOSTED_TABS : TABS;
+  const tab = tabs.has(params.tab ?? "") ? params.tab! : "watching";
 
   const supabase = await createClient();
   const [{ data: profile }, { data: billing }, { data: userData }] =
@@ -130,7 +137,9 @@ export default async function SettingsPage({
             <Tabs.List>
               <Tabs.Trigger value="watching">Watching</Tabs.Trigger>
               <Tabs.Trigger value="account">Account</Tabs.Trigger>
-              <Tabs.Trigger value="billing">Billing</Tabs.Trigger>
+              {!selfHosted && (
+                <Tabs.Trigger value="billing">Billing</Tabs.Trigger>
+              )}
               <Tabs.Trigger value="import">Import</Tabs.Trigger>
             </Tabs.List>
 

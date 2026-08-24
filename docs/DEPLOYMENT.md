@@ -40,7 +40,7 @@ unlocks both. We use Mailjet (EU-based; generous free tier).
 6. Verify: sign up with a fresh address; the mail must land in the inbox
    and the confirm link must point directly at `stubs.tv/auth/confirm`.
 
-**Planned migration (ADR-0009):** once we're on the Workers Paid plan and
+**Planned migration (ADR-0009):** we're on Workers Paid (ADR-0016); once
 Cloudflare Email Service is GA, switch Supabase SMTP to it
 (`smtp.mx.cloudflare.net:465`; 3k emails/month included with Workers
 Paid). Credentials + DNS swap only — one fewer vendor.

@@ -45,8 +45,9 @@ They stay in one app until a concrete need splits them (would require an ADR).
   routes (dispatched on the cron expression in custom-worker.ts): hourly
   metadata refresh (`/api/refresh`), and a 5-minute sweep of open import
   jobs (`/api/import/run`).
-- `next/image` needs a custom loader (Cloudflare Images) or `unoptimized` —
-  decide at scaffold time; do not ship the default Vercel loader.
+- `next/image` runs `unoptimized` (next.config, ADR-0002) — the default
+  Vercel loader doesn't exist on Workers. Revisit (Cloudflare Images) only
+  if poster bandwidth ever becomes a real cost.
 
 ## Data layer: Supabase (EU)
 
@@ -106,11 +107,13 @@ pieces are planned.
 > silently destroys watch history, which is the one thing this app exists to
 > protect.
 
-**Freshness.** A cron route driven by TVDB's `/updates?since=` endpoint,
-comparing against the `provider_updated_at` we already store so only genuinely
-changed records are refetched. Prioritise followed and watched titles. This is
-also what makes upcoming-episode data trustworthy enough for the calendar
-feature, which cannot wait for someone to open a page.
+**Freshness.** Partially built: the hourly cron (`/api/refresh`, ADR-0010)
+sweeps followed series stalest-first, which is what keeps the up-next feed
+and the calendar honest without anyone opening a page. Still planned: driving
+it from TVDB's `/updates?since=` endpoint, comparing against the
+`provider_updated_at` we already store so only genuinely changed records are
+refetched — and widening beyond followed titles. Planned in detail in
+[plans/metadata-updates.md](plans/metadata-updates.md).
 
 **Local-first search.** Query our own tables first and render immediately,
 then merge TVDB's results in — falling back to a visible notice, rather than
@@ -123,16 +126,20 @@ an error, when TVDB is unreachable.
 > Deduplicate against `external_ids` so a title we already hold does not
 > appear twice when TVDB returns it too.
 
-## Payments (later, Phase 5)
+## Payments
 
-Stripe. Nothing in the schema should assume its absence: `profiles` carries a
-`plan` field (`comp` for friends/family) from early on, entitlement checks go
-through one helper.
+Polar as merchant of record (ADR-0013, not the Stripe this section once
+predicted): a checkout redirect route, a signature-verified webhook that
+recomputes `profiles.plan`, and Polar's hosted customer portal. Entitlement
+checks go through one helper (`requireWriteAccess`, ADR-0014). Self-hosted
+instances skip all of it behind `SELF_HOSTED=true` (ADR-0019).
 
-## Calendar (later, Phase 4)
+## Calendar
 
-Per-user tokenized iCal endpoint (`/api/calendar/<token>.ics`) generated from
-followed shows' upcoming episodes. In-app "upcoming" view ships first.
+Shipped (ADR-0018): a per-user tokenized iCal endpoint
+(`/api/calendar/<token>.ics`) generated from followed shows' upcoming
+episodes, where the URL token is the credential. The in-app equivalent is
+the home feed's scroll-down direction.
 
 ## Monorepo
 

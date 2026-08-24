@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Box, Container, Flex } from "@radix-ui/themes";
 import { createClient } from "@/lib/supabase/server";
+import { isSelfHosted } from "@/lib/self-hosted";
 import { NavLinks } from "@/components/NavLinks";
 import { ReadOnlyBanner } from "@/components/ReadOnlyBanner";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -84,8 +85,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </Flex>
       {/* Layout-level so it shows on every /app page and survives page error
           boundaries. Reflects plan at render time: right after paying it can
-          linger one visit until the Polar webhook lands. */}
-      {profile?.plan === "free" && <ReadOnlyBanner />}
+          linger one visit until the Polar webhook lands. Self-hosted
+          instances have no paywall to point at (ADR-0019). */}
+      {profile?.plan === "free" && !isSelfHosted() && <ReadOnlyBanner />}
       <Box py="5" flexGrow="1">
         {children}
       </Box>

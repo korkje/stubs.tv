@@ -3,10 +3,12 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { ensureSeriesIngested } from "@/lib/metadata/ingest";
 
 /**
- * Small on purpose: one big show's refresh (episode pages + upserts) can be
- * ~30 subrequests, and the free plan allows 50 per invocation. The cron
- * fires hourly and always takes the stalest first, so a modest catalogue
- * cycles well inside ensureSeriesIngested's 12h freshness window.
+ * Small on purpose: background jobs stay batched and resumable as policy
+ * (AGENTS.md) even though the paid plan's subrequest cap is roomy
+ * (ADR-0016). The cron fires hourly and always takes the stalest first, so
+ * a modest catalogue cycles well inside ensureSeriesIngested's 12h
+ * freshness window; raise BATCH before rearchitecting if that stops
+ * holding.
  */
 const BATCH = 2;
 

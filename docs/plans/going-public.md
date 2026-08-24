@@ -25,7 +25,12 @@ to be fixed *before* the switch.
 
 ## Decisions
 
-### 1. AI docs (AGENTS.md, CLAUDE.md): keep them public — recommended
+**All three decisions confirmed by the owner 2026-08-24**: AI docs stay in
+the repo, history stays as-is, POLAR_SETUP.md moves to the private ops repo.
+The unmerged `claude/library-totals-mobile-wrap-0dqf9x` branch was also
+declared obsolete — delete it along with the merged ones.
+
+### 1. AI docs (AGENTS.md, CLAUDE.md): keep them public — CONFIRMED
 
 The instinct to separate them out (private submodule, gitignored files) runs
 into a hard constraint from AGENTS.md itself: the owner works from multiple
@@ -48,7 +53,7 @@ AGENTS.md down to contributor-relevant content and keep private notes in a
 separate private repo. Not a submodule — nothing should make cloning or CI
 depend on private credentials.
 
-### 2. Git history: keep it — recommended
+### 2. Git history: keep it — CONFIRMED
 
 The history contains ~115 `Co-Authored-By: Claude` trailers, ~37 commit
 subjects mentioning agents/AI, and merged `claude/*` branches. That is
@@ -114,21 +119,24 @@ What was decided:
    from GitHub whenever (nothing reads it). A fresh clone now installs from
    plain npm.
 2. ~~Confirm the Polar access token was rotated.~~ **Done** — owner
-   confirmed rotation (2026-08-19). Fix the stale "must be rotated" note
-   when POLAR_SETUP.md lands in the private repo (next item).
-3. **Create the private ops repo and move POLAR_SETUP.md into it**
-   (Decision 3): plain private repo, `git rm` the file here, no
-   cross-repo linkage.
-4. **Archive the Polar Test Product and the STUBSTEST discount.**
-   POLAR_SETUP.md names a 100%-off discount code and its id. It is
-   restricted to the (no-op) Test Product, but both are live resources
-   named in this repo's git history, which moving the file (item 3) does
-   not erase. The real fix is on Polar's side: archive both in the
-   dashboard (already a checklist item there).
-5. **Implement the self-hosted mode** (Decision 3), so the public repo's
-   self-hosting story works without Polar from day one; write the ADR with
-   it.
-6. **Content review pass** over the docs listed under Decision 1.
+   confirmed rotation (2026-08-19). The stale "must be rotated" note was
+   fixed in the moved copy (next item).
+3. ~~**Create the private ops repo and move POLAR_SETUP.md into it**~~
+   **Done 2026-08-24**: `korkje/stubs.tv-private` (plain private repo, no
+   cross-repo linkage), POLAR_SETUP.md moved there with statuses updated,
+   `git rm`'d here.
+4. ~~**Archive the Polar Test Product and the STUBSTEST discount.**~~
+   **Done 2026-08-24** — owner archived them in the Polar dashboard. With
+   that, the discount code named in git history is dead: it only ever
+   applied to the now-archived Test Product.
+5. ~~**Implement the self-hosted mode**~~ **Done 2026-08-24** (ADR-0019):
+   `SELF_HOSTED=true` grants every signed-in account write access and hides
+   all pricing/billing surfaces.
+6. ~~**Content review pass**~~ **Done 2026-08-24**, extended beyond the
+   Decision-1 list to DEPLOYMENT.md, ARCHITECTURE.md and DATA-MODEL.md
+   (which the audit had skipped): nothing owner-private found; stale
+   statements fixed instead (ROADMAP status, shipped-but-unchecked GDPR
+   items, Stripe→Polar in ARCHITECTURE, free-plan-era limits).
 7. **Run a security review of the code** (`/security-review` or equivalent)
    with emphasis on RLS policies, the admin routes, and the webhook/cron
    endpoints. Public source makes any gap discoverable by reading, not
@@ -141,9 +149,11 @@ What was decided:
   - Branches: protect `main` — require the CI checks, no force pushes.
   - Actions: default workflow permissions read-only; keep "require approval
     for first-time contributors" (the default for public repos).
-- Add `SECURITY.md` (how to report a vulnerability privately) and a short
-  `CONTRIBUTING.md` (or a README section) covering local setup and the FSL
-  license implications for contributions.
+- ~~Add `SECURITY.md` (how to report a vulnerability privately) and a short
+  `CONTRIBUTING.md` covering local setup and the FSL license implications
+  for contributions.~~ **Done 2026-08-24.** SECURITY.md offers
+  security@stubs.tv as the email channel — make sure that alias is routed
+  (Cloudflare Email Routing) before the flip.
 - Flip visibility to public.
 - Immediately after flipping (these are free/public-repo features, not
   available while private on the free plan): enable secret scanning **and
