@@ -6,10 +6,10 @@ source of truth for "where are we".
 
 **Current status (2026-08-24): live at stubs.tv with tracking, the up-next
 feed, filtering, TV Time import, the iCal feed, and GDPR self-serve all
-shipped. Active work: going public on GitHub
-([plans/going-public.md](plans/going-public.md)). Biggest feature gaps:
-people (Phase 1 slice 4), analytics (Phase 2), and the metadata cache
-lifecycle.**
+shipped, and the repo is public. Biggest feature gaps: people (Phase 1
+slice 4), analytics (Phase 2), and the metadata cache lifecycle — the
+freshness half is planned in
+[plans/metadata-updates.md](plans/metadata-updates.md).**
 
 ## Phase 0 — Scaffold
 
@@ -126,7 +126,11 @@ merchant of record** (ADR-0013), one paid tier sold monthly/annual/lifetime
 - [x] Entitlement checks (single helper, `requireWriteAccess` in
       `apps/web/src/lib/plan.ts`, keyed on `profiles.plan`)
 - [x] Self-hosted mode: `SELF_HOSTED=true` removes the paywall (ADR-0019)
-- [ ] Going public on GitHub — [plans/going-public.md](plans/going-public.md)
+- [x] Going public on GitHub — done 2026-08-24: repo public, main protected
+      by ruleset (required `checks`, no force pushes or deletion), secret
+      scanning + push protection + Dependabot alerts on, ops docs in the
+      private repo. The plan doc deleted itself as designed; watch the
+      first external fork PR (CI must pass without secrets)
 - [ ] Launch posts (Reddit migration threads etc.) — after the TV Time
       plan's remaining prerequisite (one real redacted export to validate
       against)
