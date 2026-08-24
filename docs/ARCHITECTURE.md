@@ -112,7 +112,8 @@ sweeps followed series stalest-first, which is what keeps the up-next feed
 and the calendar honest without anyone opening a page. Still planned: driving
 it from TVDB's `/updates?since=` endpoint, comparing against the
 `provider_updated_at` we already store so only genuinely changed records are
-refetched — and widening beyond followed titles.
+refetched — and widening beyond followed titles. Planned in detail in
+[plans/metadata-updates.md](plans/metadata-updates.md).
 
 **Local-first search.** Query our own tables first and render immediately,
 then merge TVDB's results in — falling back to a visible notice, rather than
