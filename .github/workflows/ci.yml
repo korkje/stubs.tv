@@ -6,6 +6,12 @@ on:
   pull_request:
   workflow_dispatch:
 
+# The GITHUB_TOKEN never needs to write: deploys authenticate with their
+# own secrets. Explicit here so the guarantee survives any drift in the
+# repo-level default (which is also read-only).
+permissions:
+  contents: read
+
 jobs:
   checks:
     runs-on: ubuntu-latest
