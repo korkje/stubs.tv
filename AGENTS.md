@@ -23,9 +23,10 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
 3. **Everything must scale without rearchitecting.** Prefer choices that work
    at 10 users and 100k users. No tech that requires a rewrite to grow.
 4. **Self-hosting is a feature.** The repo must stay runnable locally
-   (`npm install` + `supabase start` + `npm run dev` once scaffolded). Don't
-   introduce dependencies on services that can't be substituted or mocked
-   locally without documenting the escape hatch.
+   (`npm install` + `supabase start` + `npm run dev`). Don't introduce
+   dependencies on services that can't be substituted or mocked locally
+   without documenting the escape hatch. `SELF_HOSTED=true` removes the
+   paywall entirely (ADR-0019), so no Polar config is ever required.
 5. **Privacy by design.** EU-based users, GDPR applies. Store minimal PII,
    keep user data exportable and deletable. See [docs/PRIVACY.md](docs/PRIVACY.md).
 6. **Metadata goes through the provider abstraction.** Never leak TVDB IDs or
@@ -150,18 +151,23 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
 
 ## Next up
 
-A list of unwatched episodes of followed shows in air-date order — see
-"Slice 3" in [docs/ROADMAP.md](docs/ROADMAP.md). It is the owner's main reason
-for the app, and it depends on the metadata refresh cron that does not exist
-yet; read the note there before starting.
+Going public on GitHub — the checklist is
+[docs/plans/going-public.md](docs/plans/going-public.md); work through its
+"Blocking" section before anything flips. For feature work, the header of
+[docs/ROADMAP.md](docs/ROADMAP.md) names the current gaps.
 
 ## Current status
 
 Live at stubs.tv. Search, follows, ratings, and marking episodes, seasons,
-shows and movies as seen all work, on phone and desktop. Metadata comes from
-TheTVDB behind the provider abstraction, cached in Postgres. TV Time exports
-import end-to-end (ADR-0015): parsed in the browser, previewed free at
-/import/tv-time, committed as a background job with a reconciliation report.
+shows and movies as seen all work, on phone and desktop. The home page is
+the up-next feed (unwatched episodes of followed shows, centered on today,
+filterable), kept fresh by the hourly refresh cron (ADR-0010). Metadata
+comes from TheTVDB behind the provider abstraction, cached in Postgres.
+TV Time exports import end-to-end (ADR-0015): parsed in the browser,
+previewed free at /import/tv-time, committed as a background job with a
+reconciliation report. GDPR export and deletion are self-serve (ADR-0017);
+there's a tokenized iCal feed (ADR-0018) and a self-hosted mode that
+removes the paywall (ADR-0019).
 
 Known gaps, all recorded in [docs/ROADMAP.md](docs/ROADMAP.md): ingestion
 still runs inside the request path when a title is first opened, and a

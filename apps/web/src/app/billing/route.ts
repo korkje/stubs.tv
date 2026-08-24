@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getPolarClient } from "@/lib/polar";
 import { createClient } from "@/lib/supabase/server";
+import { isSelfHosted } from "@/lib/self-hosted";
 
 /**
  * The un-personalised portal entrance. Kept as the fallback: it asks for an
@@ -20,6 +21,11 @@ const POLAR_PORTAL_URL = "https://polar.sh/stubs-tv/portal";
  */
 export async function GET(request: Request) {
   const url = new URL(request.url);
+
+  // No merchant, no portal on a self-hosted instance (ADR-0019).
+  if (isSelfHosted()) {
+    return NextResponse.redirect(new URL("/app", url.origin));
+  }
 
   const supabase = await createClient();
   const {

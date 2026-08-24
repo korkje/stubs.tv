@@ -14,6 +14,7 @@ import {
 } from "@radix-ui/themes";
 import { PricingSection } from "@/components/PricingSection";
 import { StubsMark } from "@/components/StubsMark";
+import { isSelfHosted } from "@/lib/self-hosted";
 
 const features = [
   {
@@ -34,10 +35,13 @@ const features = [
   },
 ];
 
+// billing-tagged questions only make sense where billing exists; a
+// self-hosted instance drops them (ADR-0019) and keeps the product ones.
 const faq = [
   {
     q: "Is there a free trial?",
     a: "The annual plan's first month is free. You add a card at checkout and can cancel any time during the month — cancel before it ends and you pay nothing.",
+    billing: true,
   },
   {
     q: "Can I bring my TV Time history?",
@@ -46,10 +50,12 @@ const faq = [
   {
     q: "How do I cancel?",
     a: "Through the customer portal — every receipt email links to it. Your plan runs to the end of what you paid for.",
+    billing: true,
   },
   {
     q: "What happens to my history if I stop paying?",
     a: "Nothing is deleted. Your account becomes read-only: you can see everything and export everything, you just can't add to it until you resubscribe.",
+    billing: true,
   },
   {
     q: "Can I run it myself?",
@@ -58,6 +64,7 @@ const faq = [
 ];
 
 export default function Home() {
+  const selfHosted = isSelfHosted();
   return (
     <Container size="3" px="4">
       <Flex direction="column" align="center" py="9" gap="2">
@@ -91,9 +98,11 @@ export default function Home() {
               <Link href="/app">Sign in</Link>
             </Button>
           </Flex>
-          <Text size="2" color="gray" align="center">
-            The annual plan&apos;s first month is free.
-          </Text>
+          {!selfHosted && (
+            <Text size="2" color="gray" align="center">
+              The annual plan&apos;s first month is free.
+            </Text>
+          )}
         </Flex>
       </Flex>
 
@@ -112,25 +121,30 @@ export default function Home() {
         </Grid>
       </Section>
 
-      <Section size="2" id="pricing">
-        <Flex direction="column" gap="5">
-          <Flex direction="column" gap="2" align="center">
-            <Heading size="7">Pricing</Heading>
-            <Text size="3" color="gray" align="center">
-              Every plan is full access. Prices include VAT — payment runs
-              through Polar.
-            </Text>
+      {/* A self-hosted instance has nothing to sell (ADR-0019). */}
+      {!selfHosted && (
+        <Section size="2" id="pricing">
+          <Flex direction="column" gap="5">
+            <Flex direction="column" gap="2" align="center">
+              <Heading size="7">Pricing</Heading>
+              <Text size="3" color="gray" align="center">
+                Every plan is full access. Prices include VAT — payment runs
+                through Polar.
+              </Text>
+            </Flex>
+            <PricingSection />
           </Flex>
-          <PricingSection />
-        </Flex>
-      </Section>
+        </Section>
+      )}
 
       <Section size="2">
         <Flex direction="column" gap="5" maxWidth="640px" mx="auto">
           <Heading size="7" align="center">
             Questions
           </Heading>
-          {faq.map((item) => (
+          {faq
+            .filter((item) => !selfHosted || !item.billing)
+            .map((item) => (
             <Flex key={item.q} direction="column" gap="1">
               <Heading size="3">{item.q}</Heading>
               <Text size="3" color="gray">

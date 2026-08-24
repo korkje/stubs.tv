@@ -4,9 +4,12 @@ Phases are sequential; each ends with something the owner actually uses.
 Update the status column as work proceeds — this file is the cross-environment
 source of truth for "where are we".
 
-**Current status: Phase 1 in progress (2026-08-10). Slice 1 — metadata
-pipeline, search and read-only title pages — is done; slice 2 is tracking
-(follows and watches).**
+**Current status (2026-08-24): live at stubs.tv with tracking, the up-next
+feed, filtering, TV Time import, the iCal feed, and GDPR self-serve all
+shipped. Active work: going public on GitHub
+([plans/going-public.md](plans/going-public.md)). Biggest feature gaps:
+people (Phase 1 slice 4), analytics (Phase 2), and the metadata cache
+lifecycle.**
 
 ## Phase 0 — Scaffold
 
@@ -52,31 +55,23 @@ pipeline, search and read-only title pages — is done; slice 2 is tracking
       timezone display: dates currently render from UTC, so a late-evening
       view can show the previous day
 
-**Slice 3 — what to watch next (do this one first)**
+**Slice 3 — what to watch next (shipped)**
 
 The owner's own reason for the app: knowing what is out and not yet seen.
 Everything up to here records the past; this is the part that is useful daily,
-and it is the list tvchecker was actually used for. Starts as a list, becomes
-the calendar in Phase 4.
+and it is the list tvchecker was actually used for.
 
-- [ ] Unwatched episodes of followed shows in air-date order. Two groups from
-      one query: **already aired and unseen** (catch up) and **still to come**
-      (what is next). Exclude specials by default, as progress counts do.
-- [ ] Each row marks as seen in place, so the list is the daily driver rather
+- [x] Shipped 2026-08-12 as the home page itself: unwatched episodes of
+      followed shows in release order, bidirectional infinite scroll centered
+      on today — past scrolls up (catch up), future scrolls down (what is
+      next). Filtering followed 2026-08-14
+      ([plans/library-feed-filtering.md](plans/library-feed-filtering.md)).
+- [x] Each row marks as seen in place, so the list is the daily driver rather
       than a signpost to the series page.
-
-> **This feature is only as good as the freshness of the data, and freshness
-> is not built yet.** Right now a show's episodes are only refetched when
-> someone opens its page and the 12-hour window has lapsed — so a new episode
-> of a followed show may never appear at all. The `/updates?since=` cron in
-> ARCHITECTURE.md "Cache lifecycle" is a prerequisite, not a nicety: without
-> it the list quietly lies about what is coming. Prioritising followed shows
-> in that job is what makes it cheap.
-
-Shape it in SQL, like `series_progress` and `season_progress`: a
-security_invoker view over follows → episodes → watches, filtered to
-unwatched and ordered by air date. Bound the row count — this is a request
-path, and the CPU budget is 10ms.
+- [x] Freshness: the hourly cron (`/api/refresh`, ADR-0010) sweeps followed
+      shows stalest-first, so new episodes appear without anyone opening the
+      series page. The `/updates?since=`-driven refinement in ARCHITECTURE.md
+      "Cache lifecycle" remains open.
 
 **Slice 4 — people**
 
@@ -90,14 +85,15 @@ path, and the CPU budget is 10ms.
 - [ ] Era heatmap (decade × genre)
 - [ ] Watch activity timeline
 - [ ] Most-watched actors / directors / genres
-- [ ] Data export (JSON download) — doubles as the GDPR export
+- [x] Data export (JSON download) — doubles as the GDPR export. Shipped
+      2026-08-20 (ADR-0017): Settings → Account → "Download my data"
 
 ## Phase 3 — Open signups (was: invites)
 
 - [x] ~~Invitation flow (comp plan)~~ Built, then removed with ADR-0014:
       signups are public, new accounts start read-only and pick a plan
-- [ ] Account deletion self-serve (GDPR — privacy page promises email
-      handling until this ships)
+- [x] Account deletion self-serve (GDPR) — shipped 2026-08-20 (ADR-0017):
+      Settings → Account, password-confirmed, hard delete
 - [x] Privacy policy + terms pages
 - [x] Marketing landing page with real content
 - [ ] Metadata cache lifecycle — see ARCHITECTURE.md "Cache lifecycle":
@@ -114,27 +110,39 @@ feed is still to come.
 
 - [x] Hourly metadata refresh for followed shows (ADR-0010) — the feed and
       any calendar are only as fresh as the ingested air dates
-- [ ] In-app "upcoming" view for followed shows/people
+- [x] In-app "upcoming" view for followed shows — the home feed's
+      scroll-down direction covers this (2026-08-12). The people half waits
+      on Phase 1 slice 4 (people don't exist yet)
 - [x] Tokenized per-user iCal feed — shipped 2026-08-20 (ADR-0018);
       subscribe from Settings → Watching → Calendar
 
 ## Phase 5 — Charge (public launch, only if 1–4 prove out)
 
-- [ ] Stripe: Basic $1/mo · $10/yr, Pro $3/mo · $30/yr
-- [ ] Entitlement checks (single helper, `profiles.plan`)
-- [ ] Decide Basic/Pro feature split
-- [ ] Self-hosting guide polish (community-readiness)
+Billing shipped early and differently than sketched here: **Polar as
+merchant of record** (ADR-0013), one paid tier sold monthly/annual/lifetime
+— see VISION.md for the live pricing. The Basic/Pro split never happened.
+
+- [x] Payments: Polar checkout, webhook-driven entitlements, customer portal
+- [x] Entitlement checks (single helper, `requireWriteAccess` in
+      `apps/web/src/lib/plan.ts`, keyed on `profiles.plan`)
+- [x] Self-hosted mode: `SELF_HOSTED=true` removes the paywall (ADR-0019)
+- [ ] Going public on GitHub — [plans/going-public.md](plans/going-public.md)
+- [ ] Launch posts (Reddit migration threads etc.) — after the TV Time
+      plan's remaining prerequisite (one real redacted export to validate
+      against)
 
 ## Icebox (explicitly deferred)
 
 
 
 - Batch `resolve_entities()` for search — a search currently spends one RPC
-  per result (~25 subrequests against the free plan's 50-per-request cap).
-  A single jsonb-array function would cut it to a handful and speed search up.
+  per result (~25 subrequests). The paid plan's cap is no longer the concern
+  (ADR-0016), but a single jsonb-array function would still cut the
+  round-trips to a handful and speed search up.
 
-- Migrate auth email from Mailjet to Cloudflare Email Service — when on
-  Workers Paid and the service is GA (ADR-0009; SMTP credential swap)
+- Migrate auth email from Mailjet to Cloudflare Email Service — we're on
+  Workers Paid (ADR-0016); waiting on the service going GA (ADR-0009; SMTP
+  credential swap)
 
 - Rewatch tracking (relax `watches` uniqueness)
 - Personal ratings surfaced in UI
@@ -157,7 +165,7 @@ feed is still to come.
   [docs/plans/tvtime-import.md](plans/tvtime-import.md)): parsed in the
   browser against a filename allow-list, previewed free at the public
   `/import/tv-time` page, committed behind the plan as a resumable
-  background job with a per-show reconciliation report. Before a Reddit
-  launch, the plan's remaining prerequisites stand: data export (Phase 2)
-  and self-serve deletion (Phase 3), plus one real redacted export to
-  validate against — ask in the migration threads first.
+  background job with a per-show reconciliation report. Data export and
+  self-serve deletion shipped since (ADR-0017); the one prerequisite still
+  standing before a Reddit launch is a real redacted export to validate
+  against — ask in the migration threads first.

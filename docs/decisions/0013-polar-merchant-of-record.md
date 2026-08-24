@@ -56,7 +56,9 @@ revoked by hand alone.
   work. A different provider would touch only `lib/polar.ts`, the two
   routes, and the webhook handlers.
 - The deployed Worker needs `POLAR_ACCESS_TOKEN`, `POLAR_WEBHOOK_SECRET`
-  and `POLAR_SERVER` as Cloudflare secrets — see POLAR_SETUP.md.
+  and `POLAR_SERVER` as Cloudflare secrets. The setup record (resource
+  ids, dashboard checklist) lives in the private ops repo — POLAR_SETUP.md
+  there, moved out before this repo went public.
 - Production and sandbox are separate Polar environments with separate
   tokens, products, and webhooks; ids in one do not exist in the other.
 - Fee structure favors annual/lifetime over cheap monthly (50¢ fixed fee

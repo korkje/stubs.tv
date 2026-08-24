@@ -11,9 +11,10 @@ What shipped: `packages/tvtime-import` (pure parser + fixtures + tests),
 the `/import/tv-time` public preview and `/app/import` flow, phase-1
 commit (`apps/web/src/lib/import/actions.ts`), the phase-2 worker
 (`/api/import/run` on a 5-minute cron), the reconciliation report, the
-manual film resolver, and 429 backoff in TvdbClient. Still open from the
-launch-prerequisites list: data export, self-serve deletion, and getting
-one real redacted export to validate against before any launch post.
+manual film resolver, and 429 backoff in TvdbClient. Data export and
+self-serve deletion shipped 2026-08-20 (ADR-0017); the one launch
+prerequisite still open is getting one real redacted export to validate
+against before any launch post.
 
 ## Why this is worth doing
 

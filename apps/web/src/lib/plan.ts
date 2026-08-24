@@ -2,13 +2,15 @@ import "server-only";
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { isSelfHosted } from "@/lib/self-hosted";
 
 /**
  * Auth + entitlement gate for mutating actions. plan = 'free' is read-only
  * (ADR-0014): comp and paid pass, anything else — including a missing
  * profile row — is sent to the plans page rather than thrown, because a
  * paywall hit is a designed funnel event, not a failure; a thrown error
- * would surface as the generic error boundary.
+ * would surface as the generic error boundary. Self-hosted instances have
+ * no paywall: any signed-in account passes (ADR-0019).
  *
  * This is deliberately app-layer only: RLS already scopes every write to
  * the caller's own rows, so a free user forging PostgREST calls can only
@@ -28,7 +30,11 @@ export async function requireWriteAccess() {
   ]);
 
   if (!user) throw new Error("Not signed in");
-  if (profile?.plan !== "comp" && profile?.plan !== "paid") {
+  if (
+    !isSelfHosted() &&
+    profile?.plan !== "comp" &&
+    profile?.plan !== "paid"
+  ) {
     redirect("/app/plans");
   }
 

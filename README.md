@@ -10,13 +10,19 @@ Keep track of the movies and TV shows you watch, episode by episode: search, fol
 
 The tracking service the owner relied on for years went offline one day and took all its watch history with it. stubs.tv is the replacement: better UI, movies included, and — because it's fair-source and self-hostable — your data can never vanish with someone else's server.
 
-## What it will do
+## What it does
 
 - **Search** movies and TV shows (metadata from TheTVDB)
-- **Follow** shows, actors, and directors
-- **Track** what you've seen — per episode, season, or movie
-- **Analytics** — total watch time, era heatmaps ("you love 80s sitcoms"), and more
-- **Calendar** — upcoming releases for things you follow (in-app first, iCal feed later)
+- **Follow** shows to keep up with them
+- **Track** what you've seen — per episode, season, show, or movie — and rate anything
+- **Up next** — the home page is a feed of unwatched episodes of followed shows, centered on today
+- **Calendar** — a per-user iCal feed your calendar app subscribes to
+- **Import** — bring your TV Time export with you, previewed in the browser before anything is uploaded
+- **Own your data** — one-click JSON export and self-serve account deletion
+
+Still to come, per [docs/ROADMAP.md](docs/ROADMAP.md): following actors and
+directors, and the analytics (total watch time, era heatmaps — "you love 80s
+sitcoms").
 
 ## Stack (decided — see [docs/decisions/](docs/decisions/))
 
@@ -29,14 +35,15 @@ The tracking service the owner relied on for years went offline one day and took
 | Metadata | TheTVDB v4, behind a provider abstraction |
 | License | [FSL-1.1-Apache-2.0](LICENSE.md) (fair source) |
 
-## Repository layout (planned)
+## Repository layout
 
 ```
-apps/web/            Next.js app — marketing pages, the webapp, admin routes
-packages/metadata/   Provider abstraction + TheTVDB client (no Supabase)
-packages/db/         Generated database types
-supabase/            Database migrations and local config
-docs/                All planning and architecture documentation
+apps/web/               Next.js app — marketing pages, the webapp, admin routes
+packages/metadata/      Provider abstraction + TheTVDB client (no Supabase)
+packages/db/            Generated database types
+packages/tvtime-import/ TV Time export parser (pure, fixture-tested)
+supabase/               Database migrations and local config
+docs/                   All planning and architecture documentation
 ```
 
 ## Documentation map
@@ -69,7 +76,15 @@ that account with full access. Signups are public, but new accounts start
 read-only until they pick a paid plan (or you comp them from the Supabase
 dashboard), so the seeded account is the convenient way in locally.
 
-Self-hosting is a first-class, documented path and will stay that way.
+## Self-hosting
+
+Self-hosting is a first-class path: set `SELF_HOSTED=true` in the
+environment and the paywall disappears — every account gets full access and
+the pricing/billing UI is hidden, so no payment configuration is needed
+(see [ADR-0019](docs/decisions/0019-self-hosted-mode.md)). You'll need your
+own Supabase project, a TheTVDB API key, and somewhere to run a Next.js
+app; [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) documents the Cloudflare
+Workers setup stubs.tv itself uses.
 
 ## License
 
