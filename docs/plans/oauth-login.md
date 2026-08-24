@@ -1,10 +1,26 @@
 # Plan: Sign in with Apple/Google, linkable in settings
 
-Status: **not started**. Written 2026-08-24 to be picked up cold; the
-Supabase behaviours below were verified against their current docs that
-day. Sibling of [magic-link-login.md](magic-link-login.md) — the two share
-the passwordless wrinkle (see below), and whichever ships first pays for
-solving it.
+Status: **shipped 2026-08-24**, same day as the plan (provider consoles,
+Supabase config and the secret-rotation automation included). Kept for the
+collision matrix and the Apple notes. Deviations from the design below:
+the provider gate is a **server-only `AUTH_PROVIDERS` var**, not
+`NEXT_PUBLIC_*` (login/signup are dynamic routes, so runtime env works and
+survives without a rebuild — the SELF_HOSTED build-time lesson); the
+passwordless wrinkle resolved as **signposts** (password change hides, and
+deletion points at the reset flow, when no `email` identity exists) —
+`reauthenticate()` flows deliberately not built; both-held merges surface
+as a settings error message, no data merge. Bonus landed with it: /signup
+shows an explicit "you already have an account" state for signed-in
+visitors instead of silently entering the app. Implementation:
+`lib/auth/providers.ts`, `signInWithProvider` (login actions),
+`/auth/callback`, `OAuthButtons`, `SignInMethods` + link/unlink actions,
+and the `handle_new_user` coalesce migration (display_name ← full_name ←
+name). Prod gotcha, recorded in DEPLOYMENT.md: the callback URL must be on
+GoTrue's redirect allow-list or it silently falls back to the Site URL,
+and "Allow manual linking" must be on for the Connect buttons.
+
+Sibling of [magic-link-login.md](magic-link-login.md) — the passwordless
+wrinkle is now solved here; magic-link inherits the signposts.
 
 ## Why
 

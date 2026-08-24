@@ -2,8 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { ResourceNotFound } from "@polar-sh/sdk/models/errors/resourcenotfound.js";
 import { getPolarClient } from "@/lib/polar";
+import { isOAuthProvider } from "@/lib/auth/providers";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 
@@ -260,4 +262,87 @@ export async function deleteAccount(formData: FormData) {
   // (global would try to revoke tokens that no longer exist).
   await supabase.auth.signOut({ scope: "local" });
   redirect("/login?deleted=1");
+}
+
+/**
+ * Starts the OAuth dance that connects another sign-in method to the
+ * *current* account (settings → Sign-in methods). Same round trip as the
+ * login buttons, but through auth.linkIdentity, which attaches the identity
+ * to the signed-in user regardless of the provider account's email — the
+ * escape hatch for Apple relay addresses and mismatched emails. Requires
+ * "manual linking" enabled on the Supabase project.
+ */
+export async function linkProvider(formData: FormData) {
+  const provider = formData.get("provider");
+  if (!isOAuthProvider(provider)) {
+    redirect("/app/settings?tab=account");
+  }
+
+  const requestHeaders = await headers();
+  const host =
+    requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
+  const proto = requestHeaders.get("x-forwarded-proto") ?? "https";
+  const callback = new URL(`${proto}://${host}/auth/callback`);
+  // Landing back on settings is also what routes callback errors (e.g.
+  // identity_already_exists) to the settings page instead of /login.
+  callback.searchParams.set("next", "/app/settings?tab=account&linked=1");
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.linkIdentity({
+    provider,
+    options: { redirectTo: callback.toString() },
+  });
+
+  if (error || !data?.url) {
+    redirect(
+      `/app/settings?tab=account&link_error=${encodeURIComponent(
+        error?.message ?? "Could not start the connection. Try again."
+      )}`
+    );
+  }
+
+  redirect(data.url);
+}
+
+/**
+ * Disconnects a sign-in method. GoTrue refuses to remove the last identity;
+ * the UI hides the button in that case and this re-checks anyway, so a
+ * stale form can't strand the account.
+ */
+export async function unlinkProvider(formData: FormData) {
+  const provider = formData.get("provider");
+  if (!isOAuthProvider(provider)) {
+    redirect("/app/settings?tab=account");
+  }
+
+  const supabase = await createClient();
+  const { data, error: readError } = await supabase.auth.getUserIdentities();
+  const identities = data?.identities ?? [];
+  const identity = identities.find((i) => i.provider === provider);
+
+  if (readError || !identity) {
+    redirect(
+      `/app/settings?tab=account&link_error=${encodeURIComponent(
+        "Could not find that connection. Reload and try again."
+      )}`
+    );
+  }
+
+  if (identities.length < 2) {
+    redirect(
+      `/app/settings?tab=account&link_error=${encodeURIComponent(
+        "This is your only way to sign in — set a password before disconnecting it."
+      )}`
+    );
+  }
+
+  const { error } = await supabase.auth.unlinkIdentity(identity);
+  if (error) {
+    redirect(
+      `/app/settings?tab=account&link_error=${encodeURIComponent(error.message)}`
+    );
+  }
+
+  revalidatePath("/app/settings");
+  redirect("/app/settings?tab=account&unlinked=1");
 }

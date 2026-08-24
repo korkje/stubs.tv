@@ -52,7 +52,16 @@ where `supabase/config.toml` disables it). Configure once under
 *Authentication*:
 
 - **URL Configuration** → Site URL: `https://stubs.tv`. Add
-  `http://localhost:3000/**` to additional redirect URLs.
+  `http://localhost:3000/**` **and `https://stubs.tv/auth/callback`** to
+  additional redirect URLs — GoTrue validates OAuth `redirectTo` against
+  this list and *silently falls back to the Site URL* on a miss, which
+  strands the sign-in with an unexchanged code on the homepage.
+- **Sign in with Google/Apple** (docs/plans/oauth-login.md): enable both
+  providers under *Authentication → Sign In / Up* with their client ids
+  (Google's secret by hand; Apple's secret is written and rotated by the
+  ops repo's scheduled workflow). Turn on **"Allow manual linking"** — the
+  settings page's Connect buttons need it. Which providers the UI offers is
+  the `AUTH_PROVIDERS` var (wrangler.jsonc / .env.local).
 - **Email templates are managed in the repo — do not edit them in the
   dashboard** (edits would be overwritten on the next deploy). The HTML
   lives in `supabase/templates/`, wired up for local dev in
