@@ -151,10 +151,10 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
 
 ## Next up
 
-Going public on GitHub — the checklist is
-[docs/plans/going-public.md](docs/plans/going-public.md); work through its
-"Blocking" section before anything flips. For feature work, the header of
-[docs/ROADMAP.md](docs/ROADMAP.md) names the current gaps.
+Delta-driven metadata refresh via TVDB's /updates endpoint — the plan is
+[docs/plans/metadata-updates.md](docs/plans/metadata-updates.md); read the
+delete/merge hazard section before coding. For the wider picture, the
+header of [docs/ROADMAP.md](docs/ROADMAP.md) names the current gaps.
 
 ## Current status
 
