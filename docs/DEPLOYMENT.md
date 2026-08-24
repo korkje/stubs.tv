@@ -27,13 +27,13 @@ unlocks both. We use Mailjet (EU-based; generous free tier).
 
 1. Mailjet account → authenticate the `stubs.tv` sender domain (add the
    SPF/DKIM records it gives you to the zone in Cloudflare DNS) and add
-   the sender address `no-reply@stubs.tv`.
+   the sender address `noreply@stubs.tv`.
 2. **Disable click & open tracking** in Mailjet's tracking settings, so
    auth links are delivered exactly as written.
 3. Mailjet API credentials: the API key is the SMTP username, the secret
    key the password; server `in-v3.mailjet.com`, port `587`.
 4. Supabase dashboard → *Authentication → Emails → SMTP settings* → enable
-   custom SMTP with sender `no-reply@stubs.tv` (name "stubs") and the
+   custom SMTP with sender `noreply@stubs.tv` (name "stubs") and the
    Mailjet credentials.
 5. *Authentication → Rate Limits* → raise the email rate limit (default
    with custom SMTP is 30/hr — fine to start).
