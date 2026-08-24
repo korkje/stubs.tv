@@ -9,9 +9,9 @@ import {
   Heading,
   Text,
   Link as RadixLink,
-  TextField,
 } from "@radix-ui/themes";
 import { AuthEmailField } from "@/components/auth/AuthEmailField";
+import { PasswordField } from "@/components/auth/PasswordField";
 import { safeNext } from "@/lib/redirects";
 import { createClient } from "@/lib/supabase/server";
 import { signup } from "./actions";
@@ -60,13 +60,7 @@ export default async function SignupPage({
                 <Text as="div" size="2" mb="1" weight="medium">
                   Password
                 </Text>
-                <TextField.Root
-                  name="password"
-                  type="password"
-                  autoComplete="new-password"
-                  size="3"
-                  required
-                />
+                <PasswordField autoComplete="new-password" />
               </label>
               <Flex mt="2">
                 <Button formAction={signup}>Create account</Button>

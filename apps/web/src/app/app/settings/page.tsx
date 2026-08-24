@@ -25,6 +25,7 @@ import {
   updateSettings,
 } from "@/lib/settings/actions";
 import { FadeIn } from "@/components/FadeIn";
+import { PasswordField } from "@/components/auth/PasswordField";
 import { ImportSection } from "@/components/import/ImportSection";
 import { SettingsTabs } from "@/components/SettingsTabs";
 import { CopyUrlField } from "@/components/settings/CopyUrlField";
@@ -343,26 +344,18 @@ export default async function SettingsPage({
                           <Text as="div" size="2" mb="1" weight="medium">
                             Current password
                           </Text>
-                          {/* size 3 is 16px: anything smaller makes iOS Safari
-                              zoom in when the field is focused. */}
-                          <TextField.Root
+                          <PasswordField
                             name="current_password"
-                            type="password"
                             autoComplete="current-password"
-                            size="3"
-                            required
                           />
                         </label>
                         <label>
                           <Text as="div" size="2" mb="1" weight="medium">
                             New password
                           </Text>
-                          <TextField.Root
+                          <PasswordField
                             name="new_password"
-                            type="password"
                             autoComplete="new-password"
-                            size="3"
-                            required
                           />
                         </label>
 
@@ -419,12 +412,9 @@ export default async function SettingsPage({
                           <Text as="div" size="2" mb="1" weight="medium">
                             Confirm with your password
                           </Text>
-                          <TextField.Root
+                          <PasswordField
                             name="current_password"
-                            type="password"
                             autoComplete="current-password"
-                            size="3"
-                            required
                           />
                         </label>
 
