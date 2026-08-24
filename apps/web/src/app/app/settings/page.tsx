@@ -10,6 +10,7 @@ import {
   Container,
   Flex,
   Heading,
+  Link as RadixLink,
   RadioGroup,
   Separator,
   Tabs,
@@ -26,6 +27,8 @@ import {
 } from "@/lib/settings/actions";
 import { FadeIn } from "@/components/FadeIn";
 import { PasswordField } from "@/components/auth/PasswordField";
+import { SignInMethods } from "@/components/settings/SignInMethods";
+import { enabledProviders } from "@/lib/auth/providers";
 import { ImportSection } from "@/components/import/ImportSection";
 import { SettingsTabs } from "@/components/SettingsTabs";
 import { CopyUrlField } from "@/components/settings/CopyUrlField";
@@ -64,6 +67,9 @@ export default async function SettingsPage({
     password_error?: string;
     delete_error?: string;
     calendar_saved?: string;
+    linked?: string;
+    unlinked?: string;
+    link_error?: string;
   }>;
 }) {
   const params = await searchParams;
@@ -74,6 +80,9 @@ export default async function SettingsPage({
     password_error,
     delete_error,
     calendar_saved,
+    linked,
+    unlinked,
+    link_error,
   } = params;
   const selfHosted = isSelfHosted();
   const tabs = selfHosted ? SELF_HOSTED_TABS : TABS;
@@ -94,6 +103,12 @@ export default async function SettingsPage({
         .maybeSingle(),
       supabase.auth.getUser(),
     ]);
+  const { data: identityData } = await supabase.auth.getUserIdentities();
+  const identities = identityData?.identities ?? [];
+  // No 'email' identity = the account only signs in through a provider; the
+  // password-reauth flows below signpost the reset flow instead of showing
+  // a form that can never pass (docs/plans/oauth-login.md, the wrinkle).
+  const hasPassword = identities.some((i) => i.provider === "email");
 
   const email = userData?.user?.email ?? "";
   const plan = profile?.plan ?? "free";
@@ -320,8 +335,17 @@ export default async function SettingsPage({
                     </form>
                   </Card>
 
+                  <SignInMethods
+                    identities={identities}
+                    enabled={enabledProviders()}
+                    linked={linked === "1"}
+                    unlinked={unlinked === "1"}
+                    linkError={link_error}
+                  />
+
                   {/* Its own form and its own messages: a password has no
                       business riding along with a display name. */}
+                  {hasPassword && (
                   <Card>
                     <form action={changePassword}>
                       <Flex direction="column" gap="3" p="2">
@@ -365,6 +389,7 @@ export default async function SettingsPage({
                       </Flex>
                     </form>
                   </Card>
+                  )}
 
                   <Card>
                     <Flex direction="column" gap="2" p="2" align="start">
@@ -408,21 +433,36 @@ export default async function SettingsPage({
                           subscription is cancelled as part of this.
                         </Text>
 
-                        <label>
-                          <Text as="div" size="2" mb="1" weight="medium">
-                            Confirm with your password
-                          </Text>
-                          <PasswordField
-                            name="current_password"
-                            autoComplete="current-password"
-                          />
-                        </label>
+                        {hasPassword ? (
+                          <>
+                            <label>
+                              <Text as="div" size="2" mb="1" weight="medium">
+                                Confirm with your password
+                              </Text>
+                              <PasswordField
+                                name="current_password"
+                                autoComplete="current-password"
+                              />
+                            </label>
 
-                        <Flex mt="1">
-                          <Button type="submit" color="red" variant="solid">
-                            Delete my account
-                          </Button>
-                        </Flex>
+                            <Flex mt="1">
+                              <Button type="submit" color="red" variant="solid">
+                                Delete my account
+                              </Button>
+                            </Flex>
+                          </>
+                        ) : (
+                          <Text size="2" color="gray">
+                            Deletion is confirmed with a password, and your
+                            account doesn&apos;t have one yet — set one via{" "}
+                            <RadixLink asChild>
+                              <Link href="/forgot-password">
+                                password reset
+                              </Link>
+                            </RadixLink>{" "}
+                            first, then delete from here.
+                          </Text>
+                        )}
                       </Flex>
                     </form>
                   </Card>

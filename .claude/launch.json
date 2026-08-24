@@ -9,6 +9,13 @@
       "autoPort": true
     },
     {
+      "name": "web-oauth",
+      "runtimeExecutable": "env",
+      "runtimeArgs": ["AUTH_PROVIDERS=google,apple", "npm", "run", "dev", "--workspace", "apps/web"],
+      "port": 3000,
+      "autoPort": true
+    },
+    {
       "name": "web-selfhosted",
       "runtimeExecutable": "env",
       "runtimeArgs": ["SELF_HOSTED=true", "npm", "run", "dev", "--workspace", "apps/web"],

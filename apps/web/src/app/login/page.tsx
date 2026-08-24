@@ -11,7 +11,9 @@ import {
   Link as RadixLink,
 } from "@radix-ui/themes";
 import { AuthEmailField } from "@/components/auth/AuthEmailField";
+import { OAuthButtons } from "@/components/auth/OAuthButtons";
 import { PasswordField } from "@/components/auth/PasswordField";
+import { enabledProviders } from "@/lib/auth/providers";
 import { safeNext } from "@/lib/redirects";
 import { createClient } from "@/lib/supabase/server";
 import { login } from "./actions";
@@ -55,28 +57,31 @@ export default async function LoginPage({
         )}
 
         <Card>
-          <form>
-            {next && <input type="hidden" name="next" value={next} />}
-            <Flex direction="column" gap="3">
-              <label>
-                <Text as="div" size="2" mb="1" weight="medium">
-                  Email
-                </Text>
-                {/* Shared with signup/forgot-password so a typed address
-                    survives hopping between them. */}
-                <AuthEmailField />
-              </label>
-              <label>
-                <Text as="div" size="2" mb="1" weight="medium">
-                  Password
-                </Text>
-                <PasswordField autoComplete="current-password" />
-              </label>
-              <Flex mt="2">
-                <Button formAction={login}>Sign in</Button>
+          <Flex direction="column" gap="3">
+            <OAuthButtons providers={enabledProviders()} next={next} />
+            <form>
+              {next && <input type="hidden" name="next" value={next} />}
+              <Flex direction="column" gap="3">
+                <label>
+                  <Text as="div" size="2" mb="1" weight="medium">
+                    Email
+                  </Text>
+                  {/* Shared with signup/forgot-password so a typed address
+                      survives hopping between them. */}
+                  <AuthEmailField />
+                </label>
+                <label>
+                  <Text as="div" size="2" mb="1" weight="medium">
+                    Password
+                  </Text>
+                  <PasswordField autoComplete="current-password" />
+                </label>
+                <Flex mt="2">
+                  <Button formAction={login}>Sign in</Button>
+                </Flex>
               </Flex>
-            </Flex>
-          </form>
+            </form>
+          </Flex>
         </Card>
 
         <Text size="2" color="gray">
