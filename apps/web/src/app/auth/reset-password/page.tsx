@@ -8,9 +8,9 @@ import {
   Flex,
   Heading,
   Text,
-  TextField,
   Link as RadixLink,
 } from "@radix-ui/themes";
+import { PasswordField } from "@/components/auth/PasswordField";
 import { resetPassword } from "./actions";
 
 export default async function ResetPasswordPage({
@@ -50,15 +50,7 @@ export default async function ResetPasswordPage({
                   <Text as="div" size="2" mb="1" weight="medium">
                     New password
                   </Text>
-                  {/* size 3 is 16px: anything smaller makes iOS Safari zoom
-                      in when the field is focused. */}
-                  <TextField.Root
-                    name="password"
-                    type="password"
-                    autoComplete="new-password"
-                    size="3"
-                    required
-                  />
+                  <PasswordField autoComplete="new-password" />
                 </label>
                 <Flex mt="2">
                   <Button type="submit">Set password</Button>
