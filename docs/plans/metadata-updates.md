@@ -9,7 +9,10 @@ the sync stays cheap no matter how noisy the feed is, and no `force`
 plumbing was needed. Other deviations: cursor advances to run-start even on
 a page-budget miss, with a blanket invalidation of followed series as the
 remedy (a never-advancing cursor could death-spiral; a too-eager one just
-degrades to the pre-sync 12h window); deletes stamp `fetched_at = now` so a
+degrades to the pre-sync 12h window) — and cursor *initialization* gets the
+same blanket remedy, since "no cursor yet" is the same unknown-history
+state; that is also what heals the pre-sync backlog on first deploy, with
+no manual steps; deletes stamp `fetched_at = now` so a
 vanished title cannot jam the sweep (that bug existed in
 `ensureSeriesIngested` and is fixed); both-sides-held merges are logged for
 a human, not automated. Implementation: `changedSince` in

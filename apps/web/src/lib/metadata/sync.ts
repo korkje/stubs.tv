@@ -135,13 +135,18 @@ export async function runMetadataSync(): Promise<SyncReport> {
   check("read cursor", stateError);
 
   if (!state) {
-    // First run: start the feed here and now. No backfill through /updates —
-    // the sweep already converges the existing catalogue.
+    // First run: start the feed here and now — no backfill through /updates.
+    // But "no cursor" means the catalogue's history is unknown, the same
+    // epistemic state as a clamped or budget-cut window, so it gets the
+    // same remedy: invalidate every followed series and let the sweep
+    // re-verify them over the next hours. Movies and unfollowed series are
+    // already bounded by the 12h on-open window.
     const { error } = await supabase
       .from("sync_state")
       .insert({ provider: PROVIDER, cursor_at: startedAt.toISOString() });
     check("initialize cursor", error);
-    return { since: null, initialized: true };
+    const invalidatedSeries = await invalidateAllFollowedSeries();
+    return { since: null, initialized: true, invalidatedSeries, complete: false };
   }
 
   const cursor = new Date(state.cursor_at).getTime();
