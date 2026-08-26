@@ -22,6 +22,17 @@ export async function login(formData: FormData) {
     redirect(`/login?${params}`);
   }
 
+  // A successful password sign-in is proof of a working password — exactly
+  // the guard ensure_email_identity wants — so accounts whose password
+  // predates the identity bookkeeping (ADR-0020) heal here. Idempotent and
+  // deliberately non-fatal: the sign-in already succeeded.
+  const { error: identityError } = await supabase.rpc("ensure_email_identity");
+  if (identityError) {
+    console.error(
+      `ensure_email_identity failed after sign-in: ${identityError.message}`
+    );
+  }
+
   revalidatePath("/", "layout");
   redirect(next ?? "/app");
 }

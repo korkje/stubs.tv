@@ -8,7 +8,9 @@ the provider gate is a **server-only `AUTH_PROVIDERS` var**, not
 survives without a rebuild — the SELF_HOSTED build-time lesson); the
 passwordless wrinkle resolved as **signposts** (password change hides, and
 deletion points at the reset flow, when no `email` identity exists) —
-`reauthenticate()` flows deliberately not built; both-held merges surface
+`reauthenticate()` flows deliberately not built, and the signpost itself
+later turned out broken and was reworked (see the correction in the
+wrinkle section, ADR-0020); both-held merges surface
 as a settings error message, no data merge. Bonus landed with it: /signup
 shows an explicit "you already have an account" state for signed-in
 visitors instead of silently entering the app. Implementation:
@@ -20,7 +22,8 @@ GoTrue's redirect allow-list or it silently falls back to the Site URL,
 and "Allow manual linking" must be on for the Connect buttons.
 
 Sibling of [magic-link-login.md](magic-link-login.md) — the passwordless
-wrinkle is now solved here; magic-link inherits the signposts.
+wrinkle is now solved here (as reworked by ADR-0020); magic-link inherits
+that resolution.
 
 ## Why
 
@@ -73,6 +76,14 @@ the **current password**, which an OAuth-only account does not have. Same
 resolution the magic-link plan sketches: the recovery flow (ADR-0011) lets
 any account set a password, and the two forms must signpost that instead of
 dead-ending. Decide once, here or there — whichever plan builds first.
+
+**Correction (2026-08-26, ADR-0020):** the signpost rested on a false
+premise — GoTrue sets the password without creating the `email` identity,
+so the reset never flipped the identity-based check and deletion stayed
+unreachable for OAuth signups. Resolved by owning the identity row in SQL
+(`ensure_email_identity` / `remove_email_login`); settings now sets and
+changes passwords through an emailed link, and email/password is
+disconnectable like any other method.
 
 Also from the magic-link plan and equally true here: `handle_new_user`
 creates profiles for any auth method, so signup-side plumbing is zero.

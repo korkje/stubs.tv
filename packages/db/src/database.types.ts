@@ -785,6 +785,7 @@ export type Database = {
     }
     Functions: {
       calendar_feed: { Args: { p_token: string }; Returns: Json }
+      ensure_email_identity: { Args: never; Returns: undefined }
       export_user_data: { Args: never; Returns: Json }
       import_materialise_series: {
         Args: { p_job_id: number; p_series_id: number }
@@ -801,7 +802,9 @@ export type Database = {
         Args: { p_season_number?: number; p_series_id: number }
         Returns: undefined
       }
+      rederive_providers: { Args: { p_user_id: string }; Returns: undefined }
       regenerate_calendar_token: { Args: never; Returns: string }
+      remove_email_login: { Args: never; Returns: undefined }
       resolve_entities: {
         Args: {
           p_entities: Json

@@ -10,7 +10,6 @@ import {
   Container,
   Flex,
   Heading,
-  Link as RadixLink,
   RadioGroup,
   Separator,
   Tabs,
@@ -20,7 +19,6 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { isSelfHosted } from "@/lib/self-hosted";
 import {
-  changePassword,
   deleteAccount,
   regenerateCalendarToken,
   updateSettings,
@@ -63,12 +61,11 @@ export default async function SettingsPage({
     tab?: string;
     saved?: string;
     error?: string;
-    password_saved?: string;
-    password_error?: string;
     delete_error?: string;
     calendar_saved?: string;
     linked?: string;
     unlinked?: string;
+    email_sent?: string;
     link_error?: string;
   }>;
 }) {
@@ -76,12 +73,11 @@ export default async function SettingsPage({
   const {
     saved,
     error,
-    password_saved,
-    password_error,
     delete_error,
     calendar_saved,
     linked,
     unlinked,
+    email_sent,
     link_error,
   } = params;
   const selfHosted = isSelfHosted();
@@ -105,9 +101,11 @@ export default async function SettingsPage({
     ]);
   const { data: identityData } = await supabase.auth.getUserIdentities();
   const identities = identityData?.identities ?? [];
-  // No 'email' identity = the account only signs in through a provider; the
-  // password-reauth flows below signpost the reset flow instead of showing
-  // a form that can never pass (docs/plans/oauth-login.md, the wrinkle).
+  // The 'email' identity tracks the password reliably since ADR-0020 keeps
+  // the two in sync (every proven password materializes the row; disconnect
+  // removes both). Accounts from before that heal on their next password
+  // sign-in — until then this reads false and they see "Set up", which
+  // also converges them.
   const hasPassword = identities.some((i) => i.provider === "email");
 
   const email = userData?.user?.email ?? "";
@@ -303,24 +301,6 @@ export default async function SettingsPage({
                       <Flex direction="column" gap="4" p="2">
                         <Flex direction="column" gap="2" align="start">
                           <Heading as="h2" size="3">
-                            Email
-                          </Heading>
-                          <TextField.Root
-                            defaultValue={email}
-                            size="3"
-                            disabled
-                            style={{ width: "100%" }}
-                          />
-                          <Text size="1" color="gray">
-                            This is the address you sign in with. Changing it
-                            is not supported yet.
-                          </Text>
-                        </Flex>
-
-                        <Separator size="4" />
-
-                        <Flex direction="column" gap="2" align="start">
-                          <Heading as="h2" size="3">
                             Display name
                           </Heading>
                           <TextField.Root
@@ -342,58 +322,12 @@ export default async function SettingsPage({
                   <SignInMethods
                     identities={identities}
                     enabled={enabledProviders()}
+                    email={email}
                     linked={linked === "1"}
                     unlinked={unlinked === "1"}
+                    emailSent={email_sent === "1"}
                     linkError={link_error}
                   />
-
-                  {/* Its own form and its own messages: a password has no
-                      business riding along with a display name. */}
-                  {hasPassword && (
-                  <Card>
-                    <form action={changePassword}>
-                      <Flex direction="column" gap="3" p="2">
-                        <Heading as="h2" size="3">
-                          Password
-                        </Heading>
-
-                        {password_saved && (
-                          <Callout.Root color="green">
-                            <Callout.Text>Password changed.</Callout.Text>
-                          </Callout.Root>
-                        )}
-                        {password_error && (
-                          <Callout.Root color="red">
-                            <Callout.Text>{password_error}</Callout.Text>
-                          </Callout.Root>
-                        )}
-
-                        <label>
-                          <Text as="div" size="2" mb="1" weight="medium">
-                            Current password
-                          </Text>
-                          <PasswordField
-                            name="current_password"
-                            autoComplete="current-password"
-                          />
-                        </label>
-                        <label>
-                          <Text as="div" size="2" mb="1" weight="medium">
-                            New password
-                          </Text>
-                          <PasswordField
-                            name="new_password"
-                            autoComplete="new-password"
-                          />
-                        </label>
-
-                        <Flex mt="1">
-                          <Button type="submit">Change password</Button>
-                        </Flex>
-                      </Flex>
-                    </form>
-                  </Card>
-                  )}
 
                   <Card>
                     <Flex direction="column" gap="2" p="2" align="start">
@@ -415,7 +349,8 @@ export default async function SettingsPage({
 
                   {/* Deletion asks for the password, not just a click: a
                       session alone is not proof the person at the keyboard
-                      is the owner, same reasoning as changePassword. */}
+                      is the owner, same reasoning as the reset flow's
+                      refusal to trust sessions. */}
                   <Card>
                     <form action={deleteAccount}>
                       <Flex direction="column" gap="3" p="2">
@@ -458,13 +393,10 @@ export default async function SettingsPage({
                         ) : (
                           <Text size="2" color="gray">
                             Deletion is confirmed with a password, and your
-                            account doesn&apos;t have one yet — set one via{" "}
-                            <RadixLink asChild>
-                              <Link href="/forgot-password">
-                                password reset
-                              </Link>
-                            </RadixLink>{" "}
-                            first, then delete from here.
+                            account doesn&apos;t have one yet — use{" "}
+                            <Text weight="medium">Set up</Text> under
+                            Sign-in methods above first, then delete from
+                            here.
                           </Text>
                         )}
                       </Flex>
