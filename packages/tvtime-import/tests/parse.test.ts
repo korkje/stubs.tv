@@ -197,6 +197,33 @@ describe("Liberator JSON", () => {
     ).toBe("2022-01-05T21:00:00Z");
     expect(report.filesUsed).toEqual(["liberator.json"]);
   });
+
+  it("pins naive watched_at datetimes to UTC, not the machine's zone", () => {
+    const { payload } = parseTvTimeExport({
+      "liberator.json": JSON.stringify([
+        {
+          id: { tvdb: 366529 },
+          title: "Station Eleven",
+          status: "watching",
+          seasons: [
+            {
+              number: 1,
+              episodes: [
+                {
+                  id: { tvdb: 8815687 },
+                  number: 1,
+                  is_watched: true,
+                  watched_at: "2022-01-05 21:00:00",
+                },
+              ],
+            },
+          ],
+        },
+      ]),
+    });
+    // Would be 2022-01-05T20:00:00Z (or worse) if parsed in a local zone.
+    expect(payload.watches[0].watchedAt).toBe("2022-01-05T21:00:00Z");
+  });
 });
 
 describe("unrecognised archives", () => {
