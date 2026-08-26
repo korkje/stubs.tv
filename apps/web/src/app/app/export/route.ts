@@ -21,7 +21,9 @@ export async function GET(request: Request) {
   // The middleware already sends signed-out /app requests to /login; this
   // is a defensive fallback, not the guard.
   if (!user) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(
+      new URL("/login?next=%2Fapp%2Fexport", request.url)
+    );
   }
 
   const { data, error } = await supabase.rpc("export_user_data");
