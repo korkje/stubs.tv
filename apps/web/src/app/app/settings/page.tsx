@@ -124,10 +124,14 @@ export default async function SettingsPage({
     profile?.calendar_token && host
       ? `${proto}://${host}/api/calendar/${profile.calendar_token}.ics`
       : null;
+  // current_period_end is an instant (timestamptz); without an explicit
+  // timeZone the formatter falls back to the runtime's zone — UTC on
+  // Workers — showing users near a period boundary the wrong day.
   const renewsAt = billing?.current_period_end
-    ? new Intl.DateTimeFormat("en", { dateStyle: "long" }).format(
-        new Date(billing.current_period_end)
-      )
+    ? new Intl.DateTimeFormat("en", {
+        dateStyle: "long",
+        timeZone: profile?.timezone ?? "UTC",
+      }).format(new Date(billing.current_period_end))
     : null;
 
   return (

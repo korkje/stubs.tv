@@ -41,9 +41,15 @@ interface LiberatorMovie {
   runtime?: number | null;
 }
 
+// A datetime with no offset ("2022-01-05 21:00:00") would otherwise be read
+// in this machine's zone — the browser's, since parsing happens client-side —
+// so the same archive would store different instants depending on the device.
+const NAIVE_DATETIME = /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2})?(\.\d+)?$/;
+
 function toIso(value: unknown): string | null {
   if (typeof value !== "string" || !value.trim()) return null;
-  const ms = Date.parse(value);
+  const v = value.trim();
+  const ms = Date.parse(NAIVE_DATETIME.test(v) ? `${v.replace(" ", "T")}Z` : v);
   if (Number.isNaN(ms)) return null;
   return new Date(ms).toISOString().replace(/\.\d{3}Z$/, "Z");
 }

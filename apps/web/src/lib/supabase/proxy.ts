@@ -35,8 +35,12 @@ export async function updateSession(request: NextRequest) {
   const needsAuth = path.startsWith("/app") || path.startsWith("/admin");
 
   if (!user && needsAuth) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
+    // Build the login URL from scratch: cloning nextUrl would carry the
+    // original query string onto /login, where params like error/next/deleted
+    // have meanings of their own.
+    const url = new URL("/login", request.url);
+    const next = path + request.nextUrl.search;
+    if (next !== "/app") url.searchParams.set("next", next);
     return NextResponse.redirect(url);
   }
 

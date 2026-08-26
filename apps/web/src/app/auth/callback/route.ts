@@ -22,9 +22,16 @@ export async function GET(request: NextRequest) {
 
   const fail = (message: string) => {
     const target = settingsFlow
-      ? `/app/settings?tab=account&link_error=${encodeURIComponent(message)}`
-      : `/login?error=${encodeURIComponent(message)}`;
-    return NextResponse.redirect(new URL(target, request.url));
+      ? new URL(`/app/settings?tab=account`, request.url)
+      : new URL("/login", request.url);
+    if (settingsFlow) {
+      target.searchParams.set("link_error", message);
+    } else {
+      target.searchParams.set("error", message);
+      // Keep the destination so a retry from the login form still lands there.
+      if (next !== "/app") target.searchParams.set("next", next);
+    }
+    return NextResponse.redirect(target);
   };
 
   // GoTrue reports provider/link failures as query params on the redirect.

@@ -21,12 +21,11 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.redirect(
-    new URL(
-      `/login?error=${encodeURIComponent(
-        "Verification link is invalid or has expired. Try signing up again."
-      )}`,
-      request.url
-    )
+  const login = new URL("/login", request.url);
+  login.searchParams.set(
+    "error",
+    "Verification link is invalid or has expired. Try signing up again."
   );
+  if (next !== "/app") login.searchParams.set("next", next);
+  return NextResponse.redirect(login);
 }

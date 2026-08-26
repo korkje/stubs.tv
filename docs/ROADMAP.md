@@ -38,9 +38,12 @@ freshness half is planned in
 
 **Slice 2 — tracking (next)**
 
-- [ ] Return-to-destination after sign-in: the auth guard currently redirects
-      to `/login` and drops the intended path (and leaks the original query
-      string, e.g. `/login?q=wire`) — pass a `next` param and honour it
+- [x] Return-to-destination after sign-in — fixed 2026-08-26: the guard in
+      `lib/supabase/proxy.ts` now sets `?next=` (path + query) instead of
+      cloning the URL, which also stops the query-string leak. The login,
+      signup, OAuth, and confirm flows already honoured `next`; the auth
+      failure redirects now preserve it too. Destinations still cannot
+      survive an email round-trip (templates hardcode `next=/app`)
 
 - [x] Mark episode/season/show as seen; mark movie as seen (specials
       included in bulk marks; single episodes always individually togglable;
@@ -51,9 +54,23 @@ freshness half is planned in
 - [x] Home page with **Shows** and **Movies** tabs (link-based, so only the
       open tab is queried and rendered)
 - [x] Shows tab: followed shows with unseen-episode counts
-- [ ] Watch history list (edit `watched_at`, unmark) — the place to fix
-      timezone display: dates currently render from UTC, so a late-evening
-      view can show the previous day
+- [ ] Watch history list (edit `watched_at`, unmark). Note for the builder:
+      `formatDate` in `lib/format.ts` is date-only by construction — feeding
+      it a `watched_at` timestamptz silently renders "—"; it needs a
+      timezone-aware sibling (`profiles.timezone`, house pattern in
+      `app/app/page.tsx`)
+- [x] Timezone display fix — done 2026-08-26, decoupled from the history
+      list: the one live wrong-day site was the settings renewal date
+      (timestamptz formatted without a `timeZone`); air dates were already
+      correct (`formatDate` pins UTC for date-only columns). Same day,
+      the two deeper instances went too: "has aired" in SQL
+      (`season_progress`, `series_progress`, `mark_episodes_seen`) now
+      computes today in the user's timezone
+      (`20260826120000_timezone_aware_aired.sql`, the calendar feed's
+      pattern — the feed itself was already fixed in
+      `20260820130000_calendar_feed_timezone.sql`), and TV Time import
+      pins naive datetimes to UTC in both the Liberator parser and the
+      server action instead of parsing them in the machine's zone
 
 **Slice 3 — what to watch next (shipped)**
 

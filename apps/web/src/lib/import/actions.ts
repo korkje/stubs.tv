@@ -39,10 +39,18 @@ const CHUNK = 1_000;
 const isInt = (v: unknown): v is number =>
   typeof v === "number" && Number.isInteger(v);
 
-const isoOrNull = (v: unknown): string | null =>
-  typeof v === "string" && !Number.isNaN(Date.parse(v))
-    ? new Date(v).toISOString()
-    : null;
+// Our parser only sends Z-suffixed strings, but actions are a public
+// endpoint: a naive datetime ("2021-05-01 12:00:00") would parse in the
+// runtime's zone — UTC on Workers, the developer's under next dev — so pin
+// it to UTC to keep stored instants environment-independent.
+const NAIVE_DATETIME = /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2})?(\.\d+)?$/;
+
+const isoOrNull = (v: unknown): string | null => {
+  if (typeof v !== "string") return null;
+  const s = v.trim();
+  const ms = Date.parse(NAIVE_DATETIME.test(s) ? `${s.replace(" ", "T")}Z` : s);
+  return Number.isNaN(ms) ? null : new Date(ms).toISOString();
+};
 
 /**
  * Actions are a public endpoint, so the payload is re-validated here even
