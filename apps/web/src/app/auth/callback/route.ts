@@ -53,6 +53,19 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      // Accounts that set a password before ADR-0020 carry it without the
+      // 'email' identity. Password sign-in heals them, but someone who
+      // always signs in with a provider would keep a working password the
+      // settings page denies — so heal on this path too. No-op for
+      // everyone else; non-fatal for the same reason as in login().
+      const { error: identityError } = await supabase.rpc(
+        "ensure_email_identity"
+      );
+      if (identityError) {
+        console.error(
+          `ensure_email_identity failed after OAuth callback: ${identityError.message}`
+        );
+      }
       return NextResponse.redirect(new URL(next, request.url));
     }
     return fail(error.message);
