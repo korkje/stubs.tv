@@ -78,11 +78,18 @@ export default async function SeriesPage({
         .maybeSingle(),
       supabase
         .from("profiles")
-        .select("specials, bulk_mark_specials, synopsis_mode")
+        .select("specials, bulk_mark_specials, synopsis_mode, timezone")
         .maybeSingle(),
     ]);
 
   if (!series) notFound();
+
+  // The same "today" the feed and the SQL cutoffs use: the calendar date in
+  // the user's chosen timezone, UTC until one is picked. en-CA formats as
+  // YYYY-MM-DD, matching the aired column.
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: profile?.timezone ?? "UTC",
+  }).format(new Date());
 
   const settings = {
     specials: profile?.specials ?? "uncounted",
@@ -274,6 +281,7 @@ export default async function SeriesPage({
               seasonNumber={activeNumber}
               revalidate={path}
               synopsisMode={settings.synopsisMode}
+              today={today}
             />
           </Flex>
         )}
@@ -289,11 +297,13 @@ async function SeasonEpisodes({
   seasonNumber,
   revalidate,
   synopsisMode,
+  today,
 }: {
   seriesId: number;
   seasonNumber: number;
   revalidate: string;
   synopsisMode: string;
+  today: string;
 }) {
   const supabase = await createClient();
 
@@ -325,6 +335,7 @@ async function SeasonEpisodes({
               revalidate={revalidate}
               last={index === (episodes ?? []).length - 1}
               synopsisMode={synopsisMode}
+              today={today}
             />
           ))}
         </StaggerIn>

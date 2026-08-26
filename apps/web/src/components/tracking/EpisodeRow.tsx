@@ -21,6 +21,7 @@ export function EpisodeRow({
   revalidate,
   last,
   synopsisMode,
+  today,
 }: {
   episode: Episode;
   seen: boolean;
@@ -28,11 +29,21 @@ export function EpisodeRow({
   last: boolean;
   /** Spoiler protection; applies to episodes not yet seen. */
   synopsisMode: string;
+  /** The user's calendar date, YYYY-MM-DD — see the series page. */
+  today: string;
 }) {
   // Mirrors the toggle's optimistic flip so the scramble can react to it;
   // the server prop wins again after the revalidated render arrives.
   const [marked, setMarked] = useState<boolean | null>(null);
   const effectiveSeen = marked ?? seen;
+
+  // No toggle on an episode that has not aired, matching the feed and the
+  // bulk marks: pre-marking counts it as seen the moment it comes out and
+  // it never surfaces as something to watch. An unknown air date stays
+  // markable — it is usually a metadata gap on something long since seen —
+  // and so does an already-seen future episode, or the (bad) watch row
+  // could never be removed.
+  const markable = seen || episode.aired === null || episode.aired <= today;
 
   const code = `${episode.season_number}×${String(episode.number).padStart(2, "0")}`;
 
@@ -83,15 +94,17 @@ export function EpisodeRow({
 
       {/* On the right like the library rows' toggles — easier to reach.
           Nudged down so the icon sits on the first line of text. */}
-      <Box flexShrink="0" style={{ paddingTop: "2px" }}>
-        <EpisodeToggle
-          episodeId={episode.id}
-          seen={seen}
-          revalidate={revalidate}
-          label={`${code} ${episode.name ?? ""}`.trim()}
-          onToggled={setMarked}
-        />
-      </Box>
+      {markable && (
+        <Box flexShrink="0" style={{ paddingTop: "2px" }}>
+          <EpisodeToggle
+            episodeId={episode.id}
+            seen={seen}
+            revalidate={revalidate}
+            label={`${code} ${episode.name ?? ""}`.trim()}
+            onToggled={setMarked}
+          />
+        </Box>
+      )}
     </Flex>
   );
 }

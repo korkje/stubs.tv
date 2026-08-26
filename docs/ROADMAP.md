@@ -46,8 +46,13 @@ freshness half is planned in
       survive an email round-trip (templates hardcode `next=/app`)
 
 - [x] Mark episode/season/show as seen; mark movie as seen (specials
-      included in bulk marks; single episodes always individually togglable;
-      unaired episodes excluded from bulk marks so they still surface later)
+      included in bulk marks; single episodes individually togglable;
+      unaired episodes excluded from bulk marks and their per-episode
+      toggle hidden — pre-marking would hide them from Up Next forever and
+      skew the aired-vs-watched counts. Episodes with no air date stay
+      togglable as the escape hatch for metadata gaps, and an already-seen
+      unaired episode keeps its toggle so the watch can be removed. The
+      server action stays permissive; the UI is the gate, matching the feed)
 - [x] Rate anything, 1–10, in its own `ratings` table (feeds the
       recommendation ideas in VISION.md)
 - [x] Follow/unfollow series
