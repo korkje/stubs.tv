@@ -30,10 +30,11 @@ function fail(message: string, tokenHash: string): never {
  *
  * A valid token is the only way through. Falling back to whatever session
  * happens to exist would be friendlier on a retry, but it would also let a
- * stolen cookie set a new password without the old one — which is exactly
- * what changePassword refuses to allow — and, on a shared browser, would
+ * stolen cookie set a new password without proof of ownership — a session
+ * alone is not that proof, the mailbox is — and, on a shared browser, would
  * quietly change the signed-in account's password when the link belonged to
- * someone else.
+ * someone else. This is also why settings has no in-place password form:
+ * every password set or change comes through this mailbox round trip.
  */
 export async function resetPassword(formData: FormData) {
   const supabase = await createClient();
@@ -67,6 +68,19 @@ export async function resetPassword(formData: FormData) {
     if (error.code !== "same_password") {
       fail(error.message, "");
     }
+  }
+
+  // GoTrue sets the password without creating the 'email' identity, so an
+  // account that started with OAuth would keep reading as passwordless
+  // (ADR-0020). Deliberately non-fatal, unlike queries elsewhere: the
+  // password IS set by now, and failing the reset over bookkeeping would
+  // tell the user the opposite of what happened. Any miss self-heals on
+  // their next password sign-in.
+  const { error: identityError } = await supabase.rpc("ensure_email_identity");
+  if (identityError) {
+    console.error(
+      `ensure_email_identity failed after password reset: ${identityError.message}`
+    );
   }
 
   // verifyOtp signed the user in, so they land in the app already.

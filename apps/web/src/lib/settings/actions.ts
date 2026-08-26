@@ -91,60 +91,66 @@ export async function updateSettings(formData: FormData) {
   redirect(settingsUrl(formData, { saved: "1" }));
 }
 
-/** Mirrors minimum_password_length in supabase/config.toml. */
-const MIN_PASSWORD_LENGTH = 6;
-
-function failPassword(message: string): never {
+/** Errors from the Sign-in methods card all land in its one callout. */
+function failLink(message: string): never {
   redirect(
-    `/app/settings?tab=account&password_error=${encodeURIComponent(message)}`
+    `/app/settings?tab=account&link_error=${encodeURIComponent(message)}`
   );
 }
 
 /**
- * Changes the password of the signed-in user.
- *
- * The current password is checked by signing in with it rather than trusted
- * from the session: a session on its own is not proof the person at the
- * keyboard is the owner, and a password change is what locks the real owner
- * out. Supabase's own secure_password_change setting only asks for a recent
- * login, which a stolen session satisfies, so it is not a substitute for
- * this. The reset flow refuses sessions entirely for the same reason — see
- * app/auth/reset-password/actions.ts.
+ * Emails the signed-in user a link to set (or change) their password — the
+ * one flow that creates a password here, whether the account has one or
+ * not. Reuses the recovery machinery wholesale: the emailed link lands on
+ * /auth/reset-password, whose action refuses to trust the session and
+ * spends the token on submit (ADR-0011), and which materializes the email
+ * identity afterwards (ADR-0020). A settings form that changed the
+ * password in place would need its own current-password reauth and would
+ * dead-end OAuth-only accounts; the mailbox round trip covers both cases
+ * with proof of ownership.
  */
-export async function changePassword(formData: FormData) {
+export async function sendPasswordEmail() {
   const supabase = await createClient();
-
-  const current = (formData.get("current_password") as string) ?? "";
-  const next = (formData.get("new_password") as string) ?? "";
-
-  if (next.length < MIN_PASSWORD_LENGTH) {
-    failPassword(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
-  }
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user?.email) {
-    failPassword("Could not read your account. Sign in again and retry.");
+    failLink("Could not read your account. Sign in again and retry.");
   }
 
-  const { error: reauth } = await supabase.auth.signInWithPassword({
-    email: user.email,
-    password: current,
-  });
-
-  if (reauth) {
-    failPassword("Current password is incorrect.");
-  }
-
-  const { error } = await supabase.auth.updateUser({ password: next });
+  const { error } = await supabase.auth.resetPasswordForEmail(user.email);
   if (error) {
-    failPassword(error.message);
+    // Most likely GoTrue's email rate limit; its raw message names it.
+    failLink(`Could not send the email: ${error.message}`);
   }
 
-  revalidatePath("/", "layout");
-  redirect("/app/settings?tab=account&password_saved=1");
+  redirect("/app/settings?tab=account&email_sent=1");
+}
+
+/**
+ * Disconnects email/password sign-in. Not GoTrue's unlink: that removes
+ * the identity row but leaves the password working (verified, ADR-0020),
+ * which would make this button theater. The SQL function removes both
+ * together and refuses when no other sign-in method remains — same rule
+ * unlinkProvider enforces below. The account email survives as the
+ * recovery anchor, so this can be undone from the Set up button.
+ */
+export async function unlinkEmailLogin() {
+  const supabase = await createClient();
+
+  const { error } = await supabase.rpc("remove_email_login");
+  if (error) {
+    failLink(
+      error.message.includes("last sign-in method")
+        ? "This is your only way to sign in — connect another method first."
+        : error.message
+    );
+  }
+
+  revalidatePath("/app/settings");
+  redirect("/app/settings?tab=account&unlinked=1");
 }
 
 /**
@@ -179,7 +185,7 @@ function failDelete(message: string): never {
  * (docs/PRIVACY.md, ADR-0017). Every user table cascades from auth.users,
  * so one admin delete removes everything; there is no soft-delete.
  *
- * The password check mirrors changePassword: a session alone is not proof
+ * The password check exists because a session alone is not proof
  * the person at the keyboard is the owner, and deletion is the most
  * destructive thing an account can do.
  *
@@ -294,11 +300,7 @@ export async function linkProvider(formData: FormData) {
   });
 
   if (error || !data?.url) {
-    redirect(
-      `/app/settings?tab=account&link_error=${encodeURIComponent(
-        error?.message ?? "Could not start the connection. Try again."
-      )}`
-    );
+    failLink(error?.message ?? "Could not start the connection. Try again.");
   }
 
   redirect(data.url);
@@ -321,26 +323,18 @@ export async function unlinkProvider(formData: FormData) {
   const identity = identities.find((i) => i.provider === provider);
 
   if (readError || !identity) {
-    redirect(
-      `/app/settings?tab=account&link_error=${encodeURIComponent(
-        "Could not find that connection. Reload and try again."
-      )}`
-    );
+    failLink("Could not find that connection. Reload and try again.");
   }
 
   if (identities.length < 2) {
-    redirect(
-      `/app/settings?tab=account&link_error=${encodeURIComponent(
-        "This is your only way to sign in — set a password before disconnecting it."
-      )}`
+    failLink(
+      "This is your only way to sign in — set a password before disconnecting it."
     );
   }
 
   const { error } = await supabase.auth.unlinkIdentity(identity);
   if (error) {
-    redirect(
-      `/app/settings?tab=account&link_error=${encodeURIComponent(error.message)}`
-    );
+    failLink(error.message);
   }
 
   revalidatePath("/app/settings");
