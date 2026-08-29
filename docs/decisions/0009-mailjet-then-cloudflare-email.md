@@ -1,6 +1,6 @@
 # ADR-0009: Mailjet for transactional email; migrate to Cloudflare Email Service later
 
-- Status: accepted
+- Status: accepted — migration to Cloudflare Email Service completed 2026-08-29
 - Date: 2026-08-10
 - Supersedes: ADR-0008 (Brevo)
 

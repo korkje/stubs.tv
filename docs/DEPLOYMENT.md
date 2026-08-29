@@ -15,35 +15,35 @@ Create a project at supabase.com — **region: EU (e.g. Frankfurt)** (GDPR,
 see docs/PRIVACY.md). Note the project ref (in the project URL), the
 database password, and from *Settings → API* the project URL and anon key.
 
-### 1b. Auth emails: custom SMTP via Mailjet (ADR-0009)
+### 1b. Auth emails: custom SMTP via Cloudflare Email Service (ADR-0009)
 
 Supabase's built-in email service is testing-only: templates can't be
 edited and it's rate-limited to a handful of emails per hour. Custom SMTP
-unlocks both. We use Mailjet (EU-based; generous free tier).
+unlocks both. We use Cloudflare Email Service (3k emails/month included
+with Workers Paid, ADR-0016; migrated from Mailjet 2026-08-29).
 
 > Do not use a provider that force-wraps links in tracking redirects
 > (Brevo does, with no off switch — ADR-0008/0009): the redirect-domain
 > mismatch sends verification emails to spam.
 
-1. Mailjet account → authenticate the `stubs.tv` sender domain (add the
-   SPF/DKIM records it gives you to the zone in Cloudflare DNS) and add
-   the sender address `noreply@stubs.tv`.
-2. **Disable click & open tracking** in Mailjet's tracking settings, so
-   auth links are delivered exactly as written.
-3. Mailjet API credentials: the API key is the SMTP username, the secret
-   key the password; server `in-v3.mailjet.com`, port `587`.
-4. Supabase dashboard → *Authentication → Emails → SMTP settings* → enable
-   custom SMTP with sender `noreply@stubs.tv` (name "stubs") and the
-   Mailjet credentials.
-5. *Authentication → Rate Limits* → raise the email rate limit (default
+1. Cloudflare dashboard → Email Service → add `stubs.tv` as a sender
+   domain. The wizard creates the DNS records in the zone automatically:
+   DKIM keys (`cf-bounce._domainkey`, `cf2024-1._domainkey`) and a
+   bounce/envelope subdomain `cf-bounce.stubs.tv` with its own SPF record.
+   The apex SPF record is Email Routing's (inbound forwarding), not this.
+2. Create SMTP credentials in Email Service; server
+   `smtp.mx.cloudflare.net`, port `465`.
+3. Supabase dashboard → *Authentication → Emails → SMTP settings* → enable
+   custom SMTP with sender `noreply@stubs.tv` (name "stubs.tv") and the
+   Cloudflare credentials.
+4. *Authentication → Rate Limits* → raise the email rate limit (default
    with custom SMTP is 30/hr — fine to start).
-6. Verify: sign up with a fresh address; the mail must land in the inbox
+5. Verify: sign up with a fresh address; the mail must land in the inbox
    and the confirm link must point directly at `stubs.tv/auth/confirm`.
-
-**Planned migration (ADR-0009):** we're on Workers Paid (ADR-0016); once
-Cloudflare Email Service is GA, switch Supabase SMTP to it
-(`smtp.mx.cloudflare.net:465`; 3k emails/month included with Workers
-Paid). Credentials + DNS swap only — one fewer vendor.
+   For a full deliverability check, sign up with a throwaway address from
+   mail-tester.com and check the score (2026-08-29 baseline: SPF, both
+   DKIM signatures, and DMARC all pass; deductions only for the default
+   invite template, which we don't customize or send).
 
 ### 1c. Supabase auth configuration (dashboard)
 
