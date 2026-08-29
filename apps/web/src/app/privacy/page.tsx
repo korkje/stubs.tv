@@ -48,13 +48,10 @@ export default function PrivacyPage() {
             </Table.Row>
             <Table.Row>
               <Table.Cell>Cloudflare</Table.Cell>
-              <Table.Cell>Hosting, CDN, DNS</Table.Cell>
-              <Table.Cell>Request metadata (IPs in transit)</Table.Cell>
-            </Table.Row>
-            <Table.Row>
-              <Table.Cell>Mailjet (EU)</Table.Cell>
-              <Table.Cell>Transactional email</Table.Cell>
-              <Table.Cell>Email address</Table.Cell>
+              <Table.Cell>Hosting, CDN, DNS, transactional email</Table.Cell>
+              <Table.Cell>
+                Request metadata (IPs in transit), email address
+              </Table.Cell>
             </Table.Row>
             <Table.Row>
               <Table.Cell>Polar</Table.Cell>

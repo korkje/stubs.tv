@@ -167,10 +167,6 @@ merchant of record** (ADR-0013), one paid tier sold monthly/annual/lifetime
   (ADR-0016), but a single jsonb-array function would still cut the
   round-trips to a handful and speed search up.
 
-- Migrate auth email from Mailjet to Cloudflare Email Service — we're on
-  Workers Paid (ADR-0016); waiting on the service going GA (ADR-0009; SMTP
-  credential swap)
-
 - Rewatch tracking (relax `watches` uniqueness)
 - Personal ratings surfaced in UI
 - TMDB as a second metadata provider (needs their commercial license)
