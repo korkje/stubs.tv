@@ -23,10 +23,15 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
 3. **Everything must scale without rearchitecting.** Prefer choices that work
    at 10 users and 100k users. No tech that requires a rewrite to grow.
 4. **Self-hosting is a feature.** The repo must stay runnable locally
-   (`npm install` + `supabase start` + `npm run dev`). Don't introduce
-   dependencies on services that can't be substituted or mocked locally
-   without documenting the escape hatch. `SELF_HOSTED=true` removes the
-   paywall entirely (ADR-0019), so no Polar config is ever required.
+   (`npm install` + `supabase start` + `npm run dev`) and as a plain
+   container (root `Dockerfile` + `docker-compose.yml`, ADR-0021,
+   docs/SELF-HOSTING.md). Don't introduce dependencies on services that
+   can't be substituted or mocked locally without documenting the escape
+   hatch, and anything that only exists as a Cloudflare binding or cron
+   trigger needs its Node-runtime counterpart (today: `INTERNAL_CRON=true`
+   mirrors the `wrangler.jsonc` schedule in-process). `SELF_HOSTED=true`
+   removes the paywall entirely (ADR-0019), so no Polar config is ever
+   required.
 5. **Privacy by design.** EU-based users, GDPR applies. Store minimal PII,
    keep user data exportable and deletable. See [docs/PRIVACY.md](docs/PRIVACY.md).
 6. **Metadata goes through the provider abstraction.** Never leak TVDB IDs or
@@ -77,6 +82,12 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
 - Package manager is **npm**; tasks are plain `package.json` scripts.
 - Database schema changes are Supabase migration files — never applied by hand.
 - Dates/times in UTC in the database; convert at the edge for display.
+- Route handlers build absolute URLs (redirects, callback URLs) from
+  `requestOrigin(request)` in `lib/request-origin.ts`, never from
+  `request.url`'s origin — the standalone Node server (ADR-0021) reports
+  its listen address there, not the host the browser used.
+- Anything that sends `CRON_SECRET` must not derive its target from
+  request headers; see `lib/import/kick.ts`.
 - Keep the marketing site, app, and admin in `apps/web` until there's a
   concrete reason to split (that reason becomes an ADR).
 
@@ -87,6 +98,7 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
 - [docs/DATA-MODEL.md](docs/DATA-MODEL.md) — schema draft
 - [docs/ROADMAP.md](docs/ROADMAP.md) — phases and current status
 - [docs/PRIVACY.md](docs/PRIVACY.md) — GDPR strategy
+- [docs/SELF-HOSTING.md](docs/SELF-HOSTING.md) — running your own instance
 - [docs/decisions/](docs/decisions/) — ADRs
 - [docs/plans/](docs/plans/) — specs for work that is planned but not
   started, written to be picked up cold
@@ -96,6 +108,8 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
 - `npm run dev` — Next.js dev server
 - `npm run typecheck` / `npm run lint` / `npm run build`
 - `npm run preview` — OpenNext build + local Workers preview
+- `docker compose up -d --build` — the self-hosting image (ADR-0021); a
+  root `.env` (from `.env.example`) supplies the build args and runtime env
 - Production deploys run from GitHub Actions on push to main (see
   docs/DEPLOYMENT.md) — do NOT deploy from a local machine;
   `npm run deploy` is a break-glass escape hatch only

@@ -55,7 +55,8 @@ docs/                   All planning and architecture documentation
 | [docs/DATA-MODEL.md](docs/DATA-MODEL.md) | Draft database schema |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Phased plan from MVP to paid plans |
 | [docs/PRIVACY.md](docs/PRIVACY.md) | GDPR strategy |
-| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | CI/CD setup — all deploys run from GitHub Actions |
+| [docs/SELF-HOSTING.md](docs/SELF-HOSTING.md) | Run your own instance with Docker Compose |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | CI/CD setup for stubs.tv itself — all deploys run from GitHub Actions |
 | [docs/decisions/](docs/decisions/) | Architecture Decision Records (ADRs) |
 | [AGENTS.md](AGENTS.md) | Instructions for AI coding agents |
 
@@ -78,13 +79,16 @@ dashboard), so the seeded account is the convenient way in locally.
 
 ## Self-hosting
 
-Self-hosting is a first-class path: set `SELF_HOSTED=true` in the
-environment and the paywall disappears — every account gets full access and
-the pricing/billing UI is hidden, so no payment configuration is needed
-(see [ADR-0019](docs/decisions/0019-self-hosted-mode.md)). You'll need your
-own Supabase project, a TheTVDB API key, and somewhere to run a Next.js
-app; [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) documents the Cloudflare
-Workers setup stubs.tv itself uses.
+Self-hosting is a first-class path — see **[docs/SELF-HOSTING.md](docs/SELF-HOSTING.md)**.
+One container (`docker compose up -d --build`), a Supabase project
+(hosted free tier or your own), and a TheTVDB API key. `SELF_HOSTED=true`
+removes the paywall: every account gets full access and the billing UI is
+hidden, so no payment configuration is needed
+([ADR-0019](docs/decisions/0019-self-hosted-mode.md)). The background
+jobs that run as Cloudflare cron triggers on stubs.tv run in-process in
+the container ([ADR-0021](docs/decisions/0021-docker-self-hosting.md)).
+[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) is the separate, Cloudflare
+Workers pipeline stubs.tv itself uses.
 
 ## License
 

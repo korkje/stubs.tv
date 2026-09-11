@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getPolarClient } from "@/lib/polar";
 import { createClient } from "@/lib/supabase/server";
 import { isSelfHosted } from "@/lib/self-hosted";
+import { requestOrigin } from "@/lib/request-origin";
 
 /**
  * Redirects to a Polar-hosted checkout for the product ids in ?products=.
@@ -15,10 +16,11 @@ import { isSelfHosted } from "@/lib/self-hosted";
  */
 export async function GET(request: Request) {
   const url = new URL(request.url);
+  const origin = requestOrigin(request);
   // Self-hosted instances sell nothing (ADR-0019); a stray pricing link
   // lands in the app instead of on a Polar error.
   if (isSelfHosted()) {
-    return NextResponse.redirect(new URL("/app", url.origin));
+    return NextResponse.redirect(new URL("/app", origin));
   }
   const products = url.searchParams.getAll("products");
   if (products.length === 0) {
@@ -36,7 +38,7 @@ export async function GET(request: Request) {
     // Preserve the destination so a pricing click made while logged out
     // arrives back here (and on to Polar) after signing in.
     const next = encodeURIComponent(url.pathname + url.search);
-    return NextResponse.redirect(new URL(`/login?next=${next}`, url.origin));
+    return NextResponse.redirect(new URL(`/login?next=${next}`, origin));
   }
 
   const polar = getPolarClient();
@@ -45,7 +47,7 @@ export async function GET(request: Request) {
     const base = {
       products,
       externalCustomerId: user.id,
-      successUrl: `${url.origin}/app`,
+      successUrl: `${origin}/app`,
     };
     let checkout;
     try {

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { buildCalendar, type CalendarEpisode } from "@/lib/calendar/ics";
+import { requestOrigin } from "@/lib/request-origin";
 
 /**
  * The tokenized iCal feed (ADR-0018): upcoming episodes of followed shows,
@@ -48,7 +49,7 @@ export async function GET(
 
   const body = buildCalendar({
     episodes,
-    origin: new URL(request.url).origin,
+    origin: requestOrigin(request),
     now: new Date(),
   });
 

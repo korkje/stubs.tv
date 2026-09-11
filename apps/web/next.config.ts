@@ -1,3 +1,4 @@
+import path from "node:path";
 import type { NextConfig } from "next";
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
@@ -5,6 +6,13 @@ import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 initOpenNextCloudflareForDev();
 
 const nextConfig: NextConfig = {
+  // Self-contained server for the Docker image (ADR-0021): `next build`
+  // emits .next/standalone with only the traced files, run with plain
+  // `node apps/web/server.js`. OpenNext sets the same two options itself
+  // for the Workers build, so this is a no-op there. The tracing root is
+  // the monorepo root so the workspace packages land in the trace.
+  output: "standalone",
+  outputFileTracingRoot: path.join(__dirname, "../../"),
   // Workspace packages ship as TypeScript source.
   transpilePackages: ["@stubs/metadata", "@stubs/db", "@stubs/tvtime-import"],
   // Lets `next dev` be reached through `tailscale serve` for testing on a
