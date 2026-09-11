@@ -1,0 +1,15 @@
+.git
+node_modules
+**/node_modules
+**/.next
+**/.open-next
+**/.wrangler
+**/tsconfig.tsbuildinfo
+supabase/.temp
+supabase/.branches
+.env
+.env.*
+!.env.example
+.claude
+.DS_Store
+*.log

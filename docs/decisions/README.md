@@ -37,3 +37,4 @@ Template:
 | [0017](0017-gdpr-self-serve.md) | GDPR export and deletion are self-serve, in SQL and hard-deleted |
 | [0018](0018-ical-url-as-credential.md) | The calendar feed authenticates by URL token |
 | [0019](0019-self-hosted-mode.md) | Self-hosted mode removes the paywall behind an explicit flag |
+| [0021](0021-docker-self-hosting.md) | Self-hosting ships as a Docker image with an in-process scheduler |

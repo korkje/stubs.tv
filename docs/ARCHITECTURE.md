@@ -49,6 +49,17 @@ They stay in one app until a concrete need splits them (would require an ADR).
   Vercel loader doesn't exist on Workers. Revisit (Cloudflare Images) only
   if poster bandwidth ever becomes a real cost.
 
+### Self-hosted deploys
+
+The same app runs as a standalone Node server in a container (root
+`Dockerfile`, ADR-0021) for self-hosters: `output: "standalone"` in
+`next.config.ts`, `node apps/web/server.js`, Supabase reached over its
+API as before. The two Workers cron triggers (`wrangler.jsonc`) have an
+in-process twin behind `INTERNAL_CRON=true` — `src/instrumentation.ts`
+starts timers that call the same guarded `/api/refresh` and
+`/api/import/run` routes on the local port. docs/SELF-HOSTING.md is the
+operator walkthrough.
+
 ## Data layer: Supabase (EU)
 
 - **Postgres** is the single source of truth — both cached metadata and user

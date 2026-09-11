@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getPolarClient } from "@/lib/polar";
 import { createClient } from "@/lib/supabase/server";
 import { isSelfHosted } from "@/lib/self-hosted";
+import { requestOrigin } from "@/lib/request-origin";
 
 /**
  * The un-personalised portal entrance. Kept as the fallback: it asks for an
@@ -21,10 +22,11 @@ const POLAR_PORTAL_URL = "https://polar.sh/stubs-tv/portal";
  */
 export async function GET(request: Request) {
   const url = new URL(request.url);
+  const origin = requestOrigin(request);
 
   // No merchant, no portal on a self-hosted instance (ADR-0019).
   if (isSelfHosted()) {
-    return NextResponse.redirect(new URL("/app", url.origin));
+    return NextResponse.redirect(new URL("/app", origin));
   }
 
   const supabase = await createClient();
@@ -33,7 +35,7 @@ export async function GET(request: Request) {
   } = await supabase.auth.getUser();
   if (!user) {
     const next = encodeURIComponent(url.pathname);
-    return NextResponse.redirect(new URL(`/login?next=${next}`, url.origin));
+    return NextResponse.redirect(new URL(`/login?next=${next}`, origin));
   }
 
   // No billing row means the account never checked out (comp accounts,
@@ -43,14 +45,14 @@ export async function GET(request: Request) {
     .select("user_id")
     .maybeSingle();
   if (!billing) {
-    return NextResponse.redirect(new URL("/app/plans", url.origin));
+    return NextResponse.redirect(new URL("/app/plans", origin));
   }
 
   try {
     const polar = getPolarClient();
     const session = await polar.customerSessions.create({
       externalCustomerId: user.id,
-      returnUrl: `${url.origin}/app/settings?tab=billing`,
+      returnUrl: `${origin}/app/settings?tab=billing`,
     });
     return NextResponse.redirect(session.customerPortalUrl, 302);
   } catch {

@@ -7,6 +7,7 @@ import {
 import { getMetadataProvider } from "@/lib/metadata/provider";
 import { normaliseTitle, yearsClose } from "@/lib/import/match";
 import type { ImportCounts } from "@/lib/import/types";
+import { isCronRequest } from "@/lib/cron-auth";
 
 /**
  * Phase 2 of the TV Time import (docs/plans/tvtime-import.md §4b): walk each
@@ -34,8 +35,7 @@ function check(context: string, error: { message: string } | null): void {
 }
 
 export async function GET(request: Request) {
-  const secret = process.env.CRON_SECRET;
-  if (!secret || request.headers.get("x-cron-key") !== secret) {
+  if (!(await isCronRequest(request))) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 

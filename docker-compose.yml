@@ -1,0 +1,26 @@
+# Self-hosting stubs.tv (docs/SELF-HOSTING.md). Copy .env.example to .env,
+# fill it in, then `docker compose up -d --build`. Values are read from
+# .env both for the build args below and for the running container.
+services:
+  web:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        SELF_HOSTED: ${SELF_HOSTED:-true}
+    image: stubs-web
+    env_file: .env
+    environment:
+      # Run the hourly refresh and 5-minute import sweep in-process
+      # (ADR-0021) — there is no Cloudflare cron here.
+      INTERNAL_CRON: "true"
+    ports:
+      - "${STUBS_PORT:-3000}:3000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3

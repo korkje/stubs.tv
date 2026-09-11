@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { ensureSeriesIngested } from "@/lib/metadata/ingest";
 import { runMetadataSync, type SyncReport } from "@/lib/metadata/sync";
+import { isCronRequest } from "@/lib/cron-auth";
 
 /**
  * Small on purpose: background jobs stay batched and resumable as policy
@@ -27,8 +28,7 @@ const BATCH = 2;
  * (ADR-0004) — this just decides who is due.
  */
 export async function GET(request: Request) {
-  const secret = process.env.CRON_SECRET;
-  if (!secret || request.headers.get("x-cron-key") !== secret) {
+  if (!(await isCronRequest(request))) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 

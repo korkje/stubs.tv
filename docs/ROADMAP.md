@@ -149,14 +149,39 @@ merchant of record** (ADR-0013), one paid tier sold monthly/annual/lifetime
 - [x] Entitlement checks (single helper, `requireWriteAccess` in
       `apps/web/src/lib/plan.ts`, keyed on `profiles.plan`)
 - [x] Self-hosted mode: `SELF_HOSTED=true` removes the paywall (ADR-0019)
+- [x] Self-hosting actually runnable — 2026-09-11 (ADR-0021): root
+      `Dockerfile` + `docker-compose.yml`, in-process scheduler
+      (`INTERNAL_CRON=true`) replacing the Workers cron triggers, and
+      docs/SELF-HOSTING.md as the walkthrough
 - [x] Going public on GitHub — done 2026-08-24: repo public, main protected
       by ruleset (required `checks`, no force pushes or deletion), secret
       scanning + push protection + Dependabot alerts on, ops docs in the
       private repo. The plan doc deleted itself as designed; watch the
       first external fork PR (CI must pass without secrets)
-- [ ] Launch posts (Reddit migration threads etc.) — after the TV Time
-      plan's remaining prerequisite (one real redacted export to validate
-      against)
+- [x] Security review before launch — the going-public checklist's last
+      open item, done 2026-09-11 as a read-only audit of RLS and grants,
+      function privileges, the Polar webhook, the cron routes, every server
+      action and the auth flows: nothing critical or high. Fixed in the
+      same PR as ADR-0021: the import kick no longer derives its target
+      from the Host header on Node deploys (it carries CRON_SECRET), and
+      the cron guard compares in constant time
+- [ ] Security follow-ups from that audit. **Medium:** (1) `commitImport`
+      writes follows for provider ids nobody has verified, so 5,000
+      fabricated ids from one write-access account starve the hourly sweep
+      (BATCH=2) for months — apply follows only after the worker verifies
+      the series, and keep provider-missing rows out of the sweep.
+      (2) Polar `order.refunded` is unhandled, so a refunded lifetime pass
+      keeps `plan='paid'` forever — handle it and clear `billing.lifetime`.
+      **Low:** clamp `fetchUpNext`'s limit like the library actions do;
+      allow-list `revalidatePath` targets in the tracking actions; cap
+      `display_name` and the import `report` payload
+- [ ] Launch posts. Owner's call 2026-09-11: **r/selfhosted first**, now
+      that the Docker path exists (ADR-0021), partly in the hope of
+      meeting a real TV Time user there. The TV Time plan's open
+      prerequisite (one real redacted export to validate against) is not
+      met, so that post does not lead with the import and says plainly
+      that the importer is validated on synthetic fixtures. The migration
+      threads come after a real export has been checked.
 
 ## Icebox (explicitly deferred)
 

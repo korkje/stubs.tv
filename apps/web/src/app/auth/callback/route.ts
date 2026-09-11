@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { safeNext } from "@/lib/redirects";
+import { requestOrigin } from "@/lib/request-origin";
 
 /**
  * Where the OAuth dance lands (PKCE): sign-in and signup buttons, and the
@@ -14,6 +15,7 @@ import { safeNext } from "@/lib/redirects";
  */
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
+  const origin = requestOrigin(request);
   // safeNext, or the query param is an open redirect to anywhere.
   const next = safeNext(searchParams.get("next")) ?? "/app";
   // Errors from a Connect attempt belong on the settings page the user is
@@ -22,8 +24,8 @@ export async function GET(request: NextRequest) {
 
   const fail = (message: string) => {
     const target = settingsFlow
-      ? new URL(`/app/settings?tab=account`, request.url)
-      : new URL("/login", request.url);
+      ? new URL(`/app/settings?tab=account`, origin)
+      : new URL("/login", origin);
     if (settingsFlow) {
       target.searchParams.set("link_error", message);
     } else {
@@ -66,7 +68,7 @@ export async function GET(request: NextRequest) {
           `ensure_email_identity failed after OAuth callback: ${identityError.message}`
         );
       }
-      return NextResponse.redirect(new URL(next, request.url));
+      return NextResponse.redirect(new URL(next, origin));
     }
     return fail(error.message);
   }
