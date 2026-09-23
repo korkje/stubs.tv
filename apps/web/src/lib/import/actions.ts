@@ -129,8 +129,10 @@ export async function commitImport(
   // call search uses. It creates stub rows as needed, so from here on the
   // import speaks internal ids only (AGENTS.md rule 6). The service client
   // is required (the RPC is service-role-only) and sanctioned: this is
-  // ingestion's front door, not a bypass of RLS — every user-data write
-  // below goes through the authenticated client.
+  // ingestion's front door. It also writes the queue below — the job and
+  // its intents — which users may read but never write (ADR-0022), so the
+  // worker only ever sees what this action validated. Follows and ratings
+  // are the user's own rows and go through the authenticated client.
   const shows = new Map(payload.shows.map((s) => [s.tvdb, s]));
   for (const w of payload.watches) {
     if (!shows.has(w.tvdb)) {
@@ -193,7 +195,7 @@ export async function commitImport(
 
   // The job row. The partial unique index enforces one open import per
   // account; surface that as a sentence, not a Postgres error.
-  const { data: job, error: jobError } = await supabase
+  const { data: job, error: jobError } = await service
     .from("import_jobs")
     .insert({
       user_id: userId,
@@ -233,7 +235,7 @@ export async function commitImport(
     ];
   });
   for (let i = 0; i < intentRows.length; i += CHUNK) {
-    const { error } = await supabase
+    const { error } = await service
       .from("import_watch_intents")
       .upsert(intentRows.slice(i, i + CHUNK), {
         onConflict: "job_id,tvdb_series_id,season_number,episode_number",
@@ -255,7 +257,7 @@ export async function commitImport(
       : {}),
   }));
   for (let i = 0; i < movieRows.length; i += CHUNK) {
-    const { error } = await supabase
+    const { error } = await service
       .from("import_movie_intents")
       .insert(movieRows.slice(i, i + CHUNK));
     fail("queue the films", error);
@@ -445,20 +447,29 @@ export async function resolveMovieIntent(
   );
   fail("mark the film as seen", watchError);
 
-  const { error: updateError } = await supabase
+  // Queue rows are server-written (ADR-0022). The read above already went
+  // through the caller's RLS; the user_id filter keeps the write to their
+  // own row regardless.
+  const { error: updateError } = await service
     .from("import_movie_intents")
     .update({ status: "matched", movie_id: movieId })
-    .eq("id", intentId);
+    .eq("id", intentId)
+    .eq("user_id", userId);
   fail("update the film's import row", updateError);
 }
 
-/** The user chose to drop an unmatched film. */
+/**
+ * The user chose to drop an unmatched film. A service-role write like
+ * every change to the queue (ADR-0022), so the user_id filter is the
+ * ownership check.
+ */
 export async function skipMovieIntent(intentId: number): Promise<void> {
-  const { supabase } = await requireWriteAccess();
-  const { error } = await supabase
+  const { userId } = await requireWriteAccess();
+  const { error } = await createServiceClient()
     .from("import_movie_intents")
     .update({ status: "skipped" })
     .eq("id", intentId)
+    .eq("user_id", userId)
     .in("status", ["pending", "unmatched"]);
   fail("skip the film", error);
 }

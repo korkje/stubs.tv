@@ -70,7 +70,10 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
 - **`packages/metadata`** holds the provider abstraction and TheTVDB client
   and must never import Supabase; **`packages/db`** holds generated schema
   types. The service-role key is used only by ingestion
-  (`apps/web/src/lib/metadata/`), the Polar billing webhook
+  (`apps/web/src/lib/metadata/`), the TV Time import queue
+  (`apps/web/src/lib/import/` and the `/api/import/run` worker, ADR-0022 —
+  users read their import rows but only the server writes them, so every
+  write there scopes by `user_id` itself), the Polar billing webhook
   (`apps/web/src/app/api/webhook/polar/`), account deletion
   (`apps/web/src/lib/settings/actions.ts`, ADR-0017), and the calendar
   feed (`apps/web/src/app/api/calendar/`, ADR-0018 — no session exists,
