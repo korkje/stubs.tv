@@ -31,8 +31,9 @@ Use Polar (polar.sh) as merchant of record, integrated with
   success URL returns the customer to `/app` (origin-derived, so it works
   self-hosted too).
 - `POST /api/webhook/polar` — signature-verified (Standard Webhooks)
-  ingest of `order.paid` and `customer.state_changed`; this is the only
-  path by which payment state enters the app.
+  ingest of `order.paid`, `order.refunded` (added 2026-09-23) and
+  `customer.state_changed`; this is the only path by which payment state
+  enters the app.
 - Customer portal is Polar-hosted (emailed to customers) — no app code.
 
 Entitlements are driven from webhook events into Postgres (the `billing`
@@ -45,6 +46,13 @@ the sync — a comp account that checks out gains a billing row (any Polar
 activity does), but only upgrades apply to it; comp is granted and
 revoked by hand alone.
 
+The lifetime pass is granted per order, so it is taken back per order: a
+full refund of a lifetime order (Polar also issues these itself to head off
+chargebacks) revokes the pass unless another lifetime order still stands,
+which the handler asks Polar for. That lookup runs in the webhook, not the
+request path, and a partial refund keeps the pass. A refund only ever
+downgrades.
+
 ## Consequences
 
 - Polar owns VAT/MVA compliance, invoicing, and the checkout/portal UX;
@@ -56,7 +64,9 @@ revoked by hand alone.
   work. A different provider would touch only `lib/polar.ts`, the two
   routes, and the webhook handlers.
 - The deployed Worker needs `POLAR_ACCESS_TOKEN`, `POLAR_WEBHOOK_SECRET`
-  and `POLAR_SERVER` as Cloudflare secrets. The setup record (resource
+  and `POLAR_SERVER` as Cloudflare secrets. The token needs `orders:read`
+  for the refund lookup, and the webhook endpoint must subscribe to
+  `order.refunded` as well as the other two events. The setup record (resource
   ids, dashboard checklist) lives in the private ops repo — POLAR_SETUP.md
   there, moved out before this repo went public.
 - Production and sandbox are separate Polar environments with separate

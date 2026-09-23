@@ -170,8 +170,8 @@ merchant of record** (ADR-0013), one paid tier sold monthly/annual/lifetime
       fabricated ids from one write-access account starve the hourly sweep
       (BATCH=2) for months — apply follows only after the worker verifies
       the series, and keep provider-missing rows out of the sweep.
-      (2) Polar `order.refunded` is unhandled, so a refunded lifetime pass
-      keeps `plan='paid'` forever — handle it and clear `billing.lifetime`.
+      (2) Done 2026-09-23: `order.refunded` now revokes a fully refunded
+      lifetime pass unless another lifetime order stands (ADR-0013).
       **Low:** clamp `fetchUpNext`'s limit like the library actions do;
       allow-list `revalidatePath` targets in the tracking actions; cap
       `display_name` and the import `report` payload
