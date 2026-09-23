@@ -41,6 +41,12 @@ whatever the queue holds, so each of these lands on every other importer.
 4. **Open jobs share the worker.** Each `/api/import/run` invocation splits
    its time evenly among open jobs, oldest first (`lib/import/clock.ts`),
    instead of the oldest job using all of it.
+5. **A title can't hold a job open** (added 2026-09-24). A series or film
+   the provider keeps failing on is skipped for the rest of the run, with
+   its attempts counted in `counts.failures`. After three failed runs it is
+   parked as unmatched, where the reconciliation report (or, for a film,
+   the manual pick) shows it. Users can't touch the queue, so otherwise one
+   broken title would block their imports for good.
 
 ## Consequences
 
