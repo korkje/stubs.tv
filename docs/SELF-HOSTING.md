@@ -73,8 +73,8 @@ Two ways to go:
 - **Configure SMTP** (*Authentication → Emails → SMTP settings*) with any
   provider that does **not** rewrite links for click tracking (it breaks
   the confirm flow — ADR-0009). Then push this repo's email templates,
-  which route the links through `/auth/confirm` so a click signs the user
-  in:
+  which route the links through `/auth/confirm`, where one click signs the
+  user in:
 
   ```sh
   SUPABASE_ACCESS_TOKEN=<token from supabase.com/dashboard/account/tokens> \

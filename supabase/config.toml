@@ -236,8 +236,8 @@ otp_expiry = 3600
 
 # Auth emails are versioned in the repo and pushed to the hosted project by
 # CI (scripts/push-email-templates.sh) — keep subjects here and in that
-# script in sync. Links go through /auth/confirm so verification signs the
-# user in (docs/DEPLOYMENT.md).
+# script in sync. Links go through /auth/confirm, whose button verifies the
+# token and signs the user in (docs/DEPLOYMENT.md, ADR-0023).
 [auth.email.template.confirmation]
 subject = "Confirm your email address"
 content_path = "./supabase/templates/confirmation.html"

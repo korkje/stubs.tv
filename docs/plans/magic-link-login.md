@@ -30,9 +30,10 @@ Two properties make it more than a convenience:
 
 ## What already exists (do not rebuild)
 
-- **`/auth/confirm` already verifies magic links.** The route takes any
-  `token_hash` + `type`, including `magiclink` — it is how local test
-  sessions sign in today.
+- **`/auth/confirm` already verifies magic links.** It is a one-button
+  page whose click spends the token (ADR-0023), and `magiclink` is on its
+  allow-list of link types. Local test sessions sign in through it too
+  (GET the page, then submit its form).
 - **The branded email template already ships.**
   `supabase/templates/magic_link.html` (subject "Your sign-in link") is
   wired into local GoTrue via `config.toml` and pushed to production by

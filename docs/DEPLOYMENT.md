@@ -68,8 +68,10 @@ where `supabase/config.toml` disables it). Configure once under
   `supabase/config.toml`, and CI pushes it to the hosted project via the
   Management API (`scripts/push-email-templates.sh`). Confirmation and
   magic-link mails go through `/auth/confirm?token_hash={{ .TokenHash }}&type=…`,
-  which verifies the token and signs the user in — a plain link would verify
-  the account but drop the user on the homepage unauthenticated. Recovery is
+  a one-button page whose click verifies the token and signs the user in
+  (ADR-0023) — a plain link would verify the account but drop the user on
+  the homepage unauthenticated, and a GET that spent the token would let
+  mail scanners burn it. Recovery is
   the exception: it links to `/auth/reset-password?token_hash=…`, which shows
   the new-password form and only spends the token on submit (ADR-0011).
 - Editing a template locally does not reach a running stack — GoTrue reads
