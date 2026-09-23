@@ -78,10 +78,12 @@ export default async function LoginPage({
                   </Text>
                   <PasswordField autoComplete="current-password" />
                 </label>
-                <Turnstile siteKey={turnstileSiteKey()} />
-                <Flex mt="2">
-                  <Button formAction={login}>Sign in</Button>
-                </Flex>
+                <div>
+                  <Turnstile siteKey={turnstileSiteKey()} />
+                  <Flex mt="2">
+                    <Button formAction={login}>Sign in</Button>
+                  </Flex>
+                </div>
               </Flex>
             </form>
           </Flex>

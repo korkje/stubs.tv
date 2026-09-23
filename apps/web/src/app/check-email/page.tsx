@@ -31,7 +31,7 @@ export default async function CheckEmailPage({
             <Text>
               {reset
                 ? "If that address has an account, we just sent it a link to set a new password."
-                : "We sent you a verification link. Click it to activate your account — it signs you in automatically."}
+                : "We sent you a link. Open it to choose your password, and you're signed in."}
             </Text>
             <Text size="2" color="gray">
               {reset

@@ -2,10 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { MIN_PASSWORD_LENGTH as MIN_LENGTH } from "@/lib/auth/password";
 import { createClient } from "@/lib/supabase/server";
-
-/** Mirrors minimum_password_length in supabase/config.toml. */
-const MIN_LENGTH = 6;
 
 const EXPIRED =
   "That reset link is invalid or has expired. Request a new one.";

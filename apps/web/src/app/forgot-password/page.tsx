@@ -50,10 +50,12 @@ export default async function ForgotPasswordPage({
                     survives hopping between them. */}
                 <AuthEmailField />
               </label>
-              <Turnstile siteKey={turnstileSiteKey()} />
-              <Flex mt="2">
-                <Button type="submit">Send reset link</Button>
-              </Flex>
+              <div>
+                <Turnstile siteKey={turnstileSiteKey()} />
+                <Flex mt="2">
+                  <Button type="submit">Send reset link</Button>
+                </Flex>
+              </div>
             </Flex>
           </form>
         </Card>

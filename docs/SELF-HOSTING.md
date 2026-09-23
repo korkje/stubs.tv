@@ -88,7 +88,9 @@ Two ways to go:
 
 - **Skip email entirely** for a personal box: turn off *Confirm email*
   under *Authentication → Sign In / Up → Email*. Accounts are then live
-  immediately on sign-up. Password reset and magic links will not work,
+  immediately on sign-up, and the sign-up form asks for the password itself
+  (with mail on, the password is chosen from the confirmation link instead,
+  ADR-0025). Password reset and magic links will not work,
   and anyone who can reach the sign-up page can create an account — keep
   the instance behind your own auth or network if you do this.
 

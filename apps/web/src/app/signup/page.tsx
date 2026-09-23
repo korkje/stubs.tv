@@ -15,6 +15,7 @@ import { PasswordField } from "@/components/auth/PasswordField";
 import { Turnstile } from "@/components/auth/Turnstile";
 import { turnstileSiteKey } from "@/lib/auth/captcha";
 import { enabledProviders } from "@/lib/auth/providers";
+import { passwordChosenByEmail } from "@/lib/auth/signup-mode";
 import { signout } from "@/app/login/actions";
 import { safeNext } from "@/lib/redirects";
 import { createClient } from "@/lib/supabase/server";
@@ -61,6 +62,11 @@ export default async function SignupPage({
     );
   }
 
+  // With confirmation mail on, the password is chosen from the mail, by
+  // whoever controls the mailbox (ADR-0025). Without it there's no mail to
+  // move it to, so the form keeps asking.
+  const byEmail = await passwordChosenByEmail();
+
   return (
     <Container size="1" px="4">
       <Flex direction="column" gap="4" py="9">
@@ -87,16 +93,27 @@ export default async function SignupPage({
                       survives hopping between them. */}
                   <AuthEmailField />
                 </label>
-                <label>
-                  <Text as="div" size="2" mb="1" weight="medium">
-                    Password
+                {byEmail ? (
+                  <Text size="2" color="gray">
+                    We&apos;ll email you a link. Open it to choose your
+                    password, and you&apos;re in.
                   </Text>
-                  <PasswordField autoComplete="new-password" />
-                </label>
-                <Turnstile siteKey={turnstileSiteKey()} />
-                <Flex mt="2">
-                  <Button formAction={signup}>Create account</Button>
-                </Flex>
+                ) : (
+                  <label>
+                    <Text as="div" size="2" mb="1" weight="medium">
+                      Password
+                    </Text>
+                    <PasswordField autoComplete="new-password" />
+                  </label>
+                )}
+                <div>
+                  <Turnstile siteKey={turnstileSiteKey()} />
+                  <Flex mt="2">
+                    <Button formAction={signup}>
+                      {byEmail ? "Email me a link" : "Create account"}
+                    </Button>
+                  </Flex>
+                </div>
               </Flex>
             </form>
           </Flex>
