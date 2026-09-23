@@ -35,6 +35,13 @@
       "runtimeArgs": ["TURNSTILE_SITE_KEY=3x00000000000000000000FF", "npm", "run", "dev", "--workspace", "apps/web"],
       "port": 3000,
       "autoPort": true
+    },
+    {
+      "name": "web-tvdb-down",
+      "runtimeExecutable": "env",
+      "runtimeArgs": ["TVDB_API_KEY=invalid", "npm", "run", "dev", "--workspace", "apps/web"],
+      "port": 3000,
+      "autoPort": true
     }
   ]
 }

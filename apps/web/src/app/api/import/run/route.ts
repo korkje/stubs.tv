@@ -29,6 +29,8 @@ import { isCronRequest } from "@/lib/cron-auth";
 const DEADLINE_MS = 20_000;
 /** Held back at every checkpoint for the step already in flight. */
 const RESERVE_MS = 5_000;
+/** Ticks a series or film may fail on before the import gives up on it. */
+const MAX_ATTEMPTS = 3;
 /** How many series ids to claim from the queue per query. */
 const SERIES_PAGE = 20;
 const MOVIE_PAGE = 50;
@@ -95,20 +97,76 @@ async function runJob(
   let matched = 0;
   let unmatched = 0;
 
+  // A title the provider keeps failing on must not hold the import open
+  // forever: the user can't start another while it is, and can't fix the
+  // queue (ADR-0022). Failures count across ticks in counts.failures; an
+  // item that failed this tick is skipped for the rest of it, and after
+  // MAX_ATTEMPTS ticks it is parked as unmatched, which the reconciliation
+  // report (or, for a film, the manual pick) then shows.
+  const failures: Record<string, number> = { ...(counts.failures ?? {}) };
+  const skippedSeries = new Set<number>();
+  const skippedFilms = new Set<number>();
+
+  const saveCounts = async () => {
+    // Progress is worth more than shaving writes: the client polls this.
+    const { error } = await supabase
+      .from("import_jobs")
+      .update({
+        counts: {
+          ...counts,
+          seriesDone: Math.min(counts.seriesDone + seriesDone, counts.seriesTotal),
+          failures,
+        },
+      })
+      .eq("id", jobId);
+    check("update progress", error);
+  };
+
+  /** Records a failure; true once the item has used up its attempts. */
+  const giveUp = async (key: string, error: unknown): Promise<boolean> => {
+    failures[key] = (failures[key] ?? 0) + 1;
+    console.error(
+      `Import job ${jobId}: ${key} failed (attempt ${failures[key]} of ${MAX_ATTEMPTS}): ` +
+        (error instanceof Error ? error.message : String(error))
+    );
+    await saveCounts();
+    return failures[key] >= MAX_ATTEMPTS;
+  };
+
   // --- Episodes: ingest each pending series, then one SQL materialise ----
   for (;;) {
     if (timeLeft() < RESERVE_MS) return partial(jobId, seriesDone, matched, unmatched);
+    // Over-fetch by the skipped count, so skipped series never crowd out
+    // the ones still worth trying.
     const { data: queue, error: queueError } = await supabase.rpc(
       "import_pending_series",
-      { p_job_id: jobId, p_limit: SERIES_PAGE }
+      { p_job_id: jobId, p_limit: SERIES_PAGE + skippedSeries.size }
     );
     check("read the series queue", queueError);
-    if (!queue || queue.length === 0) break;
+    const todo = (queue ?? []).filter((e) => !skippedSeries.has(e.series_id));
+    if (todo.length === 0) break;
 
-    for (const entry of queue) {
+    for (const entry of todo) {
       if (timeLeft() < RESERVE_MS) return partial(jobId, seriesDone, matched, unmatched);
-      // No-ops when fresh (< 12h), so retries after a crash are cheap.
-      await ensureSeriesIngested(entry.series_id);
+      try {
+        // No-ops when fresh (< 12h), so retries after a crash are cheap.
+        await ensureSeriesIngested(entry.series_id);
+      } catch (error) {
+        if (!(await giveUp(`series:${entry.series_id}`, error))) {
+          skippedSeries.add(entry.series_id);
+          continue;
+        }
+        const { error: parkError } = await supabase
+          .from("import_watch_intents")
+          .update({ status: "unmatched" })
+          .eq("job_id", jobId)
+          .eq("series_id", entry.series_id)
+          .eq("status", "pending");
+        check("park a series the provider keeps failing on", parkError);
+        seriesDone++;
+        await saveCounts();
+        continue;
+      }
       const { data, error } = await supabase.rpc("import_materialise_series", {
         p_job_id: jobId,
         p_series_id: entry.series_id,
@@ -118,19 +176,12 @@ async function runJob(
       matched += outcome.matched ?? 0;
       unmatched += outcome.unmatched ?? 0;
       seriesDone++;
-      // Progress is worth more than shaving writes: the client polls this.
-      const { error: countError } = await supabase
-        .from("import_jobs")
-        .update({
-          counts: {
-            ...counts,
-            seriesDone: Math.min(counts.seriesDone + seriesDone, counts.seriesTotal),
-          },
-        })
-        .eq("id", jobId);
-      check("update progress", countError);
+      await saveCounts();
     }
   }
+  // Skipped series still have pending episodes: not done yet, and the next
+  // tick tries them again.
+  if (skippedSeries.size > 0) return partial(jobId, seriesDone, matched, unmatched);
 
   // --- Films ----------------------------------------------------------------
   let moviesMatched = 0;
@@ -143,13 +194,25 @@ async function runJob(
       .eq("job_id", jobId)
       .eq("status", "pending")
       .order("id", { ascending: true })
-      .limit(MOVIE_PAGE);
+      .limit(MOVIE_PAGE + skippedFilms.size);
     check("read the film queue", moviesError);
-    if (!movies || movies.length === 0) break;
+    const todo = (movies ?? []).filter((m) => !skippedFilms.has(m.id));
+    if (todo.length === 0) break;
 
-    for (const movie of movies) {
+    for (const movie of todo) {
       if (timeLeft() < RESERVE_MS) return partial(jobId, seriesDone, matched, unmatched);
-      const movieId = movie.movie_id ?? (await autoMatchMovie(supabase, movie));
+      let movieId: number | null;
+      try {
+        movieId = movie.movie_id ?? (await autoMatchMovie(supabase, movie));
+        if (movieId !== null) await ensureMovieIngested(movieId);
+      } catch (error) {
+        if (!(await giveUp(`film:${movie.id}`, error))) {
+          skippedFilms.add(movie.id);
+          continue;
+        }
+        // Given up: it waits for the manual pick, like a film with no match.
+        movieId = null;
+      }
       if (movieId === null) {
         const { error } = await supabase
           .from("import_movie_intents")
@@ -159,7 +222,6 @@ async function runJob(
         moviesUnmatched++;
         continue;
       }
-      await ensureMovieIngested(movieId);
       const { error: watchError } = await supabase.from("watches").upsert(
         {
           user_id: movie.user_id,
@@ -178,13 +240,14 @@ async function runJob(
       moviesMatched++;
     }
   }
+  if (skippedFilms.size > 0) return partial(jobId, seriesDone, matched, unmatched);
 
   const { error: finishError } = await supabase
     .from("import_jobs")
     .update({
       status: "done",
       finished_at: new Date().toISOString(),
-      counts: { ...counts, seriesDone: counts.seriesTotal },
+      counts: { ...counts, seriesDone: counts.seriesTotal, failures },
     })
     .eq("id", jobId);
   check("finish job", finishError);

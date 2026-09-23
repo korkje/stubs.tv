@@ -168,8 +168,11 @@ merchant of record** (ADR-0013), one paid tier sold monthly/annual/lifetime
 - [ ] Security follow-ups from that audit. **Medium:** (1) `commitImport`
       writes follows for provider ids nobody has verified, so 5,000
       fabricated ids from one write-access account starve the hourly sweep
-      (BATCH=2) for months — apply follows only after the worker verifies
-      the series, and keep provider-missing rows out of the sweep.
+      for months — apply follows only after the worker verifies the series,
+      and keep provider-missing rows out of the sweep. Softened 2026-09-24:
+      the sweep now picks 20 an hour in SQL
+      (`stale_followed_series`), follows that match no series drop out,
+      and a title that fails steps aside for 6 hours.
       (2) Done 2026-09-23: `order.refunded` now revokes a fully refunded
       lifetime pass unless another lifetime order stands (ADR-0013).
       **Low:** clamp `fetchUpNext`'s limit like the library actions do;

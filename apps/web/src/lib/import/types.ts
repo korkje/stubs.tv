@@ -15,6 +15,11 @@ export interface ImportCounts {
   ratings: number;
   seriesTotal: number;
   seriesDone: number;
+  /** Failed attempts per `series:<id>` or `film:<intent id>`, kept across
+   * worker ticks so that a title the provider keeps failing on is given up
+   * on (parked as unmatched) instead of holding the import open. Written by
+   * the worker only. */
+  failures?: Record<string, number>;
 }
 
 /** One row of the polled progress/status payload. */

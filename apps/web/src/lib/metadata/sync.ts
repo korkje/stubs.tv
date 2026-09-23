@@ -104,15 +104,13 @@ async function stampDeleted(table: "series" | "movies", ids: number[]): Promise<
   return ids.length;
 }
 
+/** One statement in SQL: reading the follows here hit PostgREST's row cap,
+ *  so past 1000 of them only a random slice was invalidated. */
 async function invalidateAllFollowedSeries(): Promise<number> {
   const supabase = createServiceClient();
-  const { data, error } = await supabase
-    .from("follows")
-    .select("entity_id")
-    .eq("entity_type", "series");
-  check("read follows for blanket invalidation", error);
-  const ids = [...new Set((data ?? []).map((f) => f.entity_id))];
-  return invalidate("series", ids);
+  const { data, error } = await supabase.rpc("invalidate_followed_series");
+  check("invalidate every followed series", error);
+  return data ?? 0;
 }
 
 /**

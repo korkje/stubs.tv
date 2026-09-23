@@ -570,6 +570,7 @@ export type Database = {
           overview: string | null
           poster_url: string | null
           provider_updated_at: string | null
+          refresh_failed_at: string | null
           runtime_min: number | null
           score: number | null
           status: string | null
@@ -585,6 +586,7 @@ export type Database = {
           overview?: string | null
           poster_url?: string | null
           provider_updated_at?: string | null
+          refresh_failed_at?: string | null
           runtime_min?: number | null
           score?: number | null
           status?: string | null
@@ -600,6 +602,7 @@ export type Database = {
           overview?: string | null
           poster_url?: string | null
           provider_updated_at?: string | null
+          refresh_failed_at?: string | null
           runtime_min?: number | null
           score?: number | null
           status?: string | null
@@ -798,6 +801,7 @@ export type Database = {
           series_id: number
         }[]
       }
+      invalidate_followed_series: { Args: never; Returns: number }
       mark_episodes_seen: {
         Args: { p_season_number?: number; p_series_id: number }
         Returns: undefined
@@ -822,6 +826,13 @@ export type Database = {
         Returns: number
       }
       set_title_scores: { Args: { p_scores: Json }; Returns: undefined }
+      stale_followed_series: {
+        Args: { p_limit: number }
+        Returns: {
+          id: number
+          name: string
+        }[]
+      }
       unmark_episodes_seen: {
         Args: { p_season_number?: number; p_series_id: number }
         Returns: undefined
