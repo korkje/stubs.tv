@@ -47,6 +47,25 @@ const nextConfig: NextConfig = {
     unoptimized: true,
     remotePatterns: [{ protocol: "https", hostname: "artworks.thetvdb.com" }],
   },
+  // Baseline security headers on every response. The CSP is deliberately
+  // just frame-ancestors: no other site may frame stubs.tv (one-click
+  // settings actions would otherwise be clickjackable). A full script CSP
+  // needs nonces for Next's inline scripts and is a separate job. HSTS is
+  // left to the edge: sent from here, it would bind every self-hosted
+  // instance to HTTPS as well.
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
