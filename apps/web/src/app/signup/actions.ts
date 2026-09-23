@@ -8,6 +8,7 @@ import {
   captchaToken,
   isCaptchaFailure,
 } from "@/lib/auth/captcha";
+import { throwawayPassword } from "@/lib/auth/password";
 import { safeNext } from "@/lib/redirects";
 
 /** Error redirects keep the destination, so a retry still lands right. */
@@ -21,9 +22,15 @@ export async function signup(formData: FormData) {
   const supabase = await createClient();
   const next = safeNext(formData.get("next"));
 
+  // With confirmation mail on, the form has no password field, and the
+  // password that counts is the one chosen from the mail (ADR-0025).
+  // GoTrue still requires one here, so it gets a throwaway. GoTrue also
+  // keeps the *first* password an unconfirmed account got, which is exactly
+  // why that choice can't be trusted to the sign-up form.
+  const typed = formData.get("password");
   const { data, error } = await supabase.auth.signUp({
     email: formData.get("email") as string,
-    password: formData.get("password") as string,
+    password: typeof typed === "string" && typed ? typed : throwawayPassword(),
     options: { captchaToken: captchaToken(formData) },
   });
 

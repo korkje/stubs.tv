@@ -1,13 +1,16 @@
 import Link from "next/link";
 import {
   Button,
+  Callout,
   Card,
   Container,
   Flex,
   Heading,
   Text,
 } from "@radix-ui/themes";
+import { PasswordField } from "@/components/auth/PasswordField";
 import { confirmLinkType, type ConfirmLinkType } from "@/lib/auth/email-links";
+import { MIN_PASSWORD_LENGTH } from "@/lib/auth/password";
 import { safeNext } from "@/lib/redirects";
 import { createClient } from "@/lib/supabase/server";
 import { confirmEmailLink } from "./actions";
@@ -17,9 +20,9 @@ const COPY: Record<
   { heading: string; body: string; button: string }
 > = {
   email: {
-    heading: "Confirm your email",
-    body: "One click confirms your address and signs you in.",
-    button: "Confirm and sign in",
+    heading: "Choose your password",
+    body: "Setting it confirms your email and signs you in.",
+    button: "Set password and sign in",
   },
   magiclink: {
     heading: "Sign in to stubs.tv",
@@ -35,15 +38,22 @@ const COPY: Record<
 
 /**
  * Where every confirmation, magic-link and email-change mail lands
- * (supabase/templates). The page only offers a button: confirmEmailLink
+ * (supabase/templates). The page only offers a form: confirmEmailLink
  * spends the token on submit, never this GET (ADR-0023), so a mail scanner
  * that prefetches the link can't burn it, and no other site can sign a
- * visitor into an account without a click here.
+ * visitor into an account without a click here. A sign-up confirmation
+ * also asks for the password, so whoever controls the mailbox is the one
+ * who sets it (ADR-0025).
  */
 export default async function ConfirmPage({
   searchParams,
 }: {
-  searchParams: Promise<{ token_hash?: string; type?: string; next?: string }>;
+  searchParams: Promise<{
+    token_hash?: string;
+    type?: string;
+    next?: string;
+    error?: string;
+  }>;
 }) {
   const params = await searchParams;
   const tokenHash = params.token_hash?.trim() ?? "";
@@ -82,6 +92,15 @@ export default async function ConfirmPage({
       <Flex direction="column" gap="4" py="9">
         <Heading size="6">{copy.heading}</Heading>
 
+        {/* A code, not text: nothing from the URL is shown. */}
+        {params.error === "short" && (
+          <Callout.Root color="red">
+            <Callout.Text>
+              Choose a password of at least {MIN_PASSWORD_LENGTH} characters.
+            </Callout.Text>
+          </Callout.Root>
+        )}
+
         <Card>
           <form action={confirmEmailLink}>
             <input type="hidden" name="token_hash" value={tokenHash} />
@@ -89,6 +108,14 @@ export default async function ConfirmPage({
             {next && <input type="hidden" name="next" value={next} />}
             <Flex direction="column" gap="3" p="2">
               <Text size="2">{copy.body}</Text>
+              {type === "email" && (
+                <label>
+                  <Text as="div" size="2" mb="1" weight="medium">
+                    Password
+                  </Text>
+                  <PasswordField autoComplete="new-password" />
+                </label>
+              )}
               {user && (
                 <Text size="2" color="gray">
                   You&apos;re signed in as <strong>{user.email}</strong>.
