@@ -4,6 +4,10 @@ import {
   WebhookVerificationError,
 } from "@polar-sh/sdk/webhooks";
 import { createServiceClient } from "@/lib/supabase/service";
+import { getPolarClient } from "@/lib/polar";
+import { grantsLifetime, ownsLifetimePass } from "@/lib/billing/lifetime";
+
+type Service = ReturnType<typeof createServiceClient>;
 
 /**
  * Receives Polar webhook events — the only path by which payment state
@@ -107,21 +111,71 @@ export async function POST(request: Request) {
         throw new Error(`billing upsert failed: ${billingError.message}`);
       }
 
-      // A lapsed subscription must not revoke a lifetime pass — and a
-      // downgrade must never touch comp: comp is granted by hand and any
-      // Polar activity without an active subscription (say, a one-time
-      // order) would otherwise stomp it to free. Upgrades may apply to
-      // anyone; they only ever fire for a paying customer.
-      const plan = billing.lifetime || sub ? "paid" : "free";
-      let query = supabase.from("profiles").update({ plan }).eq("user_id", userId);
-      if (plan === "free") query = query.neq("plan", "comp");
-      const { error: planError } = await query;
-      if (planError) {
-        throw new Error(`plan update failed: ${planError.message}`);
+      // A lapsed subscription must not revoke a lifetime pass. Upgrades may
+      // apply to anyone; they only ever fire for a paying customer.
+      await applyPlan(supabase, userId, billing.lifetime || sub ? "paid" : "free");
+      break;
+    }
+
+    case "order.refunded": {
+      // Sent for full and partial refunds alike, including the ones Polar
+      // issues on its own to head off a chargeback. Subscriptions don't need
+      // it: a refund leaves one running, and ending it arrives through
+      // customer.state_changed. The lifetime pass is the only thing granted
+      // per order, so it is the only thing taken back per order.
+      const order = event.data;
+      if (order.product?.metadata.lifetime !== true) break;
+      const userId = order.customer.externalId;
+      if (!userId) break;
+
+      // Recompute rather than revoke: a partial refund keeps the pass, and so
+      // does a second lifetime order that still stands. This order's own
+      // state settles the first; Polar's current orders settle the second.
+      const lifetime =
+        grantsLifetime(order) ||
+        (await ownsLifetimePass(getPolarClient(), order.customerId));
+
+      const supabase = createServiceClient();
+      const { data: billing, error: billingError } = await supabase
+        .from("billing")
+        .update({ lifetime, updated_at: new Date().toISOString() })
+        .eq("user_id", userId)
+        .select("subscription_status")
+        .maybeSingle();
+      if (billingError) {
+        throw new Error(`billing update failed: ${billingError.message}`);
+      }
+      // No billing row: the pass was never granted, or the account (and its
+      // billing row with it) is gone. Nothing to take back.
+      if (!billing) break;
+
+      // A refund only ever takes access away. If the pass or a subscription
+      // still stands, the plan is already right, and rewriting it to paid
+      // could stomp a comp granted since.
+      if (!lifetime && billing.subscription_status === null) {
+        await applyPlan(supabase, userId, "free");
       }
       break;
     }
   }
 
   return NextResponse.json({ received: true });
+}
+
+/**
+ * Writes the plan that a user's billing implies. A downgrade never touches
+ * comp: comp is granted by hand, and Polar activity without an active
+ * subscription (a one-time order, a refund) would otherwise stomp it to free.
+ */
+async function applyPlan(
+  supabase: Service,
+  userId: string,
+  plan: "paid" | "free"
+): Promise<void> {
+  let query = supabase.from("profiles").update({ plan }).eq("user_id", userId);
+  if (plan === "free") query = query.neq("plan", "comp");
+  const { error } = await query;
+  if (error) {
+    throw new Error(`plan update failed: ${error.message}`);
+  }
 }
