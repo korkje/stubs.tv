@@ -41,3 +41,4 @@ Template:
 | [0021](0021-docker-self-hosting.md) | Self-hosting ships as a Docker image with an in-process scheduler |
 | [0022](0022-import-queue-server-writes.md) | The import queue is written by the server only |
 | [0023](0023-email-links-spent-on-click.md) | Email links land on a page; the token is spent on a click |
+| [0024](0024-turnstile-on-auth-forms.md) | Auth forms carry a Turnstile token, and Supabase enforces it |

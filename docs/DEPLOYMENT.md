@@ -76,6 +76,14 @@ where `supabase/config.toml` disables it). Configure once under
   the new-password form and only spends the token on submit (ADR-0011).
 - Editing a template locally does not reach a running stack — GoTrue reads
   them at boot. `docker restart supabase_auth_<project>` picks them up.
+- **CAPTCHA with Cloudflare Turnstile (ADR-0024).** Create the widget in
+  Cloudflare (*Turnstile → Add widget*): hostname `stubs.tv`, mode Managed,
+  "Skip future security rule challenges" (pre-clearance) off. Its site key
+  is `TURNSTILE_SITE_KEY` in `apps/web/wrangler.jsonc`. Its secret key goes
+  into Supabase under *Authentication → Bot and Abuse Protection → Enable
+  CAPTCHA protection* (provider Turnstile). Enable that only once a deploy
+  carrying the widget is live: from then on GoTrue refuses sign-in,
+  sign-up and reset requests that arrive without a token.
 
 Stuck during testing (rate-limited, unverified account)? The hourly limit
 resets on its own, and a user can be confirmed manually from

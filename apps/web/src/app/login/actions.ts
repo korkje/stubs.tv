@@ -4,6 +4,11 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import {
+  CAPTCHA_FAILED,
+  captchaToken,
+  isCaptchaFailure,
+} from "@/lib/auth/captcha";
 import { isOAuthProvider } from "@/lib/auth/providers";
 import { safeNext } from "@/lib/redirects";
 
@@ -14,10 +19,13 @@ export async function login(formData: FormData) {
   const { error } = await supabase.auth.signInWithPassword({
     email: formData.get("email") as string,
     password: formData.get("password") as string,
+    options: { captchaToken: captchaToken(formData) },
   });
 
   if (error) {
-    const params = new URLSearchParams({ error: error.message });
+    const params = new URLSearchParams({
+      error: isCaptchaFailure(error) ? CAPTCHA_FAILED : error.message,
+    });
     if (next) params.set("next", next);
     redirect(`/login?${params}`);
   }

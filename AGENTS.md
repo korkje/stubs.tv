@@ -74,8 +74,11 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
   (`apps/web/src/lib/import/` and the `/api/import/run` worker, ADR-0022 —
   users read their import rows but only the server writes them, so every
   write there scopes by `user_id` itself), the Polar billing webhook
-  (`apps/web/src/app/api/webhook/polar/`), account deletion
-  (`apps/web/src/lib/settings/actions.ts`, ADR-0017), and the calendar
+  (`apps/web/src/app/api/webhook/polar/`), account deletion and the
+  settings page's other signed-in GoTrue calls
+  (`apps/web/src/lib/settings/actions.ts`, ADR-0017; the password email and
+  delete's password check use it because GoTrue exempts admin credentials
+  from CAPTCHA, ADR-0024), and the calendar
   feed (`apps/web/src/app/api/calendar/`, ADR-0018 — no session exists,
   the URL token is the credential).
 

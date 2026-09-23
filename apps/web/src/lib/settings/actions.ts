@@ -120,7 +120,13 @@ export async function sendPasswordEmail() {
     failLink("Could not read your account. Sign in again and retry.");
   }
 
-  const { error } = await supabase.auth.resetPasswordForEmail(user.email);
+  // Through the service client: GoTrue exempts admin credentials from
+  // CAPTCHA (ADR-0024), and this caller is already signed in, so there's no
+  // widget to ask. The address is the session's own, never the caller's
+  // input.
+  const { error } = await createServiceClient().auth.resetPasswordForEmail(
+    user.email
+  );
   if (error) {
     // Most likely GoTrue's email rate limit; its raw message names it.
     failLink(`Could not send the email: ${error.message}`);
@@ -207,10 +213,16 @@ export async function deleteAccount(formData: FormData) {
     failDelete("Could not read your account. Sign in again and retry.");
   }
 
-  const { error: reauth } = await supabase.auth.signInWithPassword({
-    email: user.email,
-    password: (formData.get("current_password") as string) ?? "",
-  });
+  // The password check goes through the service client for the same reason
+  // as sendPasswordEmail (ADR-0024). With CAPTCHA on, the user's own client
+  // would be refused and every attempt would read as a wrong password. The
+  // session it returns is discarded; the account goes with it below.
+  const { error: reauth } = await createServiceClient().auth.signInWithPassword(
+    {
+      email: user.email,
+      password: (formData.get("current_password") as string) ?? "",
+    }
+  );
 
   if (reauth) {
     failDelete("Password is incorrect.");

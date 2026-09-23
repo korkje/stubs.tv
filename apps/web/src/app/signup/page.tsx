@@ -12,6 +12,8 @@ import {
 import { AuthEmailField } from "@/components/auth/AuthEmailField";
 import { OAuthButtons } from "@/components/auth/OAuthButtons";
 import { PasswordField } from "@/components/auth/PasswordField";
+import { Turnstile } from "@/components/auth/Turnstile";
+import { turnstileSiteKey } from "@/lib/auth/captcha";
 import { enabledProviders } from "@/lib/auth/providers";
 import { signout } from "@/app/login/actions";
 import { safeNext } from "@/lib/redirects";
@@ -91,6 +93,7 @@ export default async function SignupPage({
                   </Text>
                   <PasswordField autoComplete="new-password" />
                 </label>
+                <Turnstile siteKey={turnstileSiteKey()} />
                 <Flex mt="2">
                   <Button formAction={signup}>Create account</Button>
                 </Flex>

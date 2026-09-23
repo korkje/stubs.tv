@@ -3,6 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import {
+  CAPTCHA_FAILED,
+  captchaToken,
+  isCaptchaFailure,
+} from "@/lib/auth/captcha";
 import { safeNext } from "@/lib/redirects";
 
 /** Error redirects keep the destination, so a retry still lands right. */
@@ -19,10 +24,11 @@ export async function signup(formData: FormData) {
   const { data, error } = await supabase.auth.signUp({
     email: formData.get("email") as string,
     password: formData.get("password") as string,
+    options: { captchaToken: captchaToken(formData) },
   });
 
   if (error) {
-    fail(error.message, next);
+    fail(isCaptchaFailure(error) ? CAPTCHA_FAILED : error.message, next);
   }
 
   // With email confirmation enabled (hosted default) there is no session
