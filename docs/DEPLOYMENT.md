@@ -110,9 +110,9 @@ gh secret set CLOUDFLARE_ACCOUNT_ID       # from step 2
 gh secret set SUPABASE_ACCESS_TOKEN       # from step 3
 gh secret set SUPABASE_PROJECT_ID         # project ref from step 1
 gh secret set SUPABASE_DB_PASSWORD        # from step 1
+gh secret set NEXT_PUBLIC_SUPABASE_ANON_KEY  # the publishable key (see below)
 
 gh variable set NEXT_PUBLIC_SUPABASE_URL       # https://<ref>.supabase.co
-gh variable set NEXT_PUBLIC_SUPABASE_ANON_KEY  # anon key (public by design)
 
 gh variable set DEPLOY_ENABLED --body true     # unlocks the migrate/deploy jobs
 ```
@@ -120,8 +120,14 @@ gh variable set DEPLOY_ENABLED --body true     # unlocks the migrate/deploy jobs
 Until `DEPLOY_ENABLED` is `true`, pushes to main only run the checks job —
 so CI stays green during initial setup.
 
-The Supabase URL and anon key are repo *variables*, not secrets — the anon
-key ships to every browser anyway; RLS is the security boundary.
+The Supabase URL is a repo *variable*; the publishable (anon) key is a
+*secret*. Supabase designs that key to be public, and RLS and grants are
+still the security boundary, but this app never sends it to a browser (all
+Supabase calls are server-side), so keeping it private costs nothing and
+keeps the database API out of reach of the public. Variables are printed in
+plain text in this public repo's deploy logs; secrets are masked. It was a
+variable until 2026-09-23. If the key ever leaks, create a new publishable
+key in Supabase, update this secret, deploy, then delete the old key.
 
 ### 5. First deploy
 
