@@ -133,10 +133,19 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
   REFERENCES/TRIGGER/TRUNCATE. An RLS `select` policy with no matching
   `grant select` silently returns nothing, and `service_role` cannot write at
   all without `grant … to service_role`, despite bypassing RLS. Every new
-  table needs both its policies and its grants.
-- **`revoke execute … from public`, not from anon/authenticated.** PUBLIC
-  holds EXECUTE on new functions and those roles inherit it, so revoking from
-  them alone is a no-op. Remember to re-grant to `service_role` afterwards.
+  table needs both its policies and its grants. That is the local stack's
+  behaviour; production's defaults have already proven different for
+  functions (next point), so never rely on defaults in either direction.
+- **`revoke execute … from public, anon, authenticated`, then grant back.**
+  Every new function starts closed and gets EXECUTE only for the roles that
+  call it (re-grant `service_role` for server-only ones). Revoking from
+  PUBLIC alone is not enough: production's default privileges granted anon
+  and authenticated EXECUTE directly, which a PUBLIC revoke never removes, so
+  until 2026-09-23 every function there, SECURITY DEFINER ones included, was
+  callable by anyone with the publishable key. Migration 20260923190000
+  closed that and removed the direct grants from production's defaults, but
+  PUBLIC still gets EXECUTE on every new function (Postgres's built-in
+  default), so keep revoking from all three.
 - **Check Postgrest errors.** supabase-js returns `{ data, error }` instead of
   throwing; ignoring `error` makes a permission failure look like a no-op —
   or, on a read, like an empty result (an unapplied migration once spent a
