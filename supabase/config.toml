@@ -197,10 +197,13 @@ token_verifications = 30
 web3 = 30
 
 # Configure one of the supported captcha providers: `hcaptcha`, `turnstile`.
+# Production uses Turnstile (ADR-0024); locally it stays off so dev needs no
+# network check. To test it, uncomment this (Cloudflare's always-pass test
+# secret), restart the stack, and run the `web-turnstile` launch config.
 # [auth.captcha]
 # enabled = true
-# provider = "hcaptcha"
-# secret = ""
+# provider = "turnstile"
+# secret = "1x0000000000000000000000000000000AA"
 
 [auth.email]
 # Allow/disallow new user signups via email to your project.

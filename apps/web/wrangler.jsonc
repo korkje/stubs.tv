@@ -19,6 +19,10 @@
     // Runtime-read on dynamic routes, so no rebuild needed to change it;
     // unset = password/email only (the self-hosted default).
     "AUTH_PROVIDERS": "google,apple",
+    // Cloudflare Turnstile site key for the login, sign-up and reset forms
+    // (ADR-0024). Public by design; the secret key lives in Supabase's
+    // CAPTCHA settings, never here. Also runtime-read.
+    "TURNSTILE_SITE_KEY": "0x4AAAAAAFBin-pDzFRGzMzZ",
     "POLAR_SERVER": "production",
     "POLAR_PRODUCT_MONTHLY": "363dbfa0-1d8b-4dbb-aecb-f3d07b5369a1",
     "POLAR_PRODUCT_ANNUAL": "e75b25c4-ee85-4702-821f-51eeddf721c4",

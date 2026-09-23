@@ -21,6 +21,13 @@
       "runtimeArgs": ["SELF_HOSTED=true", "npm", "run", "dev", "--workspace", "apps/web"],
       "port": 3000,
       "autoPort": true
+    },
+    {
+      "name": "web-turnstile",
+      "runtimeExecutable": "env",
+      "runtimeArgs": ["TURNSTILE_SITE_KEY=1x00000000000000000000AA", "npm", "run", "dev", "--workspace", "apps/web"],
+      "port": 3000,
+      "autoPort": true
     }
   ]
 }

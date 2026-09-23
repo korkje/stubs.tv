@@ -92,6 +92,13 @@ Two ways to go:
   and anyone who can reach the sign-up page can create an account — keep
   the instance behind your own auth or network if you do this.
 
+If the instance is reachable from the internet, consider a bot check on the
+sign-in, sign-up and reset forms (ADR-0024): create a Cloudflare Turnstile
+widget, set its site key as `TURNSTILE_SITE_KEY` in `.env` (read at runtime,
+so a restart is enough), then enable CAPTCHA with provider Turnstile and the
+widget's secret key under *Authentication → Bot and Abuse Protection*. Set
+both halves or neither.
+
 ## 4. Run it
 
 ```sh
