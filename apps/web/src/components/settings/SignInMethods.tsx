@@ -68,9 +68,19 @@ export function SignInMethods({
   return (
     <Card>
       <Flex direction="column" gap="3" p="2">
-        <Heading as="h2" size="3">
-          Sign-in methods
-        </Heading>
+        <Flex direction="column" gap="1">
+          <Heading as="h2" size="3">
+            Sign-in methods
+          </Heading>
+          {/* Named before any Connect: a provider linked here joins this
+              account for good, so it has to be the one you meant
+              (ADR-0023). */}
+          {email && (
+            <Text size="2" color="gray">
+              Signed in as <Text weight="medium">{email}</Text>
+            </Text>
+          )}
+        </Flex>
 
         {linked && (
           <Callout.Root color="green">
