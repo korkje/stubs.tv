@@ -31,6 +31,10 @@ endpoints can be called without going through the app at all.
    as `captchaToken`. A refused token shows a fixed message
    (`lib/auth/captcha.ts`), and forgot-password reports it instead of
    swallowing it, since it says nothing about whether the address exists.
+   The widget runs invisibly (`interaction-only`) in the app's own light or
+   dark theme, and only opens, animated, when Cloudflare wants a click. A
+   submit that beats the invisible check waits for the token (up to 8s)
+   instead of failing.
 3. **Signed-in GoTrue calls use the service client**: the settings password
    email and delete-account's password check. Both sit behind a session
    that already passed a human check at sign-in (or came from an OAuth

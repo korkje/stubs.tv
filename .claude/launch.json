@@ -28,6 +28,13 @@
       "runtimeArgs": ["TURNSTILE_SITE_KEY=1x00000000000000000000AA", "npm", "run", "dev", "--workspace", "apps/web"],
       "port": 3000,
       "autoPort": true
+    },
+    {
+      "name": "web-turnstile-challenge",
+      "runtimeExecutable": "env",
+      "runtimeArgs": ["TURNSTILE_SITE_KEY=3x00000000000000000000FF", "npm", "run", "dev", "--workspace", "apps/web"],
+      "port": 3000,
+      "autoPort": true
     }
   ]
 }

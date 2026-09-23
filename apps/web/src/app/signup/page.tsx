@@ -93,10 +93,12 @@ export default async function SignupPage({
                   </Text>
                   <PasswordField autoComplete="new-password" />
                 </label>
-                <Turnstile siteKey={turnstileSiteKey()} />
-                <Flex mt="2">
-                  <Button formAction={signup}>Create account</Button>
-                </Flex>
+                <div>
+                  <Turnstile siteKey={turnstileSiteKey()} />
+                  <Flex mt="2">
+                    <Button formAction={signup}>Create account</Button>
+                  </Flex>
+                </div>
               </Flex>
             </form>
           </Flex>
