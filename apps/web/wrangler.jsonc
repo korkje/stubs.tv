@@ -35,5 +35,10 @@
   "triggers": {
     "crons": ["0 * * * *", "*/5 * * * *"]
   },
-  "routes": [{ "pattern": "stubs.tv", "custom_domain": true }]
+  "routes": [{ "pattern": "stubs.tv", "custom_domain": true }],
+  // stubs.tv is the only origin. A workers.dev or preview URL would serve
+  // production, with production secrets, outside the zone's WAF and rate
+  // limiting rules, so both are off explicitly rather than by default.
+  "workers_dev": false,
+  "preview_urls": false
 }
