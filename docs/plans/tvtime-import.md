@@ -485,7 +485,8 @@ the app cannot currently keep. Fix before inviting a wave, not after.
    the browser; say so on the page.
 5. **Migration** — `import_jobs`, `import_watch_intents`. RLS scoped to
    the owner, **and explicit grants** including `service_role` (AGENTS.md
-   "Database gotchas"). Regenerate `@stubs/db` types.
+   "Database gotchas"). Regenerate `@stubs/db` types. (Since ADR-0022 the
+   owner can only read these rows; the server writes them.)
 6. **Phase-1 action** — validate and persist the payload; follows and show
    ratings applied immediately. Behind `requireWriteAccess()`.
 7. **Phase-2 worker** — `/api/import/run`, `CRON_SECRET`-guarded like

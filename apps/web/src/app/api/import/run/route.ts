@@ -7,6 +7,7 @@ import {
 import { getMetadataProvider } from "@/lib/metadata/provider";
 import { normaliseTitle, yearsClose } from "@/lib/import/match";
 import type { ImportCounts } from "@/lib/import/types";
+import { jobClock } from "@/lib/import/clock";
 import { isCronRequest } from "@/lib/cron-auth";
 
 /**
@@ -21,9 +22,13 @@ import { isCronRequest } from "@/lib/cron-auth";
  * commit (lib/import/kick.ts). One invocation usually finishes a whole job
  * on the paid plan; the deadline below makes an oversized job stop cleanly
  * mid-way and resume on the next tick rather than trust a single invocation
- * with everything. Every step is idempotent, so a crash anywhere re-runs.
+ * with everything. Open jobs split each invocation evenly, oldest first
+ * (lib/import/clock.ts), so one big import can't keep newer ones waiting.
+ * Every step is idempotent, so a crash anywhere re-runs.
  */
 const DEADLINE_MS = 20_000;
+/** Held back at every checkpoint for the step already in flight. */
+const RESERVE_MS = 5_000;
 /** How many series ids to claim from the queue per query. */
 const SERIES_PAGE = 20;
 const MOVIE_PAGE = 50;
@@ -54,10 +59,12 @@ export async function GET(request: Request) {
 
   const results: Record<string, unknown>[] = [];
   const errors: string[] = [];
-  for (const job of jobs ?? []) {
-    if (timeLeft() < 2_000) break;
+  const open = jobs ?? [];
+  for (const [index, job] of open.entries()) {
+    if (timeLeft() < RESERVE_MS) break;
+    const clock = jobClock(timeLeft, open.length - index, RESERVE_MS);
     try {
-      results.push(await runJob(supabase, job.id, job.counts as unknown as ImportCounts, timeLeft));
+      results.push(await runJob(supabase, job.id, job.counts as unknown as ImportCounts, clock));
     } catch (error) {
       // Leave the job as-is: everything is idempotent and the next tick
       // picks up exactly where this one stopped.
@@ -90,7 +97,7 @@ async function runJob(
 
   // --- Episodes: ingest each pending series, then one SQL materialise ----
   for (;;) {
-    if (timeLeft() < 5_000) return partial(jobId, seriesDone, matched, unmatched);
+    if (timeLeft() < RESERVE_MS) return partial(jobId, seriesDone, matched, unmatched);
     const { data: queue, error: queueError } = await supabase.rpc(
       "import_pending_series",
       { p_job_id: jobId, p_limit: SERIES_PAGE }
@@ -99,7 +106,7 @@ async function runJob(
     if (!queue || queue.length === 0) break;
 
     for (const entry of queue) {
-      if (timeLeft() < 5_000) return partial(jobId, seriesDone, matched, unmatched);
+      if (timeLeft() < RESERVE_MS) return partial(jobId, seriesDone, matched, unmatched);
       // No-ops when fresh (< 12h), so retries after a crash are cheap.
       await ensureSeriesIngested(entry.series_id);
       const { data, error } = await supabase.rpc("import_materialise_series", {
@@ -129,7 +136,7 @@ async function runJob(
   let moviesMatched = 0;
   let moviesUnmatched = 0;
   for (;;) {
-    if (timeLeft() < 5_000) return partial(jobId, seriesDone, matched, unmatched);
+    if (timeLeft() < RESERVE_MS) return partial(jobId, seriesDone, matched, unmatched);
     const { data: movies, error: moviesError } = await supabase
       .from("import_movie_intents")
       .select("id, user_id, name, year, tvdb_movie_id, movie_id, watched_at")
@@ -141,7 +148,7 @@ async function runJob(
     if (!movies || movies.length === 0) break;
 
     for (const movie of movies) {
-      if (timeLeft() < 5_000) return partial(jobId, seriesDone, matched, unmatched);
+      if (timeLeft() < RESERVE_MS) return partial(jobId, seriesDone, matched, unmatched);
       const movieId = movie.movie_id ?? (await autoMatchMovie(supabase, movie));
       if (movieId === null) {
         const { error } = await supabase

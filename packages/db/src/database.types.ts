@@ -298,11 +298,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "import_movie_intents_job_id_fkey"
-            columns: ["job_id"]
+            foreignKeyName: "import_movie_intents_job_id_user_id_fkey"
+            columns: ["job_id", "user_id"]
             isOneToOne: false
             referencedRelation: "import_jobs"
-            referencedColumns: ["id"]
+            referencedColumns: ["id", "user_id"]
           },
           {
             foreignKeyName: "import_movie_intents_movie_id_fkey"
@@ -359,11 +359,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "import_watch_intents_job_id_fkey"
-            columns: ["job_id"]
+            foreignKeyName: "import_watch_intents_job_id_user_id_fkey"
+            columns: ["job_id", "user_id"]
             isOneToOne: false
             referencedRelation: "import_jobs"
-            referencedColumns: ["id"]
+            referencedColumns: ["id", "user_id"]
           },
           {
             foreignKeyName: "import_watch_intents_series_id_fkey"
@@ -666,11 +666,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "import_watch_intents_job_id_fkey"
-            columns: ["job_id"]
+            foreignKeyName: "import_watch_intents_job_id_user_id_fkey"
+            columns: ["job_id", "user_id"]
             isOneToOne: false
             referencedRelation: "import_jobs"
-            referencedColumns: ["id"]
+            referencedColumns: ["id", "user_id"]
           },
           {
             foreignKeyName: "import_watch_intents_series_id_fkey"
