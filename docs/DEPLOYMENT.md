@@ -52,10 +52,12 @@ where `supabase/config.toml` disables it). Configure once under
 *Authentication*:
 
 - **URL Configuration** → Site URL: `https://stubs.tv`. Add
-  `http://localhost:3000/**` **and `https://stubs.tv/auth/callback`** to
-  additional redirect URLs — GoTrue validates OAuth `redirectTo` against
-  this list and *silently falls back to the Site URL* on a miss, which
-  strands the sign-in with an unexchanged code on the homepage.
+  **`https://stubs.tv/auth/callback`** to additional redirect URLs — GoTrue
+  validates OAuth `redirectTo` against this list and *silently falls back
+  to the Site URL* on a miss, which strands the sign-in with an unexchanged
+  code on the homepage. Nothing else belongs there: local dev has its own
+  list in `supabase/config.toml`, and every extra entry is somewhere a
+  sign-in can be sent.
 - **Sign in with Google/Apple** (docs/plans/oauth-login.md): enable both
   providers under *Authentication → Sign In / Up* with their client ids
   (Google's secret by hand; Apple's secret is written and rotated by the
@@ -84,6 +86,22 @@ where `supabase/config.toml` disables it). Configure once under
   CAPTCHA protection* (provider Turnstile). Enable that only once a deploy
   carrying the widget is live: from then on GoTrue refuses sign-in,
   sign-up and reset requests that arrive without a token.
+
+- **Rate limits (ADR-0026).** GoTrue sees every visitor as the Worker's
+  one address, so its per-IP limits under *Authentication → Rate Limits*
+  apply to the whole site. Raise them well above one visitor's share, e.g.
+  sign-ups and sign-ins 300 and token refreshes 1500 per 5 minutes, and
+  token verifications 300 per 5 minutes. Raise emails per hour to what the
+  sender allows (Cloudflare Email Service includes 3,000 a month). The
+  Worker limits each visitor itself, through the `ratelimits` bindings in
+  `apps/web/wrangler.jsonc`, with nothing to set up. The zone also has one
+  Cloudflare rate-limiting rule for flood control ("Auth and search", 20
+  requests per 10 seconds per IP on the auth pages and `/app/search`).
+- **Email provider** (*Sign In / Providers → Email*): turn on **Secure
+  password change** and **Require current password when updating**, and
+  keep **Secure email change** on. Both password screens get their session
+  from an email link, which GoTrue treats as fresh and as a recovery, so
+  neither setting gets in their way.
 
 Stuck during testing (rate-limited, unverified account)? The hourly limit
 resets on its own, and a user can be confirmed manually from

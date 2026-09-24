@@ -37,6 +37,12 @@
       "autoPort": true
     },
     {
+      "name": "web-worker",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "cd apps/web && npx opennextjs-cloudflare preview"],
+      "port": 8787
+    },
+    {
       "name": "web-tvdb-down",
       "runtimeExecutable": "env",
       "runtimeArgs": ["TVDB_API_KEY=invalid", "npm", "run", "dev", "--workspace", "apps/web"],

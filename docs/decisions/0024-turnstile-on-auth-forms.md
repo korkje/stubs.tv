@@ -12,9 +12,10 @@ and publishable key. A script asking `/recover` for one address every
 minute, or signing up random ones, blocks confirmation and reset mail for
 everyone and burns the domain's sending reputation. GoTrue's per-IP limits
 barely help: the app calls GoTrue from the Worker, so those limits see
-Cloudflare's addresses, not visitors'. CAPTCHA on those endpoints is
-GoTrue's own answer, and it must be enforced by GoTrue, because the
-endpoints can be called without going through the app at all.
+Cloudflare's addresses, not visitors' (ADR-0026 adds per-visitor limits in
+the Worker for that reason). CAPTCHA on those endpoints is GoTrue's own
+answer, and it must be enforced by GoTrue, because the endpoints can be
+called without going through the app at all.
 
 ## Decision
 

@@ -2,6 +2,8 @@ import "server-only";
 
 import type { Database } from "@stubs/db";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { headers } from "next/headers";
+import { limitedFetch, VISITOR_IP_HEADER } from "@/lib/auth/rate-limit";
 
 /**
  * Supabase client authenticated with the secret (service-role) key.
@@ -31,5 +33,19 @@ export function createServiceClient() {
 
   return createSupabaseClient<Database>(url, secretKey, {
     auth: { persistSession: false, autoRefreshToken: false },
+    // The settings page's GoTrue calls still count against the visitor's own
+    // limit (ADR-0026). Supabase counts them against the Worker's one
+    // address like any other call.
+    global: { fetch: limitedFetch(requestVisitorIp) },
   });
+}
+
+/** The visitor's address when the call happens during a request, else null. */
+async function requestVisitorIp(): Promise<string | null> {
+  try {
+    return (await headers()).get(VISITOR_IP_HEADER);
+  } catch {
+    // Cron and other work outside a request never makes a limited call.
+    return null;
+  }
 }

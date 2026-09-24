@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { confirmLinkType } from "@/lib/auth/email-links";
 import { MIN_PASSWORD_LENGTH } from "@/lib/auth/password";
+import { isVisitorRateLimited } from "@/lib/auth/rate-limit";
 import { safeNext } from "@/lib/redirects";
 import { createClient } from "@/lib/supabase/server";
 
@@ -31,13 +32,7 @@ export async function confirmEmailLink(formData: FormData) {
     // Checked before the token is spent, like the reset flow (ADR-0011):
     // the common retry must not cost the link.
     if (type === "email" && password.length < MIN_PASSWORD_LENGTH) {
-      const params = new URLSearchParams({
-        token_hash: tokenHash,
-        type,
-        error: "short",
-      });
-      if (next) params.set("next", next);
-      redirect(`/auth/confirm?${params}`);
+      retry(tokenHash, type, next, "short");
     }
 
     const supabase = await createClient();
@@ -50,6 +45,8 @@ export async function confirmEmailLink(formData: FormData) {
       revalidatePath("/", "layout");
       redirect(next ?? "/app");
     }
+    // Refused before it reached GoTrue (ADR-0026), so the link still works.
+    if (isVisitorRateLimited(error)) retry(tokenHash, type, next, "rate");
   }
 
   // Same landing as before the page existed: the login form, which offers
@@ -57,6 +54,18 @@ export async function confirmEmailLink(formData: FormData) {
   const params = new URLSearchParams({ error: INVALID });
   if (next) params.set("next", next);
   redirect(`/login?${params}`);
+}
+
+/** Back to the confirmation page with the link intact, for another go. */
+function retry(
+  tokenHash: string,
+  type: string,
+  next: string | null,
+  error: "short" | "rate"
+): never {
+  const params = new URLSearchParams({ token_hash: tokenHash, type, error });
+  if (next) params.set("next", next);
+  redirect(`/auth/confirm?${params}`);
 }
 
 /**

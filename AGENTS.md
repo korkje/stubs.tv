@@ -94,6 +94,10 @@ seen, and view watch-history analytics. See [docs/VISION.md](docs/VISION.md).
   its listen address there, not the host the browser used.
 - Anything that sends `CRON_SECRET` must not derive its target from
   request headers; see `lib/import/kick.ts`.
+- Create Supabase clients only through `apps/web/src/lib/supabase/` (server,
+  middleware, service). Their fetch carries the per-visitor limit on GoTrue
+  calls (ADR-0026), which is needed because GoTrue sees every visitor as the
+  Worker's one address. A client built anywhere else skips it.
 - Keep the marketing site, app, and admin in `apps/web` until there's a
   concrete reason to split (that reason becomes an ADR).
 
