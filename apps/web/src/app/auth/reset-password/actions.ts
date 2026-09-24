@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { MIN_PASSWORD_LENGTH as MIN_LENGTH } from "@/lib/auth/password";
+import { isVisitorRateLimited, RATE_LIMITED } from "@/lib/auth/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 
 const EXPIRED =
@@ -54,6 +55,8 @@ export async function resetPassword(formData: FormData) {
   });
 
   if (invalidToken) {
+    // Refused before it reached GoTrue (ADR-0026), so the token is unspent.
+    if (isVisitorRateLimited(invalidToken)) fail(RATE_LIMITED, tokenHash);
     fail(EXPIRED, "");
   }
 

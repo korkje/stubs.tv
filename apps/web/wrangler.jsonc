@@ -28,6 +28,25 @@
     "POLAR_PRODUCT_ANNUAL": "e75b25c4-ee85-4702-821f-51eeddf721c4",
     "POLAR_PRODUCT_LIFETIME": "57b4806e-10ad-42bc-ba75-b523662f0523"
   },
+  // Each visitor's own limits on Supabase Auth calls (ADR-0026,
+  // lib/auth/rate-limit.ts). Supabase sees every visitor as the Worker's one
+  // address, which makes its per-IP limits site-wide. These count each
+  // visitor by address, per Cloudflare location, with one counter per kind
+  // of call. Attempts cover sign-in, sign-up, email-link verification, reset
+  // emails and OAuth code exchange. Refreshes are looser, because any
+  // signed-in request near the end of a token's hour can trigger one.
+  "ratelimits": [
+    {
+      "name": "AUTH_ATTEMPTS",
+      "namespace_id": "26001",
+      "simple": { "limit": 10, "period": 60 }
+    },
+    {
+      "name": "AUTH_REFRESHES",
+      "namespace_id": "26002",
+      "simple": { "limit": 30, "period": 60 }
+    }
+  ],
   // Scheduled work (dispatched by cron expression in custom-worker.ts):
   // hourly metadata refresh via /api/refresh, and a 5-minute sweep of open
   // import jobs via /api/import/run — the resume mechanism for imports; a

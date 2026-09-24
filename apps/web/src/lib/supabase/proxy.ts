@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { limitedFetch, VISITOR_IP_HEADER } from "@/lib/auth/rate-limit";
 import { AUTH_COOKIE_OPTIONS } from "./cookies";
 
 export async function updateSession(request: NextRequest) {
@@ -10,6 +11,10 @@ export async function updateSession(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookieOptions: AUTH_COOKIE_OPTIONS,
+      // Session refreshes count against the visitor's own limit (ADR-0026).
+      global: {
+        fetch: limitedFetch(() => request.headers.get(VISITOR_IP_HEADER)),
+      },
       cookies: {
         getAll() {
           return request.cookies.getAll();

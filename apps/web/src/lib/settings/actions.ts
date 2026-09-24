@@ -7,6 +7,7 @@ import { ResourceNotFound } from "@polar-sh/sdk/models/errors/resourcenotfound.j
 import { getPolarClient } from "@/lib/polar";
 import { isOAuthProvider } from "@/lib/auth/providers";
 import { createClient } from "@/lib/supabase/server";
+import { isVisitorRateLimited, RATE_LIMITED } from "@/lib/auth/rate-limit";
 import { createServiceClient } from "@/lib/supabase/service";
 
 const SPECIALS = new Set(["hidden", "uncounted", "counted"]);
@@ -225,7 +226,9 @@ export async function deleteAccount(formData: FormData) {
   );
 
   if (reauth) {
-    failDelete("Password is incorrect.");
+    failDelete(
+      isVisitorRateLimited(reauth) ? RATE_LIMITED : "Password is incorrect."
+    );
   }
 
   const { data: billing, error: billingError } = await supabase

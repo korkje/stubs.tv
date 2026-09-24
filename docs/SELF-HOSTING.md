@@ -57,6 +57,11 @@ In the Supabase dashboard under *Authentication → URL Configuration*
 - **Site URL**: where your instance will be reached, e.g.
   `https://stubs.example.com` — confirmation links are built from it.
 - **Redirect URLs**: add `https://stubs.example.com/**`.
+- **Rate limits**: stubs.tv limits each visitor's auth calls itself only
+  when it runs on Cloudflare Workers (ADR-0026). Here, your server calls
+  Supabase Auth from its own address, so Supabase's per-IP limits cover all
+  your users together. If people start seeing rate-limit errors, raise them
+  under *Authentication → Rate Limits*.
 
 ## 2. TheTVDB API key
 

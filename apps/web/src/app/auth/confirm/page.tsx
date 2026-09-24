@@ -11,6 +11,7 @@ import {
 import { PasswordField } from "@/components/auth/PasswordField";
 import { confirmLinkType, type ConfirmLinkType } from "@/lib/auth/email-links";
 import { MIN_PASSWORD_LENGTH } from "@/lib/auth/password";
+import { RATE_LIMITED } from "@/lib/auth/rate-limit";
 import { safeNext } from "@/lib/redirects";
 import { createClient } from "@/lib/supabase/server";
 import { confirmEmailLink } from "./actions";
@@ -98,6 +99,11 @@ export default async function ConfirmPage({
             <Callout.Text>
               Choose a password of at least {MIN_PASSWORD_LENGTH} characters.
             </Callout.Text>
+          </Callout.Root>
+        )}
+        {params.error === "rate" && (
+          <Callout.Root color="red">
+            <Callout.Text>{RATE_LIMITED}</Callout.Text>
           </Callout.Root>
         )}
 

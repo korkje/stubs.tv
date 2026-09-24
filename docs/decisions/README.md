@@ -43,3 +43,4 @@ Template:
 | [0023](0023-email-links-spent-on-click.md) | Email links land on a page; the token is spent on a click |
 | [0024](0024-turnstile-on-auth-forms.md) | Auth forms carry a Turnstile token, and Supabase enforces it |
 | [0025](0025-signup-password-set-by-mailbox.md) | Sign-up sets the password through the mailbox |
+| [0026](0026-auth-calls-limited-per-visitor.md) | Auth calls are limited per visitor, in the Worker |

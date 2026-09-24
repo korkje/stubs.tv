@@ -12,6 +12,7 @@ import {
 import { AuthEmailField } from "@/components/auth/AuthEmailField";
 import { Turnstile } from "@/components/auth/Turnstile";
 import { CAPTCHA_FAILED, turnstileSiteKey } from "@/lib/auth/captcha";
+import { RATE_LIMITED } from "@/lib/auth/rate-limit";
 import { requestPasswordReset } from "./actions";
 
 export default async function ForgotPasswordPage({
@@ -32,6 +33,11 @@ export default async function ForgotPasswordPage({
         {error === "captcha" && (
           <Callout.Root color="red">
             <Callout.Text>{CAPTCHA_FAILED}</Callout.Text>
+          </Callout.Root>
+        )}
+        {error === "rate" && (
+          <Callout.Root color="red">
+            <Callout.Text>{RATE_LIMITED}</Callout.Text>
           </Callout.Root>
         )}
 
